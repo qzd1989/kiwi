@@ -1,4 +1,6 @@
+pub mod capture;
 pub mod commands;
+pub mod common;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -25,6 +27,8 @@ pub fn run() {
             commands::fs::exists,
             commands::fs::write_file,
             commands::fs::read_file,
+            commands::capture::snapshot,
+            commands::capture::display_size,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

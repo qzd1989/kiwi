@@ -1,30 +1,17 @@
-use std::time::Duration;
-
-use crabgrab::prelude::*;
+use image::{ImageBuffer, Rgba};
+use kiwi_lib::capture;
 
 #[tokio::main]
 async fn main() {
-    let token = match CaptureStream::test_access(false) {
-        Some(token) => token,
-        None => CaptureStream::request_access(false)
-            .await
-            .expect("Expected capture access"),
-    };
-    let filter = CapturableContentFilter::DISPLAYS;
-    let content = CapturableContent::new(filter).await.unwrap();
-    let config = CaptureConfig::with_display(
-        content.displays().next().unwrap(),
-        CapturePixelFormat::Bgra8888,
-    );
-
-    let mut stream = CaptureStream::new(token, config, |result| {
-        if let StreamEvent::Video(frame) = result.expect("Expected stream event") {
-            println!("Got frame: {}", frame.frame_id());
-        }
-    })
-    .unwrap();
-
-    std::thread::sleep(Duration::from_millis(2000));
-
-    stream.stop().unwrap();
+    let display = capture::engine::get_primary_display().await;
+    // capture::engine::frame(display, |frame| {
+    //     println!("{:?} - {:?}", frame.width, frame.height);
+    // })
+    // .await;
+    let frame = capture::engine::snapshot(display).await;
+    println!("{:?} - {:?}", frame.width, frame.height);
+    let img =
+        ImageBuffer::<Rgba<u8>, _>::from_vec(frame.width, frame.height, frame.buffer).unwrap();
+    img.save("b.png").unwrap();
+    println!("done");
 }
