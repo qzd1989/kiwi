@@ -433,7 +433,7 @@ watchEffect(async () => {
 });
 onMounted(async () => {
   let projectPath = await LocalStore.get("projectPath");
-  if (await exists(projectPath)) {
+  if (projectPath && (await exists(projectPath))) {
     path.value = projectPath;
   }
 });
