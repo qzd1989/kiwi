@@ -1,0 +1,61 @@
+:root {
+  --Fill: #1c1f23;
+  --Secondary-Fill: #282c34;
+  --Third-Fill: #373b48;
+  --Primary-Color: #a3a9b7;
+  --Secondary-Color: white;
+  --Highlight-Color: #d8b983;
+}
+
+.unselect {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+/* global system style */
+.el-container,
+.el-main,
+.el-header,
+.el-footer {
+  padding: 0;
+  margin: 0;
+  height: auto;
+}
+.el-header,
+.el-main,
+.el-footer {
+  --el-header-height: auto;
+  --el-header-padding: 0px;
+  --el-main-padding: 0px;
+  --el-footer-height: auto;
+  --el-footer-padding: 0px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #3e3e3e;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-corner {
+  background-color: #000000;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #3b3b3b;
+}
+
+body {
+  padding: 0px;
+  margin: 0px;
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  height: 100vh;
+}
