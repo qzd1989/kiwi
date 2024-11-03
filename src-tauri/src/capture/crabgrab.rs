@@ -6,6 +6,12 @@ use std::sync::{Arc, Mutex};
 pub async fn get_primary_display() -> CapturableDisplay {
     let filter = CapturableContentFilter::DISPLAYS;
     let content = CapturableContent::new(filter).await.unwrap();
+    if content.displays().count() > 1 {
+        let primary_display = content.displays().find(|display| display.id() == 1);
+        if let Some(display) = primary_display {
+            return display;
+        }
+    }
     content.displays().next().unwrap()
 }
 
