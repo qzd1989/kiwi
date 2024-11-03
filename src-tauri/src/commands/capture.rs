@@ -6,9 +6,7 @@ use tauri::ipc::Response;
 #[tauri::command]
 pub async fn snapshot() -> Response {
     let display = capture::engine::get_primary_display().await;
-    println!("dispaly size: {:?}", display.clone().rect().size);
     let frame = capture::engine::snapshot(display).await;
-    println!("snapshot size: {:?} - {:?}", frame.width, frame.height);
     Response::new(frame.buffer)
 }
 

@@ -39,23 +39,6 @@ async function getMonitors() {
     },
   ];
 }
-async function getSnapshot() {
-  const ws = instance();
-  return new Promise((resolve, reject) => {
-    ws.call(
-      () => {
-        return {
-          monitor_request: true,
-          call: "snapshot",
-          identifier: "monitor:" + monitorId.value,
-        };
-      },
-      (arrayBuffer) => {
-        resolve(arrayBuffer);
-      }
-    );
-  });
-}
 async function capture() {
   cancelCapture();
   if (!monitorId.value) return;
