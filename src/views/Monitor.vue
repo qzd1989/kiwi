@@ -1,12 +1,12 @@
 <script setup>
 import { ref, onMounted, onUnmounted, reactive } from "vue";
+import { invoke } from "@tauri-apps/api/core";
 const bgLight = "/src/assets/canvas-bg-light.png";
 const bgDark = "/src/assets/canvas-bg-dark.png";
 const bgUrl = ref(bgLight);
 const monitors = ref([]);
 const monitorId = ref(null);
 const monitor = reactive({
-  id: 0,
   point: {
     x: 0,
     y: 0,
@@ -15,7 +15,7 @@ const monitor = reactive({
     width: 0,
     height: 0,
   },
-  data: null,
+  buffer: null,
 });
 
 //canvas
@@ -31,8 +31,15 @@ const isCaptured = ref(false);
 const isCapturing = ref(false);
 //canvas end
 
-const getMonitors = async () => {};
-const getSnapshot = () => {
+async function getMonitors() {
+  return [
+    {
+      name: "primary display",
+      key: "primary_display",
+    },
+  ];
+}
+async function getSnapshot() {
   const ws = instance();
   return new Promise((resolve, reject) => {
     ws.call(
@@ -48,26 +55,21 @@ const getSnapshot = () => {
       }
     );
   });
-};
-const capture = async () => {
+}
+async function capture() {
   cancelCapture();
-  for (const item of monitors.value) {
-    if (item.id == monitorId.value) {
-      monitor.id = item.id;
-      monitor.point = item.point;
-      monitor.size = item.size;
-    }
-  }
-  getSnapshot().then(async (arrayBuffer) => {
-    monitor.data = arrayBuffer;
-    draw();
-  });
-};
+  if (!monitorId.value) return;
+  const size = await invoke("display_size");
+  monitor.size = JSON.parse(size);
+  const buffer = await invoke("snapshot");
+  monitor.buffer = buffer;
+  draw();
+}
 
-const draw = () => {
-  if (canvasRef.value != null && monitor.data != null) {
+function draw() {
+  if (canvasRef.value != null && monitor.buffer != null) {
     const canvas = canvasRef.value;
-    const u8 = new Uint8Array(monitor.data);
+    const u8 = new Uint8Array(monitor.buffer);
     const imageData = new ImageData(monitor.size.width, monitor.size.height);
     imageData.data.set(u8);
     canvas.width = monitor.size.width;
@@ -75,7 +77,7 @@ const draw = () => {
     const ctx = canvas.getContext("2d");
     ctx.putImageData(imageData, 0, 0);
   }
-};
+}
 
 const toggleBg = () => {
   bgUrl.value = bgUrl.value == bgDark ? bgLight : bgDark;
@@ -174,7 +176,7 @@ function actionPosition() {
 }
 
 onMounted(async () => {
-  await getMonitors();
+  monitors.value = await getMonitors();
 });
 onUnmounted(() => {
   //todo
@@ -187,12 +189,15 @@ onUnmounted(() => {
         <el-button type="primary" plain @click="getMonitors" class="refresh">
           <el-icon><Refresh /></el-icon>
         </el-button>
-        <el-select v-model="monitorId" placeholder="Select">
+        <el-button type="primary" plain @click="toggleBg" class="toggle-bg">
+          <el-text>{{ bgUrl == bgDark ? "Light" : "Dark" }}</el-text>
+        </el-button>
+        <el-select v-model="monitorId" placeholder="Select" class="monitors">
           <el-option
             v-for="item in monitors"
-            :key="item.id"
-            :label="'monitor:' + item.id"
-            :value="item.id"
+            :key="item.key"
+            :label="'monitor: ' + item.name"
+            :value="item.key"
           />
         </el-select>
         <el-button
@@ -203,9 +208,6 @@ onUnmounted(() => {
           class="capture"
         >
           <el-text>capture</el-text>
-        </el-button>
-        <el-button type="primary" plain @click="toggleBg" class="toggle-bg">
-          <el-text>{{ bgUrl == bgDark ? "Light" : "Dark" }}</el-text>
         </el-button>
       </el-header>
       <el-main
@@ -255,10 +257,14 @@ onUnmounted(() => {
         </div>
         <!-- work end -->
       </el-main>
-      <el-footer
-        >position: ({{ point.x }}, {{ point.y }}) beginAt: ({{ beginAt.x }},
-        {{ beginAt.y }}) endAt: ({{ endAt.x }}, {{ endAt.y }})</el-footer
-      >
+      <el-footer>
+        <span v-if="monitor.buffer">
+          captured size: ({{ monitor.size.width }}, {{ monitor.size.height }})
+        </span>
+        <span>position: ({{ point.x }}, {{ point.y }})</span>
+        <span>beginAt: ({{ beginAt.x }}, {{ beginAt.y }})</span>
+        <span>endAt: ({{ endAt.x }}, {{ endAt.y }})</span>
+      </el-footer>
     </el-container>
     <!-- <el-aside width="200px">Sider</el-aside> -->
   </el-container>
@@ -271,13 +277,17 @@ onUnmounted(() => {
   overflow: hidden;
   align-items: center;
   .refresh {
+    margin-left: 5px;
+    display: none;
+  }
+  .monitors {
     margin: 0px 5px;
   }
   .capture {
-    margin: 0px 5px;
+    margin-right: 5px;
   }
   .toggle-bg {
-    margin: 0px 5px 0px 0px;
+    margin-left: 5px;
   }
 }
 .main {
@@ -312,5 +322,8 @@ onUnmounted(() => {
   align-items: center;
   font-size: 12px;
   padding: 0px 10px;
+  span {
+    margin-right: 10px;
+  }
 }
 </style>
