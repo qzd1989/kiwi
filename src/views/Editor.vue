@@ -13,6 +13,9 @@ import { useElementSize } from "@vueuse/core";
 import { writeFile } from "./../utils/fs";
 import { msgError, msgSuccess } from "./../utils/msg";
 import { extname } from "@tauri-apps/api/path";
+import { Window } from "@tauri-apps/api/window";
+import { Webview } from "@tauri-apps/api/webview";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import Python from "./../components/editors/Python.vue";
 const props = defineProps(["width", "height", "files", "lastOpenedFile"]);
 const emits = defineEmits(["remove:file"]);
@@ -95,6 +98,28 @@ function modified(file) {
   return true;
 }
 
+function openMonitor() {
+  //all the ways open an empty window :(
+  //way 1
+  const appWindow = new Window("hello");
+  const webview = new Webview(appWindow, "hello", {
+    url: "/hello",
+    x: 0,
+    y: 0,
+    width: 800,
+    height: 800,
+  });
+  //way 2
+  // const webview = new WebviewWindow("hello", {
+  //   url: "/hello",
+  // });
+  webview.once("tauri://created", function () {
+    console.log("window successfully created");
+  });
+  webview.once("tauri://error", function (e) {
+    console.log("an error happened creating the window", e);
+  });
+}
 watch(
   () => props.lastOpenedFile,
   (newValue, oldValue) => {
@@ -142,9 +167,9 @@ onUnmounted(() => {});
             <div v-if="modified(file[1])" class="modified">•</div>
           </li>
         </ul>
-        <!-- <div class="layouts">
-
-        </div> -->
+        <div class="layouts">
+          <el-icon @click="openMonitor"><Monitor /></el-icon>
+        </div>
       </div>
       <div class="path" v-if="currentFile">
         {{ currentFile ? currentFile.path : "" }}
@@ -175,11 +200,17 @@ onUnmounted(() => {});
   justify-content: space-between;
 }
 .layouts {
-  color: var(--Third-Color);
   display: flex;
   align-items: center;
-  font-size: 12px;
-  margin-right: 5px;
+  margin-right: 10px;
+  font-size: 14px;
+  .el-icon {
+    color: var(--Primary-Color);
+    cursor: pointer;
+  }
+  .el-icon:hover {
+    color: var(--Highlight-Color);
+  }
 }
 .menus {
   display: flex;

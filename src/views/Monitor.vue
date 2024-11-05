@@ -1,22 +1,51 @@
 <script setup>
 import { ref, onMounted, onUnmounted, reactive } from "vue";
 import { invoke } from "@tauri-apps/api/core";
+import {
+  arrayImageDataToBase64ImageData,
+  cropBase64Image,
+  base64ToPixels,
+} from "../utils/common";
+import MatchImage from "../components/monitor/MatchImage.vue";
 const bgLight = "/src/assets/canvas-bg-light.png";
 const bgDark = "/src/assets/canvas-bg-dark.png";
 const bgUrl = ref(bgLight);
 const monitors = ref([]);
-const monitorId = ref(null);
+const monitorKey = ref("null");
 const monitor = reactive({
-  point: {
-    x: 0,
-    y: 0,
-  },
+  key: null,
   size: {
     width: 0,
     height: 0,
   },
   buffer: null,
 });
+//matches
+const showImage = ref(false);
+const showLocatingColor = ref(false);
+const showColor = ref(false);
+const showRecognizeText = ref(false);
+const imageForm = reactive({
+  monitor: {
+    size: {
+      width: 0,
+      height: 0,
+    },
+    base64Data: null,
+  },
+  captured: {
+    point: {
+      x: 0,
+      y: 0,
+    },
+    size: {
+      width: 0,
+      height: 0,
+    },
+    base64Data: null,
+  },
+});
+// matches end
 
 //canvas
 const canvasRef = ref(null);
@@ -29,6 +58,12 @@ const endTheoreticalAt = reactive({ x: 0, y: 0 }); //理论值,有(offsetX,offse
 const shouldDrawCapture = ref(false);
 const isCaptured = ref(false);
 const isCapturing = ref(false);
+const capturedRect = reactive({
+  size: {
+    width: 0,
+    height: 0,
+  },
+});
 //canvas end
 
 async function getMonitors() {
@@ -41,7 +76,7 @@ async function getMonitors() {
 }
 async function capture() {
   cancelCapture();
-  if (!monitorId.value) return;
+  if (!monitorKey) return;
   const size = await invoke("display_size");
   monitor.size = JSON.parse(size);
   const buffer = await invoke("snapshot");
@@ -69,21 +104,17 @@ const toggleBg = () => {
 function drawCapturedRect() {
   const ctx = canvasRef.value.getContext("2d");
   ctx.beginPath();
+  const x = beginAt.x;
+  const y = beginAt.y;
+  let width = endTheoreticalAt.x - beginAt.x - offsetX;
+  let height = endTheoreticalAt.y - beginAt.y - offsetY;
   if (isCapturing.value) {
-    ctx.rect(
-      beginAt.x,
-      beginAt.y,
-      point.x - beginAt.x - offsetX,
-      point.y - beginAt.y - offsetY
-    );
-  } else {
-    ctx.rect(
-      beginAt.x,
-      beginAt.y,
-      endTheoreticalAt.x - beginAt.x - offsetX,
-      endTheoreticalAt.y - beginAt.y - offsetY
-    );
+    width = point.x - beginAt.x - offsetX;
+    height = point.y - beginAt.y - offsetY;
   }
+  ctx.rect(x, y, width, height);
+  capturedRect.size.width = width;
+  capturedRect.size.height = height;
   ctx.strokeStyle = "#489029";
   ctx.stroke();
 }
@@ -129,6 +160,7 @@ function onCanvasMouseUp(event) {
     Math.abs(beginAt.y - endAt.y) < 10
   ) {
     shouldDrawCapture.value = false;
+    cancelCapture();
   }
   draw();
   if (shouldDrawCapture.value) {
@@ -146,6 +178,8 @@ function cancelCapture() {
   endAt.y = 0;
   endTheoreticalAt.x = 0;
   endTheoreticalAt.y = 0;
+  capturedRect.size.width = 0;
+  capturedRect.size.height = 0;
   draw();
   if (shouldDrawCapture.value) {
     drawCapturedRect();
@@ -158,8 +192,42 @@ function actionPosition() {
   return { x, y };
 }
 
+async function matchImage() {
+  showImage.value = true;
+  //get data
+  const x = Math.min(beginAt.x, endAt.x);
+  const y = Math.min(beginAt.y, endAt.y);
+  const width = Math.abs(beginAt.x - endAt.x);
+  const height = Math.abs(beginAt.y - endAt.y);
+  const monitorBase64Data = arrayImageDataToBase64ImageData(
+    monitor.buffer,
+    monitor.size.width,
+    monitor.size.height
+  );
+  imageForm.monitor.size = monitor.size;
+  imageForm.monitor.base64Data = monitorBase64Data;
+  imageForm.captured.point = {
+    x,
+    y,
+  };
+  imageForm.captured.size = {
+    width,
+    height,
+  };
+  imageForm.captured.base64Data = await cropBase64Image(
+    monitorBase64Data,
+    x,
+    y,
+    width,
+    height
+  );
+}
+
 onMounted(async () => {
   monitors.value = await getMonitors();
+  //init
+  monitorKey.value = "primary_display";
+  capture();
 });
 onUnmounted(() => {
   //todo
@@ -175,7 +243,7 @@ onUnmounted(() => {
         <el-button type="primary" plain @click="toggleBg" class="toggle-bg">
           <el-text>{{ bgUrl == bgDark ? "Light" : "Dark" }}</el-text>
         </el-button>
-        <el-select v-model="monitorId" placeholder="Select" class="monitors">
+        <el-select v-model="monitorKey" placeholder="Select" class="monitors">
           <el-option
             v-for="item in monitors"
             :key="item.key"
@@ -187,7 +255,7 @@ onUnmounted(() => {
           type="primary"
           plain
           @click="capture"
-          :disabled="!monitorId"
+          :disabled="monitorKey == null"
           class="capture"
         >
           <el-text>capture</el-text>
@@ -211,7 +279,9 @@ onUnmounted(() => {
             }"
           >
             <!-- match image -->
-            <el-icon title="match image" @click=""><Picture /></el-icon>
+            <el-icon title="match image" @click="matchImage"
+              ><Picture
+            /></el-icon>
             <!-- match locating colors -->
             <el-icon title="match locating colors" @click=""
               ><Orange
@@ -221,9 +291,18 @@ onUnmounted(() => {
             <!-- recognize text -->
             <el-icon title="recognize text" @click=""><View /></el-icon>
             <!-- close -->
-            <el-icon title="close" @click="cancelCapture"
-              ><CircleClose
-            /></el-icon>
+            <el-icon
+              title="close"
+              @click="cancelCapture"
+              v-show="
+                !showImage &&
+                !showLocatingColor &&
+                !showColor &&
+                !showRecognizeText
+              "
+            >
+              <CircleClose />
+            </el-icon>
           </div>
           <!-- canvas -->
           <canvas
@@ -242,14 +321,19 @@ onUnmounted(() => {
       </el-main>
       <el-footer>
         <span v-if="monitor.buffer">
-          captured size: ({{ monitor.size.width }}, {{ monitor.size.height }})
+          monitor size: ({{ monitor.size.width }}, {{ monitor.size.height }})
         </span>
         <span>position: ({{ point.x }}, {{ point.y }})</span>
         <span>beginAt: ({{ beginAt.x }}, {{ beginAt.y }})</span>
         <span>endAt: ({{ endAt.x }}, {{ endAt.y }})</span>
+        <span
+          >captured Rect Size: ({{ capturedRect.size.width }},
+          {{ capturedRect.size.height }})
+        </span>
       </el-footer>
     </el-container>
-    <!-- <el-aside width="200px">Sider</el-aside> -->
+    <!-- matches -->
+    <MatchImage v-if="showImage" @close="showImage = false" :form="imageForm" />
   </el-container>
 </template>
 

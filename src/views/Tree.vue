@@ -436,6 +436,14 @@ onMounted(async () => {
   if (projectPath && (await exists(projectPath))) {
     path.value = projectPath;
   }
+  //todo
+  // setTimeout(() => {
+  //   const data = {
+  //     name: "main.py",
+  //     path: "/Users/kiwi/scripts/test/scripts/main.py",
+  //   };
+  //   emits("add:file", { file: data });
+  // }, 500);
 });
 </script>
 <template>

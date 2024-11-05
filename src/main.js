@@ -9,8 +9,14 @@ import "./style.css";
 
 import App from "./App.vue";
 import Home from "./views/Home.vue";
+import Monitor from "./views/Monitor.vue";
+import Hello from "./views/Hello.vue";
 
-const routes = [{ path: "/", component: Home }];
+const routes = [
+  { path: "/", component: Home },
+  { path: "/monitor", component: Monitor },
+  { path: "/hello", component: Hello },
+];
 
 const router = createRouter({
   history: createWebHashHistory(),
