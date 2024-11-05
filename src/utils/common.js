@@ -103,3 +103,25 @@ export function base64ToPixels(base64String) {
     };
   });
 }
+
+/**
+ * 将RGB颜色值转换为十六进制颜色值,也可以传入RGBA,只取RGB
+ * @param {Array} rgbArray - 一个包含三个整数的数组，表示RGB颜色值（例如[255, 99, 71]）
+ * @returns {string} - 转换后的十六进制颜色值（例如"#ff6347"）
+ */
+export function rgbToHex(rgbArray) {
+  /**
+   * 将单个RGB颜色值转换为两位的十六进制字符串
+   * @param {number} colorValue - 单个RGB颜色值（0-255之间的整数）
+   * @returns {string} - 两位的十六进制颜色值
+   */
+  function toHex(colorValue) {
+    var hex = colorValue.toString(16); // 将数字转换为十六进制字符串
+    return hex.length === 1 ? "0" + hex : hex; // 确保两位字符，如果只有一位则前面加0
+  }
+
+  // 构建最终的十六进制颜色值
+  var hexColor =
+    "#" + toHex(rgbArray[0]) + toHex(rgbArray[1]) + toHex(rgbArray[2]);
+  return hexColor; // 返回转换后的十六进制颜色值
+}

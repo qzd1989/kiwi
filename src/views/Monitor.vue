@@ -9,6 +9,7 @@ import {
   cropBase64Image,
 } from "../utils/common";
 import FindImage from "../components/monitor/FindImage.vue";
+import FindLocatingColors from "../components/monitor/FindLocatingColors.vue";
 // gap caculation
 const store = useStore();
 const windowRef = ref(null);
@@ -72,10 +73,10 @@ const monitor = reactive({
 });
 //find
 const showImage = ref(false);
-const showLocatingColor = ref(false);
+const showLocatingColors = ref(false);
 const showColor = ref(false);
 const showRecognizeText = ref(false);
-const imageForm = reactive({
+const form = reactive({
   monitor: {
     size: {
       width: 0,
@@ -239,13 +240,14 @@ function actionPosition() {
 
 function closeFind() {
   showImage.value = false;
-  showLocatingColor.value = false;
+  showLocatingColors.value = false;
   showRecognizeText.value = false;
   showColor.value = false;
   rightWidth.value = 0;
 }
 
 async function findImage() {
+  closeFind();
   rightWidth.value = 420;
   showImage.value = true;
   //get data
@@ -258,12 +260,41 @@ async function findImage() {
     monitor.size.width,
     monitor.size.height
   );
-  imageForm.monitor.size = monitor.size;
-  imageForm.captured.size = {
+  form.monitor.size = monitor.size;
+  form.captured.size = {
     width,
     height,
   };
-  imageForm.captured.base64Data = await cropBase64Image(
+  form.captured.base64Data = await cropBase64Image(
+    monitorBase64Data,
+    x,
+    y,
+    width,
+    height
+  );
+  cancelCapture();
+}
+
+async function findLocatingColors() {
+  closeFind();
+  rightWidth.value = 420;
+  showLocatingColors.value = true;
+  //get data
+  const x = Math.min(beginAt.x, endAt.x);
+  const y = Math.min(beginAt.y, endAt.y);
+  const width = Math.abs(beginAt.x - endAt.x);
+  const height = Math.abs(beginAt.y - endAt.y);
+  const monitorBase64Data = arrayImageDataToBase64ImageData(
+    monitor.buffer,
+    monitor.size.width,
+    monitor.size.height
+  );
+  form.monitor.size = monitor.size;
+  form.captured.size = {
+    width,
+    height,
+  };
+  form.captured.base64Data = await cropBase64Image(
     monitorBase64Data,
     x,
     y,
@@ -351,7 +382,9 @@ onUnmounted(() => {
             <!-- find image -->
             <el-icon title="find image" @click="findImage"><Picture /></el-icon>
             <!-- find locating colors -->
-            <el-icon title="find locating colors" @click=""><Orange /></el-icon>
+            <el-icon title="find locating colors" @click="findLocatingColors"
+              ><Orange
+            /></el-icon>
             <!-- find color -->
             <el-icon title="find color" @click=""><Pointer /></el-icon>
             <!-- recognize text -->
@@ -402,7 +435,12 @@ onUnmounted(() => {
         :class="{ selected: draggingRight }"
       ></div>
       <div class="find-area">
-        <FindImage v-if="showImage" @close="closeFind" :form="imageForm" />
+        <FindImage v-if="showImage" @close="closeFind" :form="form" />
+        <FindLocatingColors
+          v-if="showLocatingColors"
+          @close="closeFind"
+          :form="form"
+        />
       </div>
     </el-aside>
   </el-container>
