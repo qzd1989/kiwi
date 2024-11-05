@@ -436,7 +436,7 @@ onMounted(async () => {
   if (projectPath && (await exists(projectPath))) {
     path.value = projectPath;
   }
-  //todo
+  //临时代码, todo
   setTimeout(() => {
     const data = {
       name: "main.py",

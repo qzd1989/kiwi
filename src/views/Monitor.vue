@@ -319,7 +319,6 @@ onUnmounted(() => {
   document.removeEventListener("mousemove");
   document.removeEventListener("mouseup");
   // gap end
-  //todo
 });
 </script>
 <template>
