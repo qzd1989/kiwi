@@ -13,8 +13,6 @@ import { useElementSize } from "@vueuse/core";
 import { writeFile } from "./../utils/fs";
 import { msgError, msgSuccess } from "./../utils/msg";
 import { extname } from "@tauri-apps/api/path";
-import { Window } from "@tauri-apps/api/window";
-import { Webview } from "@tauri-apps/api/webview";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import Python from "./../components/editors/Python.vue";
 const props = defineProps(["width", "height", "files", "lastOpenedFile"]);
@@ -99,20 +97,10 @@ function modified(file) {
 }
 
 function openMonitor() {
-  //all the ways open an empty window :(
-  //way 1
-  const appWindow = new Window("hello");
-  const webview = new Webview(appWindow, "hello", {
-    url: "/hello",
-    x: 0,
-    y: 0,
-    width: 800,
-    height: 800,
+  const webview = new WebviewWindow("monitor", {
+    url: "/monitor",
+    title: "monitor",
   });
-  //way 2
-  // const webview = new WebviewWindow("hello", {
-  //   url: "/hello",
-  // });
   webview.once("tauri://created", function () {
     console.log("window successfully created");
   });

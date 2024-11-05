@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import ElementPlus from "element-plus";
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 import { store } from "./stores/state";
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 
 import "element-plus/dist/index.css";
 import "./style.css";
@@ -10,16 +10,14 @@ import "./style.css";
 import App from "./App.vue";
 import Home from "./views/Home.vue";
 import Monitor from "./views/Monitor.vue";
-import Hello from "./views/Hello.vue";
 
 const routes = [
   { path: "/", component: Home },
   { path: "/monitor", component: Monitor },
-  { path: "/hello", component: Hello },
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes,
 });
 

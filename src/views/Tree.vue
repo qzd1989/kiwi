@@ -437,13 +437,13 @@ onMounted(async () => {
     path.value = projectPath;
   }
   //todo
-  // setTimeout(() => {
-  //   const data = {
-  //     name: "main.py",
-  //     path: "/Users/kiwi/scripts/test/scripts/main.py",
-  //   };
-  //   emits("add:file", { file: data });
-  // }, 500);
+  setTimeout(() => {
+    const data = {
+      name: "main.py",
+      path: "/Users/kiwi/scripts/test/scripts/main.py",
+    };
+    emits("add:file", { file: data });
+  }, 500);
 });
 </script>
 <template>

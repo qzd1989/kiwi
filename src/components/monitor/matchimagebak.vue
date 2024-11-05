@@ -3,7 +3,7 @@ import { ref, onMounted, reactive } from "vue";
 import { drawBase64ImageOnCanvas } from "../../utils/common";
 const showDialog = ref(true);
 const props = defineProps(["form"]);
-const emits = defineEmits(["close"]);
+const emits = defineEmits(["close", "form"]);
 
 const dataExtSideLength = 100; //额外扩展的画布长度,让图像居中方便擦除
 const bgLight = "/src/assets/canvas-bg-light.png";

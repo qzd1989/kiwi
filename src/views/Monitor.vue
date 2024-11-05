@@ -1,12 +1,62 @@
 <script setup>
 import { ref, onMounted, onUnmounted, reactive } from "vue";
+import { useStore } from "vuex";
+import { useResizeObserver } from "@vueuse/core";
+import { Stack } from "./../utils/common";
 import { invoke } from "@tauri-apps/api/core";
 import {
   arrayImageDataToBase64ImageData,
   cropBase64Image,
-  base64ToPixels,
 } from "../utils/common";
-import MatchImage from "../components/monitor/MatchImage.vue";
+import FindImage from "../components/monitor/FindImage.vue";
+// gap caculation
+const store = useStore();
+const windowRef = ref(null);
+const leftRef = ref(null);
+const rightRef = ref(null);
+const headerRef = ref(null);
+const mainRef = ref(null);
+const windowSize = reactive({ width: 0, height: 0 });
+const leftWidth = ref(0);
+const rightWidth = ref(0);
+const gapLength = ref(10);
+const pagePoint = reactive({ x: 0, y: 0 });
+const mouseVerticalStack = new Stack(2);
+const draggingRight = ref(false);
+function moveListener(event) {
+  const containerRect = windowRef.value.$el.getBoundingClientRect();
+  pagePoint.x = event.clientX - containerRect.left;
+  pagePoint.y = event.clientY - containerRect.top;
+  mouseVerticalStack.push(pagePoint.y);
+  //to left
+  if (draggingRight.value) {
+    const remain = windowSize.width;
+    rightWidth.value = Math.max(windowSize.width - pagePoint.x, 0);
+    rightWidth.value = Math.min(rightWidth.value, remain - gapLength.value);
+    leftWidth.value = remain - rightWidth.value;
+  }
+}
+function upListener() {
+  draggingRight.value = false;
+}
+function drag(event, area) {
+  event.preventDefault();
+  switch (area) {
+    case "right":
+      draggingRight.value = true;
+      break;
+  }
+}
+useResizeObserver(windowRef, (entries) => {
+  const entry = entries[0];
+  const { width, height } = entry.contentRect;
+  windowSize.width = width;
+  windowSize.height = height;
+  store.commit("windowSize", windowSize);
+  leftWidth.value = windowSize.width - rightRef.value.offsetWidth;
+});
+// gap caculation end
+
 const bgLight = "/src/assets/canvas-bg-light.png";
 const bgDark = "/src/assets/canvas-bg-dark.png";
 const bgUrl = ref(bgLight);
@@ -20,7 +70,7 @@ const monitor = reactive({
   },
   buffer: null,
 });
-//matches
+//find
 const showImage = ref(false);
 const showLocatingColor = ref(false);
 const showColor = ref(false);
@@ -31,13 +81,8 @@ const imageForm = reactive({
       width: 0,
       height: 0,
     },
-    base64Data: null,
   },
   captured: {
-    point: {
-      x: 0,
-      y: 0,
-    },
     size: {
       width: 0,
       height: 0,
@@ -45,7 +90,7 @@ const imageForm = reactive({
     base64Data: null,
   },
 });
-// matches end
+// find end
 
 //canvas
 const canvasRef = ref(null);
@@ -192,7 +237,16 @@ function actionPosition() {
   return { x, y };
 }
 
-async function matchImage() {
+function closeFind() {
+  showImage.value = false;
+  showLocatingColor.value = false;
+  showRecognizeText.value = false;
+  showColor.value = false;
+  rightWidth.value = 0;
+}
+
+async function findImage() {
+  rightWidth.value = 420;
   showImage.value = true;
   //get data
   const x = Math.min(beginAt.x, endAt.x);
@@ -205,11 +259,6 @@ async function matchImage() {
     monitor.size.height
   );
   imageForm.monitor.size = monitor.size;
-  imageForm.monitor.base64Data = monitorBase64Data;
-  imageForm.captured.point = {
-    x,
-    y,
-  };
   imageForm.captured.size = {
     width,
     height,
@@ -221,6 +270,7 @@ async function matchImage() {
     width,
     height
   );
+  cancelCapture();
 }
 
 onMounted(async () => {
@@ -228,15 +278,35 @@ onMounted(async () => {
   //init
   monitorKey.value = "primary_display";
   capture();
+  // gap
+  document.addEventListener("mousemove", moveListener);
+  document.addEventListener("mouseup", upListener);
+  // gap end
 });
 onUnmounted(() => {
+  // gap
+  document.removeEventListener("mousemove");
+  document.removeEventListener("mouseup");
+  // gap end
   //todo
 });
 </script>
 <template>
-  <el-container class="container">
-    <el-container>
-      <el-header>
+  <el-container
+    class="container"
+    ref="windowRef"
+    :style="{
+      '--gap-width': gapLength + 'px',
+    }"
+  >
+    <el-container
+      ref="leftRef"
+      class="left"
+      :style="{
+        width: leftWidth + 'px',
+      }"
+    >
+      <el-header ref="headerRef">
         <el-button type="primary" plain @click="getMonitors" class="refresh">
           <el-icon><Refresh /></el-icon>
         </el-button>
@@ -262,7 +332,7 @@ onUnmounted(() => {
         </el-button>
       </el-header>
       <el-main
-        class="main"
+        ref="mainRef"
         :style="{
           'background-image': `url(${bgUrl})`,
         }"
@@ -278,29 +348,16 @@ onUnmounted(() => {
               left: actionPosition().x + 'px',
             }"
           >
-            <!-- match image -->
-            <el-icon title="match image" @click="matchImage"
-              ><Picture
-            /></el-icon>
-            <!-- match locating colors -->
-            <el-icon title="match locating colors" @click=""
-              ><Orange
-            /></el-icon>
-            <!-- match color -->
-            <el-icon title="match color" @click=""><Pointer /></el-icon>
+            <!-- find image -->
+            <el-icon title="find image" @click="findImage"><Picture /></el-icon>
+            <!-- find locating colors -->
+            <el-icon title="find locating colors" @click=""><Orange /></el-icon>
+            <!-- find color -->
+            <el-icon title="find color" @click=""><Pointer /></el-icon>
             <!-- recognize text -->
             <el-icon title="recognize text" @click=""><View /></el-icon>
             <!-- close -->
-            <el-icon
-              title="close"
-              @click="cancelCapture"
-              v-show="
-                !showImage &&
-                !showLocatingColor &&
-                !showColor &&
-                !showRecognizeText
-              "
-            >
+            <el-icon title="close" @click="cancelCapture">
               <CircleClose />
             </el-icon>
           </div>
@@ -332,65 +389,103 @@ onUnmounted(() => {
         </span>
       </el-footer>
     </el-container>
-    <!-- matches -->
-    <MatchImage v-if="showImage" @close="showImage = false" :form="imageForm" />
+    <el-aside
+      ref="rightRef"
+      class="right"
+      :style="{
+        width: rightWidth + 'px',
+      }"
+    >
+      <div
+        class="gap-vertical"
+        @mousedown="drag($event, 'right')"
+        :class="{ selected: draggingRight }"
+      ></div>
+      <div class="find-area">
+        <FindImage v-if="showImage" @close="closeFind" :form="imageForm" />
+      </div>
+    </el-aside>
   </el-container>
 </template>
 
 <style scoped>
-.el-header {
-  display: flex;
-  height: 30px;
-  overflow: hidden;
-  align-items: center;
-  .refresh {
-    margin-left: 5px;
-    display: none;
-  }
-  .monitors {
-    margin: 0px 5px;
-  }
-  .capture {
-    margin-right: 5px;
-  }
-  .toggle-bg {
-    margin-left: 5px;
-  }
-}
-.main {
-  overflow: auto;
-  padding: 25px;
-  padding-bottom: 20px;
-  .work {
-    color: white;
-    position: relative;
-    display: inline-block;
-    .actions {
-      display: inline-flex;
+.container {
+  height: 100vh;
+  .left {
+    .el-header {
+      display: flex;
+      height: 30px;
       overflow: hidden;
-      border-radius: 5px;
-      background-color: var(--el-color-success-dark-2);
-      color: var(--Basic-White);
-      position: absolute;
+      align-items: center;
+      .refresh {
+        margin-left: 5px;
+        display: none;
+      }
+      .monitors {
+        margin: 0px 5px;
+      }
+      .capture {
+        margin-right: 5px;
+      }
+      .toggle-bg {
+        margin-left: 5px;
+      }
     }
-    .actions .el-icon {
+    .el-main {
+      overflow: auto;
       padding: 5px;
-      cursor: pointer;
+      padding-bottom: 0px;
+      .work {
+        color: white;
+        position: relative;
+        display: inline-block;
+        .actions {
+          display: inline-flex;
+          overflow: hidden;
+          border-radius: 5px;
+          background-color: var(--el-color-success-dark-2);
+          color: var(--Basic-White);
+          position: absolute;
+        }
+        .actions .el-icon {
+          padding: 5px;
+          cursor: pointer;
+        }
+        .actions .el-icon:hover {
+          color: var(--el-color-warning-light-5);
+        }
+      }
     }
-    .actions .el-icon:hover {
-      color: var(--el-color-warning-light-5);
+    .el-footer {
+      height: 30px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      padding: 0px 10px;
+      span {
+        margin-right: 10px;
+      }
     }
   }
-}
-.el-footer {
-  height: 30px;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  padding: 0px 10px;
-  span {
-    margin-right: 10px;
+  .right {
+    position: relative;
+    .gap-vertical {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: var(--gap-width);
+      height: 100%;
+    }
+    .gap-vertical:hover,
+    .gap-vertical.selected {
+      cursor: col-resize;
+    }
+    .find-area {
+      position: relative;
+      margin-left: var(--gap-width);
+      margin-right: var(--gap-width);
+    }
   }
 }
 </style>

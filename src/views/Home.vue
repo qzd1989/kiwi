@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, reactive, watch, watchEffect } from "vue";
+import { ref, onMounted, onUnmounted, reactive } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { useStore } from "vuex";
 import { Stack } from "./../utils/common";
