@@ -1,11 +1,7 @@
 <script setup>
 import { ref, onMounted, reactive, watch } from "vue";
 import { invoke } from "@tauri-apps/api/core";
-import {
-  base64ToPixels,
-  rgbToHex,
-  drawBase64ImageOnCanvas,
-} from "../../utils/common";
+import { drawBase64ImageOnCanvas } from "../../utils/common";
 import { msgError, msgInfo, msgSuccess } from "../../utils/msg";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
@@ -69,7 +65,7 @@ function drawImage() {
 
 async function save() {}
 
-watch(props.form, (newValue, oldValue) => {
+watch(props.form, () => {
   Object.assign(form, props.form);
   form.findArea.start = form.captured.point;
   form.findArea.end = {
@@ -277,17 +273,10 @@ onMounted(async () => {});
 .canvas-area {
   position: relative;
 }
-.canvas-bg {
-  background-repeat: repeat;
-  overflow: hidden;
-}
 .actions {
   margin-top: 10px;
   display: flex;
   justify-content: space-around;
   margin-bottom: 10px;
-}
-.el-button.current {
-  background-color: rgb(97, 97, 97);
 }
 </style>

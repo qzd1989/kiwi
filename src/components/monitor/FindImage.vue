@@ -161,18 +161,17 @@ function resetImage() {
 }
 async function save() {}
 
-watch(props.form, (newValue, oldValue) => {
+watch(props.form, () => {
   Object.assign(form, props.form);
   Object.assign(originForm, props.form);
   setTimeout(drawImage, 100);
   form.findArea.end.x = form.monitor.size.width;
   form.findArea.end.y = form.monitor.size.height;
-  if (form.name == null) {
-    form.name = generateRandomString(5);
-  }
 });
 
-onMounted(async () => {});
+onMounted(async () => {
+  form.name = generateRandomString(3);
+});
 </script>
 <template>
   <el-container>

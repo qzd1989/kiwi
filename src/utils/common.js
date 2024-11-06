@@ -127,10 +127,47 @@ export function rgbToHex(rgbArray) {
 }
 export function generateRandomString(length) {
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    result += characters.charAt(randomIndex);
-  }
-  return result;
+  return Array.from({ length }, () =>
+    characters.charAt(Math.floor(Math.random() * characters.length))
+  ).join("");
+}
+export function getCurrentTimeWithMilliseconds() {
+  var now = new Date();
+  var year = now.getFullYear();
+  var month = ("0" + (now.getMonth() + 1)).slice(-2); // 月份从0开始，所以需要+1
+  var day = ("0" + now.getDate()).slice(-2);
+  var hour = ("0" + now.getHours()).slice(-2);
+  var minute = ("0" + now.getMinutes()).slice(-2);
+  var second = ("0" + now.getSeconds()).slice(-2);
+  var millisecond = ("00" + now.getMilliseconds()).slice(-3); // 毫秒可能是一位或两位数，需要确保是三位数
+  console.log(
+    year +
+      "-" +
+      month +
+      "-" +
+      day +
+      " " +
+      hour +
+      ":" +
+      minute +
+      ":" +
+      second +
+      "." +
+      millisecond
+  );
+  return (
+    year +
+    "-" +
+    month +
+    "-" +
+    day +
+    " " +
+    hour +
+    ":" +
+    minute +
+    ":" +
+    second +
+    "." +
+    millisecond
+  );
 }
