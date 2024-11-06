@@ -499,6 +499,7 @@ onUnmounted(() => {
       }
       .toggle-bg {
         margin-left: 5px;
+        display: none;
       }
     }
     .el-main {
