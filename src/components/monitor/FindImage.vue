@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted, reactive, watch } from "vue";
-import { drawBase64ImageOnCanvas } from "../../utils/common";
+import {
+  drawBase64ImageOnCanvas,
+  generateRandomString,
+} from "../../utils/common";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
 
@@ -164,6 +167,9 @@ watch(props.form, (newValue, oldValue) => {
   setTimeout(drawImage, 100);
   form.findArea.end.x = form.monitor.size.width;
   form.findArea.end.y = form.monitor.size.height;
+  if (form.name == null) {
+    form.name = generateRandomString(5);
+  }
 });
 
 onMounted(async () => {});
@@ -256,6 +262,19 @@ onMounted(async () => {});
             </el-button>
           </div>
           <div class="item">
+            <el-form-item prop="imageName" style="margin-bottom: 0px">
+              <el-input
+                v-model="form.name"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+              >
+                <template #prepend>image name</template>
+                <template #append>.png</template>
+              </el-input>
+            </el-form-item>
+          </div>
+          <div class="item">
             <div class="title">
               <span>Find Area</span>
               <el-button type="primary" @click="save"> find </el-button>
@@ -323,18 +342,6 @@ onMounted(async () => {});
                 disabled
               />
             </div>
-          </div>
-          <div class="item">
-            <el-form-item prop="imageName" style="margin-bottom: 0px">
-              <el-input
-                v-model="form.name"
-                autocapitalize="off"
-                autocorrect="off"
-                spellcheck="false"
-              >
-                <template #prepend>image name</template>
-              </el-input>
-            </el-form-item>
           </div>
           <div class="item">
             <div class="title">

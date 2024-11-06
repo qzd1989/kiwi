@@ -192,8 +192,8 @@ onMounted(async () => {});
                 style="width: 100%"
                 :rows="2"
                 type="textarea"
-                placeholder="find results"
-                disabled
+                placeholder="results"
+                readonly
               />
             </div>
           </div>

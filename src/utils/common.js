@@ -125,3 +125,12 @@ export function rgbToHex(rgbArray) {
     "#" + toHex(rgbArray[0]) + toHex(rgbArray[1]) + toHex(rgbArray[2]);
   return hexColor; // 返回转换后的十六进制颜色值
 }
+export function generateRandomString(length) {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters.charAt(randomIndex);
+  }
+  return result;
+}
