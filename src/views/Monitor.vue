@@ -11,6 +11,7 @@ import {
 import FindImage from "../components/monitor/FindImage.vue";
 import FindLocatingColors from "../components/monitor/FindLocatingColors.vue";
 import FindColors from "../components/monitor/FindColors.vue";
+import FindTexts from "../components/monitor/FindTexts.vue";
 // gap caculation
 const store = useStore();
 const windowRef = ref(null);
@@ -76,7 +77,7 @@ const monitor = reactive({
 const showImage = ref(false);
 const showLocatingColors = ref(false);
 const showColors = ref(false);
-const showRecognizeText = ref(false);
+const showTexts = ref(false);
 const form = reactive({
   monitor: {
     size: {
@@ -85,6 +86,20 @@ const form = reactive({
     },
   },
   captured: {
+    size: {
+      width: 0,
+      height: 0,
+    },
+    base64Data: null,
+  },
+});
+
+const formTexts = reactive({
+  captured: {
+    point: {
+      x: 0,
+      y: 0,
+    },
     size: {
       width: 0,
       height: 0,
@@ -242,7 +257,7 @@ function actionPosition() {
 function closeFind() {
   showImage.value = false;
   showLocatingColors.value = false;
-  showRecognizeText.value = false;
+  showTexts.value = false;
   showColors.value = false;
   rightWidth.value = 0;
 }
@@ -325,6 +340,34 @@ async function findColors() {
     height,
   };
   form.captured.base64Data = await cropBase64Image(
+    monitorBase64Data,
+    x,
+    y,
+    width,
+    height
+  );
+  cancelCapture();
+}
+async function findTexts() {
+  closeFind();
+  rightWidth.value = 420;
+  showTexts.value = true;
+  //get data
+  const x = Math.min(beginAt.x, endAt.x);
+  const y = Math.min(beginAt.y, endAt.y);
+  const width = Math.abs(beginAt.x - endAt.x);
+  const height = Math.abs(beginAt.y - endAt.y);
+  const monitorBase64Data = arrayImageDataToBase64ImageData(
+    monitor.buffer,
+    monitor.size.width,
+    monitor.size.height
+  );
+  formTexts.captured.point = { x, y };
+  formTexts.captured.size = {
+    width,
+    height,
+  };
+  formTexts.captured.base64Data = await cropBase64Image(
     monitorBase64Data,
     x,
     y,
@@ -419,7 +462,9 @@ onUnmounted(() => {
               ><Pointer
             /></el-icon>
             <!-- recognize text -->
-            <el-icon title="recognize text" @click=""><View /></el-icon>
+            <el-icon title="recognize text" @click="findTexts"
+              ><View
+            /></el-icon>
             <!-- close -->
             <el-icon title="close" @click="cancelCapture">
               <CircleClose />
@@ -473,6 +518,7 @@ onUnmounted(() => {
           :form="form"
         />
         <FindColors v-if="showColors" @close="closeFind" :form="form" />
+        <FindTexts v-if="showTexts" @close="closeFind" :form="formTexts" />
       </div>
     </el-aside>
   </el-container>

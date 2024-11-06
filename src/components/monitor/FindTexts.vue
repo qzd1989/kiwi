@@ -1,14 +1,30 @@
 <script setup>
 import { ref, onMounted, reactive, watch } from "vue";
 import { invoke } from "@tauri-apps/api/core";
-import { base64ToPixels, rgbToHex } from "../../utils/common";
+import {
+  base64ToPixels,
+  rgbToHex,
+  drawBase64ImageOnCanvas,
+} from "../../utils/common";
 import { msgError, msgInfo, msgSuccess } from "../../utils/msg";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
 
+const canvasRef = ref(null);
+const supportedLanguages = [
+  {
+    label: "Chinese",
+    value: "chi_sim",
+  },
+  {
+    label: "English",
+    value: "eng",
+  },
+];
+
 const form = reactive({
   offset: 0,
-  locatingColors: [],
+  languages: ["chi_sim", "eng"],
   findArea: {
     start: {
       x: 0,
@@ -19,13 +35,11 @@ const form = reactive({
       y: 0,
     },
   },
-  monitor: {
-    size: {
-      width: 0,
-      height: 0,
-    },
-  },
   captured: {
+    point: {
+      x: 0,
+      y: 0,
+    },
     size: {
       width: 0,
       height: 0,
@@ -33,7 +47,6 @@ const form = reactive({
     base64Data: null,
   },
 });
-const pixels = ref([]);
 const rules = reactive({
   name: [{ required: true, message: "", trigger: "blur" }],
 });
@@ -41,130 +54,53 @@ function close() {
   emits("close");
 }
 function drawImage() {
-  base64ToPixels(form.captured.base64Data)
-    .then((data) => {
-      let arr = [];
-      let index = 0;
-      for (let y = 0; y < form.captured.size.height; y++) {
-        for (let x = 0; x < form.captured.size.width; x++) {
-          let locatingColor = {
-            hex: rgbToHex(data[index]),
-            point: {
-              x: x,
-              y: y,
-            },
-          };
-          arr.push(locatingColor);
-          index++;
-        }
-      }
-      pixels.value = arr;
-    })
-    .catch((error) => console.error(error));
-}
-
-async function unAdd() {
-  if (form.locatingColors.length > 0) {
-    form.locatingColors.pop();
-  }
-}
-
-async function pushColor(locatingColor) {
-  if (
-    form.locatingColors
-      .map((item) => {
-        return item.hex;
-      })
-      .includes(locatingColor.hex)
-  ) {
-    msgError("The color is already exist!");
+  if (canvasRef.value == null) {
     return;
   }
-  form.locatingColors.push(locatingColor);
-}
-
-function removeColor(hex) {
-  form.locatingColors = form.locatingColors.filter((item) => item.hex !== hex);
+  drawBase64ImageOnCanvas(
+    canvasRef.value,
+    form.captured.base64Data,
+    0,
+    0,
+    form.captured.size.width,
+    form.captured.size.height
+  );
 }
 
 async function save() {}
 
 watch(props.form, (newValue, oldValue) => {
   Object.assign(form, props.form);
-  form.locatingColors = [];
+  form.findArea.start = form.captured.point;
+  form.findArea.end = {
+    x: form.captured.point.x + form.captured.size.width,
+    y: form.captured.point.y + form.captured.size.height,
+  };
   form.offset = 0;
   setTimeout(drawImage, 100);
-  form.findArea.end.x = form.monitor.size.width;
-  form.findArea.end.y = form.monitor.size.height;
 });
 
 onMounted(async () => {});
 </script>
 <template>
   <el-container>
-    <el-header>Find Colors</el-header>
+    <el-header>Recognize Texts</el-header>
     <el-main>
       <el-form ref="formRef" :model="form" :rules="rules" status-icon>
         <div class="work-area">
           <div class="canvas-work">
-            <div class="pixels-box">
-              <div
-                class="pixels"
-                :style="{
-                  width: form.captured.size.width * 7 + 'px',
-                  height: form.captured.size.height * 7 + 'px',
-                }"
-              >
-                <div
-                  class="pixel"
-                  v-for="item in pixels"
-                  :style="{ 'background-color': item.hex }"
-                  @click="pushColor(item)"
-                  :class="{
-                    selected: form.locatingColors
-                      .map((row) => {
-                        return row.point.x + ',' + row.point.y;
-                      })
-                      .includes(item.point.x + ',' + item.point.y),
-                  }"
-                ></div>
-              </div>
+            <div class="canvas-area">
+              <canvas
+                ref="canvasRef"
+                :width="form.captured.size.width"
+                :height="form.captured.size.height"
+              ></canvas>
             </div>
-          </div>
-          <div class="actions">
-            <el-button size="small" type="danger" @click="unAdd">
-              <el-icon><Back /></el-icon>
-            </el-button>
-          </div>
-          <div class="item">
-            <div class="title">Colors</div>
-            <el-form-item
-              prop="colors"
-              style="margin-bottom: 0px"
-              v-show="form.locatingColors.length > 0"
-            >
-              <el-input
-                class="color"
-                style="margin-bottom: 2px"
-                v-for="item in form.locatingColors"
-                :value="item.hex"
-              >
-                <template #prepend>
-                  <div
-                    style="height: 10px; width: 10px; border-radius: 5px"
-                    :style="{ backgroundColor: item.hex }"
-                  ></div>
-                </template>
-                <template #append>
-                  <el-button @click="removeColor(item.hex)">×</el-button>
-                </template>
-              </el-input>
-            </el-form-item>
           </div>
           <div class="item">
             <div class="title">
               <span>Find Area</span>
-              <el-button type="primary" @click="save"> find </el-button>
+              <el-button type="primary" @click="save"> Recognize </el-button>
             </div>
             <div style="margin-bottom: -10px">
               <el-row :gutter="10">
@@ -221,7 +157,7 @@ onMounted(async () => {});
               </el-row>
             </div>
             <div>
-              <el-form-item prop="imageName" style="margin-bottom: 0px">
+              <el-form-item prop="offset" style="margin-bottom: 0px">
                 <el-input
                   v-model="form.offset"
                   autocapitalize="off"
@@ -230,6 +166,25 @@ onMounted(async () => {});
                 >
                   <template #prepend>color offset</template>
                 </el-input>
+              </el-form-item>
+            </div>
+            <div>
+              <el-form-item prop="languages" style="margin-bottom: 0px">
+                <el-select
+                  v-model="form.languages"
+                  multiple
+                  filterable
+                  default-first-option
+                  :reserve-keyword="false"
+                  placeholder="supported language"
+                >
+                  <el-option
+                    v-for="item in supportedLanguages"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  />
+                </el-select>
               </el-form-item>
             </div>
             <div>
