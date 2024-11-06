@@ -6,6 +6,8 @@ import { msgError, msgInfo, msgSuccess } from "../../utils/msg";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
 
+const unusedColor = ref(null);
+
 const form = reactive({
   offset: 0,
   locatingColors: [],
@@ -77,26 +79,21 @@ async function unAdd() {
 }
 
 async function pushColor(locatingColor) {
-  let templ = locatingColor.point.x + "," + locatingColor.point.y;
   if (
     form.locatingColors
       .map((item) => {
-        return item.point.x + "," + item.point.y;
+        return item.hex;
       })
-      .includes(templ)
+      .includes(locatingColor.hex)
   ) {
-    msgError("The point is already exist!");
+    msgError("The color is already exist!");
     return;
   }
   form.locatingColors.push(locatingColor);
 }
 
-function removeColor(locatingColor) {
-  form.locatingColors = form.locatingColors.filter((item) => {
-    const compareItem = item.point.x + "," + item.point.y;
-    const compare = locatingColor.point.x + "," + locatingColor.point.y;
-    return compareItem !== compare;
-  });
+function removeColor(hex) {
+  form.locatingColors = form.locatingColors.filter((item) => item.hex !== hex);
 }
 
 async function save() {}
@@ -110,30 +107,11 @@ watch(props.form, (newValue, oldValue) => {
   form.findArea.end.y = form.monitor.size.height;
 });
 
-async function getPeakPoint() {
-  let json = JSON.stringify(form.locatingColors);
-  //todo
-  await invoke("get_peak_point", { json }).then((data) => {
-    peak.hex = data.hex;
-    peak.point = data.point;
-  });
-}
-
-watch(form, async (newVal, oldVal) => {
-  if (newVal.locatingColors.length > 0) {
-    await getPeakPoint();
-  }
-  if (newVal.locatingColors.length == 0) {
-    peak.point.x = -1;
-    peak.point.y = -1;
-  }
-});
-
 onMounted(async () => {});
 </script>
 <template>
   <el-container>
-    <el-header>Find Locating Colors</el-header>
+    <el-header>Find Colors</el-header>
     <el-main>
       <el-form ref="formRef" :model="form" :rules="rules" status-icon>
         <div class="work-area">
@@ -157,9 +135,6 @@ onMounted(async () => {});
                         return row.point.x + ',' + row.point.y;
                       })
                       .includes(item.point.x + ',' + item.point.y),
-                    peak:
-                      peak.point.x + ',' + peak.point.y ==
-                      item.point.x + ',' + item.point.y,
                   }"
                 ></div>
               </div>
@@ -181,10 +156,7 @@ onMounted(async () => {});
                 class="color"
                 style="margin-bottom: 2px"
                 v-for="item in form.locatingColors"
-                :value="
-                  item.hex + ' ' + '(' + item.point.x + ',' + item.point.y + ')'
-                "
-                disabled
+                :value="item.hex"
               >
                 <template #prepend>
                   <div
@@ -193,7 +165,7 @@ onMounted(async () => {});
                   ></div>
                 </template>
                 <template #append>
-                  <el-button @click="removeColor(item)">×</el-button>
+                  <el-button @click="removeColor(item.hex)">×</el-button>
                 </template>
               </el-input>
             </el-form-item>
@@ -329,10 +301,6 @@ onMounted(async () => {});
     .pixel:hover,
     .selected {
       border-color: white;
-    }
-
-    .peak {
-      border-color: red;
     }
     .item {
       background-color: var(--Light-Fill);

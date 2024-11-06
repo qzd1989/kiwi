@@ -10,6 +10,7 @@ import {
 } from "../utils/common";
 import FindImage from "../components/monitor/FindImage.vue";
 import FindLocatingColors from "../components/monitor/FindLocatingColors.vue";
+import FindColors from "../components/monitor/FindColors.vue";
 // gap caculation
 const store = useStore();
 const windowRef = ref(null);
@@ -74,7 +75,7 @@ const monitor = reactive({
 //find
 const showImage = ref(false);
 const showLocatingColors = ref(false);
-const showColor = ref(false);
+const showColors = ref(false);
 const showRecognizeText = ref(false);
 const form = reactive({
   monitor: {
@@ -242,7 +243,7 @@ function closeFind() {
   showImage.value = false;
   showLocatingColors.value = false;
   showRecognizeText.value = false;
-  showColor.value = false;
+  showColors.value = false;
   rightWidth.value = 0;
 }
 
@@ -279,6 +280,35 @@ async function findLocatingColors() {
   closeFind();
   rightWidth.value = 420;
   showLocatingColors.value = true;
+  //get data
+  const x = Math.min(beginAt.x, endAt.x);
+  const y = Math.min(beginAt.y, endAt.y);
+  const width = Math.abs(beginAt.x - endAt.x);
+  const height = Math.abs(beginAt.y - endAt.y);
+  const monitorBase64Data = arrayImageDataToBase64ImageData(
+    monitor.buffer,
+    monitor.size.width,
+    monitor.size.height
+  );
+  form.monitor.size = monitor.size;
+  form.captured.size = {
+    width,
+    height,
+  };
+  form.captured.base64Data = await cropBase64Image(
+    monitorBase64Data,
+    x,
+    y,
+    width,
+    height
+  );
+  cancelCapture();
+}
+
+async function findColors() {
+  closeFind();
+  rightWidth.value = 420;
+  showColors.value = true;
   //get data
   const x = Math.min(beginAt.x, endAt.x);
   const y = Math.min(beginAt.y, endAt.y);
@@ -384,8 +414,10 @@ onUnmounted(() => {
             <el-icon title="find locating colors" @click="findLocatingColors"
               ><Orange
             /></el-icon>
-            <!-- find color -->
-            <el-icon title="find color" @click=""><Pointer /></el-icon>
+            <!-- find colors-->
+            <el-icon title="find color" @click="findColors"
+              ><Pointer
+            /></el-icon>
             <!-- recognize text -->
             <el-icon title="recognize text" @click=""><View /></el-icon>
             <!-- close -->
@@ -440,6 +472,7 @@ onUnmounted(() => {
           @close="closeFind"
           :form="form"
         />
+        <FindColors v-if="showColors" @close="closeFind" :form="form" />
       </div>
     </el-aside>
   </el-container>
