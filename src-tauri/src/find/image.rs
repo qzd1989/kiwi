@@ -23,7 +23,7 @@ pub fn find_one(
     template: ImageBuffer<image::Rgba<u8>, Vec<u8>>,
     start_at: Point,
     end_at: Point,
-    threshold: f64, //建议0.99以上
+    threshold: impl Into<f64>, //建议0.99以上
 ) -> Result<WeightPoint> {
     let (x, y) = (
         std::cmp::min(start_at.x as u32, end_at.x as u32),
@@ -57,7 +57,7 @@ pub fn find_one(
         &mask,
     )?;
     let one = FindResult::new(template, matched).one()?;
-    if one.weight < threshold {
+    if one.weight < threshold.into() {
         return Err(anyhow!(format!(
             "The lowest threshold is : {:?}",
             one.weight
