@@ -1,6 +1,7 @@
 pub mod capture;
 pub mod commands;
 pub mod common;
+pub mod find;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]

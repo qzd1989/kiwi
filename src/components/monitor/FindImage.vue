@@ -26,6 +26,7 @@ const magnifyingGlassCanvasRef = ref(null);
 
 const form = reactive({
   name: null,
+  threshold: 0.99,
   findArea: {
     start: {
       x: 0,
@@ -331,6 +332,18 @@ onMounted(async () => {
                   </el-form-item>
                 </el-col>
               </el-row>
+            </div>
+            <div>
+              <el-form-item prop="imageName" style="margin-bottom: 0px">
+                <el-input
+                  v-model="form.threshold"
+                  autocapitalize="off"
+                  autocorrect="off"
+                  spellcheck="false"
+                >
+                  <template #prepend>threshold</template>
+                </el-input>
+              </el-form-item>
             </div>
             <div>
               <el-input

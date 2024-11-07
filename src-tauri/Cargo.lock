@@ -633,6 +633,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "clang"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "84c044c781163c001b913cd018fc95a628c50d0d2dfea8bca77dad71edb16e37"
+dependencies = [
+ "clang-sys",
+ "libc",
+]
+
+[[package]]
+name = "clang-sys"
+version = "1.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b023947811758c97c59bf9d1c188fd619ad4718dcaa767947df1cadb14f39f4"
+dependencies = [
+ "glob",
+ "libc",
+]
+
+[[package]]
 name = "cocoa"
 version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2328,6 +2348,7 @@ dependencies = [
  "futures",
  "image",
  "lazy_static",
+ "opencv",
  "serde",
  "serde_json",
  "tauri",
@@ -3042,6 +3063,41 @@ dependencies = [
  "is-wsl",
  "libc",
  "pathdiff",
+]
+
+[[package]]
+name = "opencv"
+version = "0.93.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da3734a31925393dc5be7056eb3d0782ec65829f2c268490ca6c791dc65a426f"
+dependencies = [
+ "cc",
+ "dunce",
+ "jobserver",
+ "libc",
+ "num-traits",
+ "once_cell",
+ "opencv-binding-generator",
+ "pkg-config",
+ "semver",
+ "shlex",
+ "vcpkg",
+ "windows 0.58.0",
+]
+
+[[package]]
+name = "opencv-binding-generator"
+version = "0.92.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce6e5ca056eaea3cde1bfe85d0d89720e8f5770011c2a4fe374d53a407119a03"
+dependencies = [
+ "clang",
+ "clang-sys",
+ "dunce",
+ "once_cell",
+ "percent-encoding",
+ "regex",
+ "shlex",
 ]
 
 [[package]]
@@ -5169,6 +5225,12 @@ dependencies = [
  "num-traits",
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "vcpkg"
+version = "0.2.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
 
 [[package]]
 name = "version-compare"

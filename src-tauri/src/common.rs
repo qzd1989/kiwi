@@ -32,6 +32,18 @@ impl Size {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+pub struct WeightPoint {
+    pub point: Point,
+    pub weight: f64,
+}
+
+impl WeightPoint {
+    pub fn new(point: Point, weight: f64) -> Self {
+        Self { point, weight }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LocatingColor {
     pub point: Point,

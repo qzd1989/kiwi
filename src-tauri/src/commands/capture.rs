@@ -1,5 +1,6 @@
 use crate::capture;
 use crate::common::{LocatingColor, Size};
+use crabgrab::util::Point;
 use serde_json::json;
 use tauri::ipc::Response;
 
@@ -18,7 +19,7 @@ pub async fn display_size() -> serde_json::Value {
     json!(size)
 }
 
-#[tauri::command(rename_all = "snake_case")]
+#[tauri::command]
 pub fn get_peak_point(json: String) -> serde_json::Value {
     let locating_colors: Vec<LocatingColor> = serde_json::from_str(&json).unwrap();
     let sort = |locating_colors: Vec<LocatingColor>| -> Vec<LocatingColor> {
@@ -41,4 +42,15 @@ pub fn get_peak_point(json: String) -> serde_json::Value {
     let sorted = sort(locating_colors);
     let peak_locating_color = sorted.first().unwrap();
     json!(peak_locating_color)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub fn find_image(
+    origin_base64: String,
+    captured_base64: String,
+    start_point: String,
+    end_point: String,
+) -> Vec<Point> {
+    //todo
+    todo!()
 }
