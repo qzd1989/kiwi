@@ -35,7 +35,7 @@ const form = reactive({
 });
 const pixels = ref([]);
 const peak = reactive({
-  hex: "",
+  hex: null,
   point: {
     x: -1,
     y: -1,
@@ -101,7 +101,7 @@ function removeColor(locatingColor) {
 
 async function save() {}
 
-watch(props.form, (newValue, oldValue) => {
+watch(props.form, () => {
   Object.assign(form, props.form);
   form.locatingColors = [];
   form.offset = 0;
@@ -112,14 +112,13 @@ watch(props.form, (newValue, oldValue) => {
 
 async function getPeakPoint() {
   let json = JSON.stringify(form.locatingColors);
-  //todo
   await invoke("get_peak_point", { json }).then((data) => {
     peak.hex = data.hex;
     peak.point = data.point;
   });
 }
 
-watch(form, async (newVal, oldVal) => {
+watch(form, async (newVal) => {
   if (newVal.locatingColors.length > 0) {
     await getPeakPoint();
   }

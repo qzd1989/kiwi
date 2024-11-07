@@ -139,8 +139,7 @@ async function getMonitors() {
 async function capture() {
   cancelCapture();
   if (!monitorKey) return;
-  const size = await invoke("display_size");
-  monitor.size = JSON.parse(size);
+  monitor.size = await invoke("display_size");
   const buffer = await invoke("snapshot");
   monitor.buffer = buffer;
   draw();

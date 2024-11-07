@@ -32,6 +32,18 @@ impl Size {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct LocatingColor {
+    pub point: Point,
+    pub hex: String,
+}
+
+impl LocatingColor {
+    pub fn new(point: Point, hex: String) -> Self {
+        Self { point, hex }
+    }
+}
+
 pub struct LimitedQueue<T> {
     size: usize,
     queue: VecDeque<T>,
