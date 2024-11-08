@@ -57,6 +57,11 @@ pub fn crop_rgba(
     imageops::crop_imm(buffer, x.into(), y.into(), width.into(), height.into()).to_image()
 }
 
+pub fn base64_to_frame(base64_png_str: &str) -> Result<Frame> {
+    let buffer = base64_to_rgba(base64_png_str)?;
+    Ok(Frame::new(buffer.width(), buffer.height(), buffer.to_vec()))
+}
+
 pub fn frame_to_rgba(frame: Frame) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>> {
     if let Some(image) = ImageBuffer::from_raw(frame.width, frame.height, frame.buffer) {
         Ok(image)

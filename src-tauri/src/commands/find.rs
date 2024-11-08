@@ -1,20 +1,45 @@
-use crate::common::{LocatingColor, WeightPoint};
-use serde_json::json;
+use crate::{
+    common::{LocatingColor, WeightPoint},
+    find::{
+        common::{base64_to_frame, base64_to_rgba},
+        image::{find_multiple, find_one},
+    },
+};
 
-#[tauri::command(rename_all = "snake_case")]
+#[tauri::command]
 pub fn find_image(
-    origin_base64: String,
-    captured_base64: String,
-    start_at: String,
-    end_at: String,
+    origin: String,
+    template: String,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
     threshold: f64,
-) -> Vec<WeightPoint> {
-    //todo
-    todo!()
+) -> Result<WeightPoint, String> {
+    let frame = base64_to_frame(&origin).unwrap();
+    let template = base64_to_rgba(&template).unwrap();
+    find_one(frame, template, x, y, width, height, threshold)
+        .or_else(|error| Err(error.to_string()))
 }
 
 #[tauri::command]
-pub fn get_peak_point(json: String) -> serde_json::Value {
+pub fn find_images(
+    origin: String,
+    template: String,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+    threshold: f64,
+) -> Result<Vec<WeightPoint>, String> {
+    let frame = base64_to_frame(&origin).unwrap();
+    let template = base64_to_rgba(&template).unwrap();
+    find_multiple(frame, template, x, y, width, height, threshold)
+        .or_else(|error| Err(error.to_string()))
+}
+
+#[tauri::command]
+pub fn get_peak_point(json: String) -> LocatingColor {
     let locating_colors: Vec<LocatingColor> = serde_json::from_str(&json).unwrap();
     let sort = |locating_colors: Vec<LocatingColor>| -> Vec<LocatingColor> {
         let mut need_to_sort = locating_colors.clone();
@@ -34,6 +59,5 @@ pub fn get_peak_point(json: String) -> serde_json::Value {
         return need_to_sort;
     };
     let sorted = sort(locating_colors);
-    let peak_locating_color = sorted.first().unwrap();
-    json!(peak_locating_color)
+    sorted.first().unwrap().clone()
 }

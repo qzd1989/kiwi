@@ -21,25 +21,18 @@ use std::collections::HashMap;
 pub fn find_one(
     frame: Frame,
     template: ImageBuffer<image::Rgba<u8>, Vec<u8>>,
-    start_at: Point,
-    end_at: Point,
+    x: impl Into<u32>,
+    y: impl Into<u32>,
+    width: impl Into<u32>,
+    height: impl Into<u32>,
     threshold: impl Into<f64>, //建议0.99以上
 ) -> Result<WeightPoint> {
-    let (x, y) = (
-        std::cmp::min(start_at.x as u32, end_at.x as u32),
-        std::cmp::min(start_at.y as u32, end_at.y as u32),
-    );
-    let (width, height) = (
-        (start_at.x - end_at.x).abs() as u32,
-        (start_at.y - end_at.y).abs() as u32,
-    );
-    if width < template.width() || height < template.height() {
+    let (width, height) = (width.into(), height.into());
+    let (template_width, template_height) = template.dimensions();
+    if width < template_width || height < template_height {
         return Err(anyhow!(format!(
             "Invalid search area:(x: {:?} - {:?}, y: {:?} - {:?})",
-            width,
-            template.width(),
-            height,
-            template.height()
+            width, template_width, height, template_height
         ))
         .into());
     }
@@ -69,25 +62,18 @@ pub fn find_one(
 pub fn find_multiple(
     frame: Frame,
     template: ImageBuffer<image::Rgba<u8>, Vec<u8>>,
-    start_at: Point,
-    end_at: Point,
-    threshold: impl Into<f64>, //建议0.9以上
+    x: impl Into<u32>,
+    y: impl Into<u32>,
+    width: impl Into<u32>,
+    height: impl Into<u32>,
+    threshold: impl Into<f64>, //建议0.99以上
 ) -> Result<Vec<WeightPoint>> {
-    let (x, y) = (
-        std::cmp::min(start_at.x as u32, end_at.x as u32),
-        std::cmp::min(start_at.y as u32, end_at.y as u32),
-    );
-    let (width, height) = (
-        (start_at.x - end_at.x).abs() as u32,
-        (start_at.y - end_at.y).abs() as u32,
-    );
-    if width < template.width() || height < template.height() {
+    let (width, height) = (width.into(), height.into());
+    let (template_width, template_height) = template.dimensions();
+    if width < template_width || height < template_height {
         return Err(anyhow!(format!(
             "Invalid search area:(x: {:?} - {:?}, y: {:?} - {:?})",
-            width,
-            template.width(),
-            height,
-            template.height()
+            width, template_width, height, template_height
         ))
         .into());
     }
@@ -104,7 +90,9 @@ pub fn find_multiple(
         TemplateMatchModes::TM_CCORR_NORMED.into(),
         &mask,
     )?;
-    FindResult::new(template, matched).multiple(threshold.into())
+    let mut weight_points = FindResult::new(template, matched).multiple(threshold.into())?;
+    weight_points.sort_by(|a, b| b.weight.partial_cmp(&a.weight).unwrap());
+    Ok(weight_points)
 }
 
 struct FindResult {
@@ -285,7 +273,6 @@ impl FindResult {
                 WeightPoint::new(Point::new(value.point.x, value.point.y), value.weight);
             weight_points.push(weight_point);
         }
-
         // 返回位于矩形的向量
         Ok(weight_points)
     }

@@ -1,6 +1,5 @@
 use crate::capture;
 use crate::common::Size;
-use serde_json::json;
 use tauri::ipc::Response;
 
 #[tauri::command]
@@ -11,9 +10,8 @@ pub async fn snapshot() -> Response {
 }
 
 #[tauri::command]
-pub async fn display_size() -> serde_json::Value {
+pub async fn display_size() -> Size {
     let display = capture::engine::get_primary_display().await;
     let rect = display.rect();
-    let size = Size::new(rect.size.width, rect.size.height);
-    json!(size)
+    Size::new(rect.size.width, rect.size.height)
 }

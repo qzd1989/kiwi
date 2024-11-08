@@ -4,6 +4,8 @@ import {
   drawBase64ImageOnCanvas,
   generateRandomString,
 } from "../../utils/common";
+import { invoke } from "@tauri-apps/api/core";
+import { msgError } from "../../utils/msg";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
 
@@ -42,6 +44,7 @@ const form = reactive({
       width: 0,
       height: 0,
     },
+    base64Data: null,
   },
   captured: {
     size: {
@@ -52,6 +55,9 @@ const form = reactive({
   },
 });
 const originForm = reactive({
+  monitor: {
+    base64Data: null,
+  },
   captured: {
     base64Data: null,
   },
@@ -160,7 +166,51 @@ function resetImage() {
   form.captured.base64Data = originForm.captured.base64Data;
   drawImage();
 }
-async function save() {}
+async function findImage() {
+  const x = Number(form.findArea.start.x);
+  const y = Number(form.findArea.start.y);
+  const width = Number(form.findArea.end.x - form.findArea.start.x);
+  const height = Number(form.findArea.end.y - form.findArea.start.y);
+  const threshold = Number(form.threshold);
+  invoke("find_image", {
+    origin: form.monitor.base64Data,
+    template: form.captured.base64Data,
+    x,
+    y,
+    width,
+    height,
+    threshold,
+  })
+    .then((weightPoint) => {
+      console.log(weightPoint);
+    })
+    .catch((error) => {
+      msgError(error);
+    });
+}
+
+async function findImages() {
+  const x = Number(form.findArea.start.x);
+  const y = Number(form.findArea.start.y);
+  const width = Number(form.findArea.end.x - form.findArea.start.x);
+  const height = Number(form.findArea.end.y - form.findArea.start.y);
+  const threshold = Number(form.threshold);
+  invoke("find_images", {
+    origin: form.monitor.base64Data,
+    template: form.captured.base64Data,
+    x,
+    y,
+    width,
+    height,
+    threshold,
+  })
+    .then((weightPoints) => {
+      console.log(weightPoints);
+    })
+    .catch((error) => {
+      msgError(error);
+    });
+}
 
 watch(props.form, () => {
   Object.assign(form, props.form);
@@ -277,7 +327,14 @@ onMounted(async () => {
           <div class="item">
             <div class="title">
               <span>Find Area</span>
-              <el-button type="primary" @click="save"> find </el-button>
+              <div>
+                <el-button type="primary" @click="findImage">
+                  findOne
+                </el-button>
+                <el-button type="primary" @click="findImages">
+                  findMultiple
+                </el-button>
+              </div>
             </div>
             <div style="margin-bottom: -10px">
               <el-row :gutter="10">
@@ -358,7 +415,7 @@ onMounted(async () => {
           <div class="item">
             <div class="title">
               <span>Code</span>
-              <el-button type="primary" @click="save"> copy </el-button>
+              <el-button type="primary" @click=""> copy </el-button>
             </div>
             <div>
               <el-input
@@ -375,7 +432,7 @@ onMounted(async () => {
     </el-main>
     <el-footer>
       <el-button @click="close">Cancel</el-button>
-      <el-button type="primary" @click="save"> Save </el-button>
+      <el-button type="primary" @click=""> Save </el-button>
     </el-footer>
   </el-container>
 </template>

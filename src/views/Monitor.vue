@@ -84,6 +84,7 @@ const form = reactive({
       width: 0,
       height: 0,
     },
+    base64Data: null,
   },
   captured: {
     size: {
@@ -174,8 +175,8 @@ function drawCapturedRect() {
     height = point.y - beginAt.y - offsetY;
   }
   ctx.rect(x, y, width, height);
-  capturedRect.size.width = width;
-  capturedRect.size.height = height;
+  capturedRect.size.width = Math.abs(width);
+  capturedRect.size.height = Math.abs(height);
   ctx.strokeStyle = "#489029";
   ctx.stroke();
 }
@@ -275,6 +276,7 @@ async function findImage() {
     monitor.size.width,
     monitor.size.height
   );
+  form.monitor.base64Data = monitorBase64Data;
   form.monitor.size = monitor.size;
   form.captured.size = {
     width,

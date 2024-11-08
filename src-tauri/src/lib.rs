@@ -31,6 +31,8 @@ pub fn run() {
             commands::capture::snapshot,
             commands::capture::display_size,
             commands::find::get_peak_point,
+            commands::find::find_image,
+            commands::find::find_images,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
