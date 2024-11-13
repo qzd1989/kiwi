@@ -2,7 +2,7 @@ use crate::{
     common::{LocatingColor, Point, WeightPoint},
     find::{
         common::{base64_to_frame, base64_to_rgba},
-        image, locating_colors,
+        image, locating_color,
     },
 };
 
@@ -41,7 +41,7 @@ pub fn find_images(
 #[tauri::command]
 pub fn find_peak(locating_colors: String) -> LocatingColor {
     let locating_colors: Vec<LocatingColor> = serde_json::from_str(&locating_colors).unwrap();
-    locating_colors::find_peak(&locating_colors)
+    locating_color::find_peak(&locating_colors)
 }
 
 #[tauri::command]
@@ -58,7 +58,7 @@ pub fn find_locating_color(
 ) -> Result<Point, String> {
     let frame = base64_to_frame(&origin).unwrap();
     let locating_colors: Vec<LocatingColor> = serde_json::from_str(&locating_colors).unwrap();
-    if let Some(point) = locating_colors::find_one(
+    if let Some(point) = locating_color::find_one(
         frame,
         locating_colors,
         x,

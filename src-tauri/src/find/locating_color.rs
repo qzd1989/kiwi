@@ -1,7 +1,7 @@
-use super::common::{crop_rgba, frame_to_rgba, hex_to_rgb};
+use super::common::{crop_rgba, frame_to_rgba};
 use crate::{
     capture::Frame,
-    common::{LocatingColor, Point, RgbColor, Size},
+    common::{HexColor, HexColorExt as _, LocatingColor, Point, RgbColor, Size},
 };
 use image::{ImageBuffer, Rgba};
 use std::cmp::{max, min};
@@ -20,7 +20,7 @@ pub fn find_one(
     let (x, y) = (x.into() as u32, y.into() as u32);
     // 1. get peak point
     let peak = find_peak(&locating_colors);
-    let peak_rgb = hex_to_rgb(&peak.hex);
+    let peak_rgb = peak.hex.to_rgb();
     // 2. get relatives except peak
     let relatives = get_relatives(&locating_colors, &peak);
     // 3. get rect size of locating_colors
@@ -86,8 +86,8 @@ fn match_relatives(
         relative_point.to_owned()
     };
     let convert_to_offset_rgb =
-        |relative_hex: &mut str, offsets: &(i16, i16, i16)| -> (u8, u8, u8) {
-            let RgbColor(r, g, b) = hex_to_rgb(&relative_hex);
+        |relative_hex: &mut HexColor, offsets: &(i16, i16, i16)| -> (u8, u8, u8) {
+            let RgbColor(r, g, b) = relative_hex.to_rgb();
             let r = (r as i16 + offsets.0) as u8;
             let g = (g as i16 + offsets.1) as u8;
             let b = (b as i16 + offsets.2) as u8;
