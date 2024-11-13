@@ -1,3 +1,9 @@
+use crate::capture::Frame;
+use anyhow::Result;
+use base64::{engine::general_purpose, Engine as _};
+use image::{imageops, ImageBuffer, Rgba};
+use opencv::core::{Mat, CV_8UC1, CV_8UC4};
+use opencv::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
@@ -96,6 +102,55 @@ impl HexColorExt for HexColor {
     }
 }
 
+pub type Base64Png = String;
+pub trait Base64PngExt {
+    fn to_buffer(&self) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>>;
+    fn to_mat(&self) -> Result<Mat>;
+    fn to_frame(&self) -> Result<Frame>;
+}
+
+impl Base64PngExt for Base64Png {
+    fn to_buffer(&self) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>> {
+        let mut base64_str = self.as_str();
+        let prefix = "data:image/png;base64,";
+        if self.starts_with(prefix) {
+            base64_str = &base64_str[prefix.len()..];
+        }
+        let bytes = general_purpose::STANDARD.decode(base64_str)?;
+        let cursor = std::io::Cursor::new(bytes);
+        let img = image::load(cursor, image::ImageFormat::Png)?;
+        Ok(img.into_rgba8().into())
+    }
+
+    fn to_mat(&self) -> Result<Mat> {
+        self.to_buffer()?.to_mat()
+    }
+
+    fn to_frame(&self) -> Result<Frame> {
+        let buffer = self.to_buffer()?;
+        Ok(Frame::new(buffer.width(), buffer.height(), buffer.to_vec()))
+    }
+}
+
+pub trait MatExt {
+    fn to_buffer(&self) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>>;
+}
+
+impl MatExt for Mat {
+    fn to_buffer(&self) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>> {
+        let mat_data = self.data_bytes()?;
+        let (width, height) = (self.cols(), self.rows());
+        let buffer = mat_data.to_vec();
+        let image_buffer = ImageBuffer::<Rgba<u8>, Vec<u8>>::from_raw(
+            width.try_into().unwrap(),
+            height.try_into().unwrap(),
+            buffer,
+        )
+        .unwrap();
+        Ok(image_buffer)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub struct RgbColor(pub u8, pub u8, pub u8);
 
@@ -129,5 +184,72 @@ impl RgbColor {
 
     pub fn to_u32(&self) -> u32 {
         ((self.0 as u32) << 16) | ((self.1 as u32) << 8) | (self.2 as u32)
+    }
+}
+
+pub trait ImageBufferRgbaExt {
+    fn to_mat(&self) -> Result<Mat>;
+    fn crop(
+        &self,
+        x: impl Into<u32>,
+        y: impl Into<u32>,
+        width: impl Into<u32>,
+        height: impl Into<u32>,
+    ) -> ImageBuffer<Rgba<u8>, Vec<u8>>;
+    fn mask(&self) -> Result<Mat>;
+}
+
+impl ImageBufferRgbaExt for ImageBuffer<Rgba<u8>, Vec<u8>> {
+    fn to_mat(&self) -> Result<Mat> {
+        // 获取图像的宽度和高度
+        let (width, height) = self.dimensions();
+        // 获取图像缓冲区的原始数据
+        let rbga_data = self.to_owned().into_raw();
+        // 创建一个用于存储BGRA数据的向量，大小与原始RGBA数据相同
+        let mut bgra_data = vec![0u8; rbga_data.len()];
+        // 遍历RGBA数据，将其转换为BGRA格式
+        for i in (0..rbga_data.len()).step_by(4) {
+            bgra_data[i] = rbga_data[i + 2]; // B
+            bgra_data[i + 1] = rbga_data[i + 1]; // G
+            bgra_data[i + 2] = rbga_data[i]; // R
+            bgra_data[i + 3] = rbga_data[i + 3]; // A
+        }
+        // 使用转换后的BGRA数据创建一个新的Mat对象
+        let mut mat = unsafe { Mat::new_rows_cols(height as i32, width as i32, CV_8UC4) }?;
+        // 获取Mat对象的数据指针
+        let mat_data = mat.data_mut();
+        // 将BGRA数据复制到Mat对象的数据指针指向的内存区域
+        unsafe {
+            std::ptr::copy_nonoverlapping(bgra_data.as_ptr(), mat_data as *mut u8, bgra_data.len());
+        }
+        // 返回转换后的Mat对象
+        Ok(mat)
+    }
+
+    fn crop(
+        &self,
+        x: impl Into<u32>,
+        y: impl Into<u32>,
+        width: impl Into<u32>,
+        height: impl Into<u32>,
+    ) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+        imageops::crop_imm(self, x.into(), y.into(), width.into(), height.into()).to_image()
+    }
+
+    fn mask(&self) -> Result<Mat> {
+        let mut vec = Vec::new();
+        for (_, _, pixel) in self.enumerate_pixels() {
+            if pixel[3] == 0 {
+                vec.push(0);
+            } else {
+                vec.push(255);
+            }
+        }
+        let (width, height) = self.dimensions();
+        let mut mat = unsafe { Mat::new_rows_cols(height as i32, width as i32, CV_8UC1) }?;
+        unsafe {
+            std::ptr::copy_nonoverlapping(vec.as_ptr(), mat.data_mut() as *mut u8, vec.len());
+        }
+        Ok(mat)
     }
 }

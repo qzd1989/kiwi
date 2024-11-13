@@ -1,8 +1,6 @@
-use super::common::frame_to_rgba;
 use crate::{
     capture::Frame,
-    common::{Point, WeightPoint},
-    find::common::{crop_rgba, mask, rgba_to_mat},
+    common::{ImageBufferRgbaExt, Point, WeightPoint},
 };
 use anyhow::{anyhow, Ok, Result};
 use image::ImageBuffer;
@@ -37,11 +35,9 @@ pub fn find_one(
         ))
         .into());
     }
-    let buffer = frame_to_rgba(frame)?;
-    let buffer = crop_rgba(&buffer, x, y, width, height);
-    let image = rgba_to_mat(buffer)?;
-    let mask = mask(template.clone())?;
-    let template = rgba_to_mat(template)?;
+    let image = frame.to_buffer()?.crop(x, y, width, height).to_mat()?;
+    let mask = template.mask()?;
+    let template = template.to_mat()?;
     let mut matched = Mat::default();
     imgproc::match_template(
         &image,
@@ -81,11 +77,9 @@ pub fn find_multiple(
         ))
         .into());
     }
-    let buffer = frame_to_rgba(frame)?;
-    let buffer = crop_rgba(&buffer, x, y, width, height);
-    let image = rgba_to_mat(buffer)?;
-    let mask = mask(template.clone())?;
-    let template = rgba_to_mat(template)?;
+    let image = frame.to_buffer()?.crop(x, y, width, height).to_mat()?;
+    let mask = template.mask()?;
+    let template = template.to_mat()?;
     let mut matched = Mat::default();
     imgproc::match_template(
         &image,

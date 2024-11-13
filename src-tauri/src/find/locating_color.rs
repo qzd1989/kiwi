@@ -1,7 +1,8 @@
-use super::common::{crop_rgba, frame_to_rgba};
 use crate::{
     capture::Frame,
-    common::{HexColor, HexColorExt as _, LocatingColor, Point, RgbColor, Size},
+    common::{
+        HexColor, HexColorExt as _, ImageBufferRgbaExt, LocatingColor, Point, RgbColor, Size,
+    },
 };
 use image::{ImageBuffer, Rgba};
 use std::cmp::{max, min};
@@ -26,8 +27,7 @@ pub fn find_one(
     // 3. get rect size of locating_colors
     let cropped_size = get_size(&relatives, &peak);
     // 3. scan and match peak point.
-    let buffer = frame_to_rgba(frame).unwrap();
-    let buffer = crop_rgba(&buffer, x, y, width, height);
+    let buffer = frame.to_buffer().unwrap().crop(x, y, width, height);
     let (width, height) = buffer.dimensions();
     for cropped_y in 0..height {
         for cropped_x in 0..width {

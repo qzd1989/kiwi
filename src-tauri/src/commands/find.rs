@@ -1,9 +1,6 @@
 use crate::{
-    common::{LocatingColor, Point, WeightPoint},
-    find::{
-        common::{base64_to_frame, base64_to_rgba},
-        image, locating_color,
-    },
+    common::{Base64PngExt, LocatingColor, Point, WeightPoint},
+    find::{image, locating_color},
 };
 
 #[tauri::command]
@@ -16,8 +13,8 @@ pub fn find_image(
     height: u32,
     threshold: f64,
 ) -> Result<WeightPoint, String> {
-    let frame = base64_to_frame(&origin).unwrap();
-    let template = base64_to_rgba(&template).unwrap();
+    let frame = origin.to_frame().unwrap();
+    let template = template.to_buffer().unwrap();
     image::find_one(frame, template, x, y, width, height, threshold)
         .or_else(|error| Err(error.to_string()))
 }
@@ -32,8 +29,8 @@ pub fn find_images(
     height: u32,
     threshold: f64,
 ) -> Result<Vec<WeightPoint>, String> {
-    let frame = base64_to_frame(&origin).unwrap();
-    let template = base64_to_rgba(&template).unwrap();
+    let frame = origin.to_frame().unwrap();
+    let template = template.to_buffer().unwrap();
     image::find_multiple(frame, template, x, y, width, height, threshold)
         .or_else(|error| Err(error.to_string()))
 }
@@ -56,7 +53,7 @@ pub fn find_locating_color(
     offset_g: u8,
     offset_b: u8,
 ) -> Result<Point, String> {
-    let frame = base64_to_frame(&origin).unwrap();
+    let frame = origin.to_frame().unwrap();
     let locating_colors: Vec<LocatingColor> = serde_json::from_str(&locating_colors).unwrap();
     if let Some(point) = locating_color::find_one(
         frame,

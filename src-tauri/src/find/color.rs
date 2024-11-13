@@ -11,5 +11,9 @@ pub fn find_one(
     offset_g: u8,
     offset_b: u8,
 ) -> bool {
+    let (x, y) = (x.into() as u32, y.into() as u32);
+    let buffer = frame_to_rgba(frame).unwrap();
+    let buffer = crop_rgba(&buffer, x, y, width, height);
+    let (width, height) = buffer.dimensions();
     true
 }
