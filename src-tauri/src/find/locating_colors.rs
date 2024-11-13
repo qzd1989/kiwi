@@ -29,20 +29,21 @@ pub fn find_one(
     let buffer = frame_to_rgba(frame).unwrap();
     let buffer = crop_rgba(&buffer, x, y, width, height);
     let (width, height) = buffer.dimensions();
-    for y in 0..height {
-        for x in 0..width {
-            // 当剩余高度小于定位点尺寸高度,停止继续匹配.
-            if height - y < size.height as u32 {
+    for cropped_y in 0..height {
+        for cropped_x in 0..width {
+            // 当剩余高度小于定位矩形高度,停止继续匹配.
+            if height - cropped_y < size.height as u32 {
                 return None;
             }
-            let pixel = buffer.get_pixel(x, y);
+            let pixel = buffer.get_pixel(cropped_x, cropped_y);
             let (r, g, b) = (pixel[0], pixel[1], pixel[2]);
             let rgb = RgbColor(r, g, b);
             if let Some(offsets) = peak_rgb.range_compare(offset_r, offset_g, offset_b, &rgb) {
-                let origin_abs_point = Point::new(x as f64, y as f64);
+                let origin_abs_point = Point::new(cropped_x as f64, cropped_y as f64);
                 // 4. compare others pixel point.
                 if match_relatives(&buffer, &origin_abs_point, &relatives, &offsets) {
-                    return Some(peak.point);
+                    let peak_abs = Point::new(cropped_x + x, cropped_y + y);
+                    return Some(peak_abs);
                 }
             }
         }

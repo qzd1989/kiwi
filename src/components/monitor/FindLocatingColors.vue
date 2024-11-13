@@ -125,15 +125,7 @@ async function findLocatingColor() {
     offsetB: b,
   })
     .then((point) => {
-      point.x += x;
-      point.y += y;
-      console.log(point, peak, form.locatingColors);
-      let locatingColorsAbs = getAbsoluteCoordinates(
-        point,
-        peak,
-        form.locatingColors
-      );
-      console.log(point, peak, form.locatingColors, locatingColorsAbs);
+      console.log(point);
     })
     .catch((error) => {
       msgError(error);
