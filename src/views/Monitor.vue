@@ -113,6 +113,7 @@ const formTexts = reactive({
 //canvas
 const canvasRef = ref(null);
 const point = reactive({ x: 0, y: 0 });
+const hex = ref(null);
 const offsetX = 0; //坐标偏移量(为了让坐标在鼠标尖上,而不是鼠标中间)
 const offsetY = 0; //坐标偏移量(为了让坐标在鼠标尖上,而不是鼠标中间)
 const beginAt = reactive({ x: 0, y: 0 });
@@ -156,7 +157,20 @@ function draw() {
     canvas.height = monitor.size.height;
     const ctx = canvas.getContext("2d");
     ctx.putImageData(imageData, 0, 0);
+    hex.value = getPixelHex(ctx, point.x, point.y);
   }
+}
+
+function getPixelHex(ctx, x, y) {
+  var imageData = ctx.getImageData(x, y, 1, 1);
+  var data = imageData.data;
+  var r = data[0];
+  var g = data[1];
+  var b = data[2];
+  var hex =
+    "#" +
+    ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+  return hex;
 }
 
 const toggleBg = () => {
@@ -493,6 +507,7 @@ onUnmounted(() => {
           monitor size: ({{ monitor.size.width }}, {{ monitor.size.height }})
         </span>
         <span>position: ({{ point.x }}, {{ point.y }})</span>
+        <span>hex: {{ hex }}</span>
         <span>beginAt: ({{ beginAt.x }}, {{ beginAt.y }})</span>
         <span>endAt: ({{ endAt.x }}, {{ endAt.y }})</span>
         <span

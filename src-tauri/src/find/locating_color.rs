@@ -7,7 +7,7 @@ use crate::{
 use image::{ImageBuffer, Rgba};
 use std::cmp::{max, min};
 
-pub fn find_one(
+pub fn find(
     frame: Frame,
     locating_colors: Vec<LocatingColor>,
     x: impl Into<u32>,

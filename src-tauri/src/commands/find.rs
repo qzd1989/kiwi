@@ -55,7 +55,7 @@ pub fn find_locating_color(
 ) -> Result<Point, String> {
     let frame = origin.to_frame().unwrap();
     let locating_colors: Vec<LocatingColor> = serde_json::from_str(&locating_colors).unwrap();
-    if let Some(point) = locating_color::find_one(
+    if let Some(point) = locating_color::find(
         frame,
         locating_colors,
         x,
