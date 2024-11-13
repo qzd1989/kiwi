@@ -30,9 +30,10 @@ pub fn run() {
             commands::fs::read_file,
             commands::capture::snapshot,
             commands::capture::display_size,
-            commands::find::get_peak_point,
+            commands::find::find_peak,
             commands::find::find_image,
             commands::find::find_images,
+            commands::find::find_locating_color,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

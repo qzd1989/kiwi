@@ -1,8 +1,8 @@
 use crate::{
-    common::{LocatingColor, WeightPoint},
+    common::{LocatingColor, Point, WeightPoint},
     find::{
         common::{base64_to_frame, base64_to_rgba},
-        image::{find_multiple, find_one},
+        image, locating_colors,
     },
 };
 
@@ -18,7 +18,7 @@ pub fn find_image(
 ) -> Result<WeightPoint, String> {
     let frame = base64_to_frame(&origin).unwrap();
     let template = base64_to_rgba(&template).unwrap();
-    find_one(frame, template, x, y, width, height, threshold)
+    image::find_one(frame, template, x, y, width, height, threshold)
         .or_else(|error| Err(error.to_string()))
 }
 
@@ -34,30 +34,42 @@ pub fn find_images(
 ) -> Result<Vec<WeightPoint>, String> {
     let frame = base64_to_frame(&origin).unwrap();
     let template = base64_to_rgba(&template).unwrap();
-    find_multiple(frame, template, x, y, width, height, threshold)
+    image::find_multiple(frame, template, x, y, width, height, threshold)
         .or_else(|error| Err(error.to_string()))
 }
 
 #[tauri::command]
-pub fn get_peak_point(json: String) -> LocatingColor {
-    let locating_colors: Vec<LocatingColor> = serde_json::from_str(&json).unwrap();
-    let sort = |locating_colors: Vec<LocatingColor>| -> Vec<LocatingColor> {
-        let mut need_to_sort = locating_colors.clone();
-        need_to_sort.sort_by(|a, b| {
-            if a.point.y == b.point.y {
-                a.point
-                    .x
-                    .partial_cmp(&b.point.x)
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            } else {
-                a.point
-                    .y
-                    .partial_cmp(&b.point.y)
-                    .unwrap_or(std::cmp::Ordering::Equal)
-            }
-        });
-        return need_to_sort;
-    };
-    let sorted = sort(locating_colors);
-    sorted.first().unwrap().clone()
+pub fn find_peak(locating_colors: String) -> LocatingColor {
+    let locating_colors: Vec<LocatingColor> = serde_json::from_str(&locating_colors).unwrap();
+    locating_colors::find_peak(&locating_colors)
+}
+
+#[tauri::command]
+pub fn find_locating_color(
+    origin: String,
+    locating_colors: String,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+    offset_r: u8,
+    offset_g: u8,
+    offset_b: u8,
+) -> Result<Point, String> {
+    let frame = base64_to_frame(&origin).unwrap();
+    let locating_colors: Vec<LocatingColor> = serde_json::from_str(&locating_colors).unwrap();
+    if let Some(point) = locating_colors::find_one(
+        frame,
+        locating_colors,
+        x,
+        y,
+        width,
+        height,
+        offset_r,
+        offset_g,
+        offset_b,
+    ) {
+        return Ok(point);
+    }
+    return Err("point is not found".to_string());
 }

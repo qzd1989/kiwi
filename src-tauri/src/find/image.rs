@@ -27,6 +27,7 @@ pub fn find_one(
     height: impl Into<u32>,
     threshold: impl Into<f64>, //建议0.99以上
 ) -> Result<WeightPoint> {
+    let (x, y) = (x.into() as u32, y.into() as u32);
     let (width, height) = (width.into(), height.into());
     let (template_width, template_height) = template.dimensions();
     if width < template_width || height < template_height {
@@ -49,13 +50,15 @@ pub fn find_one(
         TemplateMatchModes::TM_CCORR_NORMED.into(),
         &mask,
     )?;
-    let one = FindResult::new(template, matched).one()?;
+    let mut one = FindResult::new(template, matched).one()?;
     if one.weight < threshold.into() {
         return Err(anyhow!(format!(
             "The lowest threshold is : {:?}",
             one.weight
         )));
     }
+    one.point.x += x as f64;
+    one.point.y += y as f64;
     Ok(one)
 }
 
@@ -68,6 +71,7 @@ pub fn find_multiple(
     height: impl Into<u32>,
     threshold: impl Into<f64>, //建议0.99以上
 ) -> Result<Vec<WeightPoint>> {
+    let (x, y) = (x.into() as u32, y.into() as u32);
     let (width, height) = (width.into(), height.into());
     let (template_width, template_height) = template.dimensions();
     if width < template_width || height < template_height {
@@ -92,6 +96,10 @@ pub fn find_multiple(
     )?;
     let mut weight_points = FindResult::new(template, matched).multiple(threshold.into())?;
     weight_points.sort_by(|a, b| b.weight.partial_cmp(&a.weight).unwrap());
+    for weight_point in weight_points.iter_mut() {
+        weight_point.point.x += x as f64;
+        weight_point.point.y += y as f64;
+    }
     Ok(weight_points)
 }
 

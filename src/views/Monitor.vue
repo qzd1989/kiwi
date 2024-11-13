@@ -306,6 +306,7 @@ async function findLocatingColors() {
     monitor.size.width,
     monitor.size.height
   );
+  form.monitor.base64Data = monitorBase64Data;
   form.monitor.size = monitor.size;
   form.captured.size = {
     width,

@@ -182,6 +182,9 @@ async function findImage() {
     threshold,
   })
     .then((weightPoint) => {
+      weightPoint.point.x = weightPoint.point.x + x;
+      weightPoint.point.y = weightPoint.point.y + y;
+      //result
       console.log(weightPoint);
     })
     .catch((error) => {
@@ -205,6 +208,16 @@ async function findImages() {
     threshold,
   })
     .then((weightPoints) => {
+      for (let i = 0; i < weightPoints.length; i++) {
+        weightPoints[i] = {
+          ...weightPoints[i],
+          point: {
+            x: weightPoints[i].point.x + x,
+            y: weightPoints[i].point.y + y,
+          },
+        };
+      }
+      //result
       console.log(weightPoints);
     })
     .catch((error) => {

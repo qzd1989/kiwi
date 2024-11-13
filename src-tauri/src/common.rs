@@ -1,6 +1,5 @@
-use std::collections::VecDeque;
-
 use serde::{Deserialize, Serialize};
+use std::collections::VecDeque;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub struct Point {
@@ -44,7 +43,7 @@ impl WeightPoint {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct LocatingColor {
     pub point: Point,
     pub hex: String,
@@ -76,5 +75,41 @@ impl<T> LimitedQueue<T> {
     }
     pub fn get(&self, index: usize) -> Option<&T> {
         self.queue.get(index)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
+pub struct RgbColor(pub u8, pub u8, pub u8);
+
+impl RgbColor {
+    pub fn range_compare(
+        &self,
+        offset_r: u8,
+        offset_g: u8,
+        offset_b: u8,
+        target: &RgbColor,
+    ) -> Option<(i16, i16, i16)> {
+        let range = (
+            (self.0 - offset_r)..=(self.0 + offset_r),
+            (self.1 - offset_g)..=(self.1 + offset_g),
+            (self.2 - offset_b)..=(self.2 + offset_b),
+        );
+        if range.0.contains(&target.0) && range.1.contains(&target.1) && range.2.contains(&target.2)
+        {
+            return Some((
+                self.0 as i16 - target.0 as i16,
+                self.1 as i16 - target.1 as i16,
+                self.2 as i16 - target.2 as i16,
+            ));
+        } else {
+            None
+        }
+    }
+    pub fn to_hex(&self) -> String {
+        format!("#{:02X}{:02X}{:02X}", self.0, self.1, self.2)
+    }
+
+    pub fn to_u32(&self) -> u32 {
+        ((self.0 as u32) << 16) | ((self.1 as u32) << 8) | (self.2 as u32)
     }
 }

@@ -7,7 +7,11 @@ const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
 
 const form = reactive({
-  offset: 0,
+  offset: {
+    r: 0,
+    g: 0,
+    b: 0,
+  },
   locatingColors: [],
   findArea: {
     start: {
@@ -24,6 +28,7 @@ const form = reactive({
       width: 0,
       height: 0,
     },
+    base64Data: null,
   },
   captured: {
     size: {
@@ -99,20 +104,112 @@ function removeColor(locatingColor) {
   });
 }
 
-async function save() {}
+async function findLocatingColor() {
+  const locatingColors = JSON.stringify(form.locatingColors);
+  const x = Number(form.findArea.start.x);
+  const y = Number(form.findArea.start.y);
+  const width = Number(form.findArea.end.x - form.findArea.start.x);
+  const height = Number(form.findArea.end.y - form.findArea.start.y);
+  const r = Number(form.offset.r);
+  const g = Number(form.offset.g);
+  const b = Number(form.offset.b);
+  invoke("find_locating_color", {
+    origin: form.monitor.base64Data,
+    locatingColors,
+    x,
+    y,
+    width,
+    height,
+    offsetR: r,
+    offsetG: g,
+    offsetB: b,
+  })
+    .then((point) => {
+      point.x += x;
+      point.y += y;
+      console.log(point, peak, form.locatingColors);
+      let locatingColorsAbs = getAbsoluteCoordinates(
+        point,
+        peak,
+        form.locatingColors
+      );
+      console.log(point, peak, form.locatingColors, locatingColorsAbs);
+    })
+    .catch((error) => {
+      msgError(error);
+    });
+}
+
+function isEqual(lfLocatingColor, rfLocatingColor) {
+  return (
+    lfLocatingColor.hex == rfLocatingColor.hex &&
+    lfLocatingColor.point.x == rfLocatingColor.point.x &&
+    lfLocatingColor.point.y == rfLocatingColor.point.y
+  );
+}
+
+function getAbsoluteCoordinates(peakAbs, peakRel, locatingColorsRel) {
+  let index = 0;
+  for (let i = 0; i < locatingColorsRel.length; i++) {
+    if (isEqual(peakRel, locatingColorsRel[i])) {
+      index = i;
+      break;
+    }
+  }
+  let tempRels = [];
+  for (let i = 0; i < locatingColorsRel.length; i++) {
+    if (index != i) {
+      let rel = locatingColorsRel[i];
+      rel.point.x = rel.point.x - locatingColorsRel[index].point.x;
+      rel.point.y = rel.point.y - locatingColorsRel[index].point.y;
+      tempRels.push(rel);
+    }
+  }
+  let origin = locatingColorsRel[index];
+  origin.point.x = 0;
+  origin.point.y = 0;
+  tempRels.unshift(origin);
+  for (let i = 0; i < tempRels.length; i++) {
+    tempRels[i].point.x = tempRels[i].point.x + peakAbs.x;
+    tempRels[i].point.y = tempRels[i].point.y + peakAbs.y;
+  }
+  return tempRels;
+}
+
+function getOffsetAndRect() {
+  let x = 0;
+  let y = 0;
+  let right_bottom_x = 0;
+  let right_bottom_y = 0;
+  let width = 0;
+  let height = 0;
+  for (let locationgColor of form.locatingColors) {
+    x = Math.min(locationgColor.point.x, x);
+    y = Math.min(locationgColor.point.y, y);
+    right_bottom_x = Math.max(locationgColor.point.x, right_bottom_x);
+    right_bottom_y = Math.max(locationgColor.point.y, right_bottom_y);
+  }
+  width = right_bottom_x - x;
+  height = right_bottom_y - y;
+  return {
+    x,
+    y,
+    width,
+    height,
+  };
+}
 
 watch(props.form, () => {
   Object.assign(form, props.form);
   form.locatingColors = [];
-  form.offset = 0;
   setTimeout(drawImage, 100);
   form.findArea.end.x = form.monitor.size.width;
   form.findArea.end.y = form.monitor.size.height;
 });
 
 async function getPeakPoint() {
-  let json = JSON.stringify(form.locatingColors);
-  await invoke("get_peak_point", { json }).then((data) => {
+  let locatingColors = JSON.stringify(form.locatingColors);
+  await invoke("find_peak", { locatingColors }).then((data) => {
     peak.hex = data.hex;
     peak.point = data.point;
   });
@@ -200,7 +297,9 @@ onMounted(async () => {});
           <div class="item">
             <div class="title">
               <span>Find Area</span>
-              <el-button type="primary" @click="save"> find </el-button>
+              <el-button type="primary" @click="findLocatingColor">
+                findOne
+              </el-button>
             </div>
             <div style="margin-bottom: -10px">
               <el-row :gutter="10">
@@ -257,16 +356,41 @@ onMounted(async () => {});
               </el-row>
             </div>
             <div>
-              <el-form-item prop="imageName" style="margin-bottom: 0px">
-                <el-input
-                  v-model="form.offset"
-                  autocapitalize="off"
-                  autocorrect="off"
-                  spellcheck="false"
-                >
-                  <template #prepend>color offset</template>
-                </el-input>
-              </el-form-item>
+              <el-row :gutter="0">
+                <el-col :span="8">
+                  <el-form-item prop="offsetR" style="margin-bottom: 0px">
+                    <el-input
+                      v-model="form.offset.r"
+                      autocapitalize="off"
+                      autocorrect="off"
+                      spellcheck="false"
+                    >
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                  <el-form-item prop="offsetG" style="margin-bottom: 0px">
+                    <el-input
+                      v-model="form.offset.g"
+                      autocapitalize="off"
+                      autocorrect="off"
+                      spellcheck="false"
+                    >
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                  <el-form-item prop="offsetB" style="margin-bottom: 0px">
+                    <el-input
+                      v-model="form.offset.b"
+                      autocapitalize="off"
+                      autocorrect="off"
+                      spellcheck="false"
+                    >
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
             </div>
             <div>
               <el-input
@@ -281,7 +405,7 @@ onMounted(async () => {});
           <div class="item">
             <div class="title">
               <span>Code</span>
-              <el-button type="primary" @click="save"> copy </el-button>
+              <el-button type="primary" @click=""> copy </el-button>
             </div>
             <div>
               <el-input
