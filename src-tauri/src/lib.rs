@@ -34,6 +34,7 @@ pub fn run() {
             commands::find::find_image,
             commands::find::find_images,
             commands::find::find_locating_color,
+            commands::find::find_color,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

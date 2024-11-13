@@ -7,7 +7,11 @@ const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
 
 const form = reactive({
-  offset: 0,
+  offset: {
+    r: 0,
+    g: 0,
+    b: 0,
+  },
   locatingColors: [],
   findArea: {
     start: {
@@ -24,6 +28,7 @@ const form = reactive({
       width: 0,
       height: 0,
     },
+    base64Data: null,
   },
   captured: {
     size: {
@@ -87,12 +92,37 @@ function removeColor(hex) {
   form.locatingColors = form.locatingColors.filter((item) => item.hex !== hex);
 }
 
-async function save() {}
+async function findColor() {
+  const colors = JSON.stringify(form.locatingColors);
+  const x = Number(form.findArea.start.x);
+  const y = Number(form.findArea.start.y);
+  const width = Number(form.findArea.end.x - form.findArea.start.x);
+  const height = Number(form.findArea.end.y - form.findArea.start.y);
+  const r = Number(form.offset.r);
+  const g = Number(form.offset.g);
+  const b = Number(form.offset.b);
+  invoke("find_color", {
+    origin: form.monitor.base64Data,
+    colors,
+    x,
+    y,
+    width,
+    height,
+    offsetR: r,
+    offsetG: g,
+    offsetB: b,
+  })
+    .then((locatingColors) => {
+      console.log(locatingColors);
+    })
+    .catch((error) => {
+      msgError(error);
+    });
+}
 
-watch(props.form, (newValue, oldValue) => {
+watch(props.form, () => {
   Object.assign(form, props.form);
   form.locatingColors = [];
-  form.offset = 0;
   setTimeout(drawImage, 100);
   form.findArea.end.x = form.monitor.size.width;
   form.findArea.end.y = form.monitor.size.height;
@@ -164,7 +194,7 @@ onMounted(async () => {});
           <div class="item">
             <div class="title">
               <span>Find Area</span>
-              <el-button type="primary" @click="save"> find </el-button>
+              <el-button type="primary" @click="findColor"> find </el-button>
             </div>
             <div style="margin-bottom: -10px">
               <el-row :gutter="10">
@@ -221,16 +251,41 @@ onMounted(async () => {});
               </el-row>
             </div>
             <div>
-              <el-form-item prop="imageName" style="margin-bottom: 0px">
-                <el-input
-                  v-model="form.offset"
-                  autocapitalize="off"
-                  autocorrect="off"
-                  spellcheck="false"
-                >
-                  <template #prepend>color offset</template>
-                </el-input>
-              </el-form-item>
+              <el-row :gutter="0">
+                <el-col :span="8">
+                  <el-form-item prop="offsetR" style="margin-bottom: 0px">
+                    <el-input
+                      v-model="form.offset.r"
+                      autocapitalize="off"
+                      autocorrect="off"
+                      spellcheck="false"
+                    >
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                  <el-form-item prop="offsetG" style="margin-bottom: 0px">
+                    <el-input
+                      v-model="form.offset.g"
+                      autocapitalize="off"
+                      autocorrect="off"
+                      spellcheck="false"
+                    >
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                  <el-form-item prop="offsetB" style="margin-bottom: 0px">
+                    <el-input
+                      v-model="form.offset.b"
+                      autocapitalize="off"
+                      autocorrect="off"
+                      spellcheck="false"
+                    >
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
             </div>
             <div>
               <el-input
@@ -245,7 +300,7 @@ onMounted(async () => {});
           <div class="item">
             <div class="title">
               <span>Code</span>
-              <el-button type="primary" @click="save"> copy </el-button>
+              <el-button type="primary" @click="findColor"> copy </el-button>
             </div>
             <div>
               <el-input

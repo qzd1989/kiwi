@@ -1,6 +1,6 @@
 use crate::{
-    common::{Base64PngExt, LocatingColor, Point, WeightPoint},
-    find::{image, locating_color},
+    common::{Base64PngExt, HexColor, LocatingColor, Point, WeightPoint},
+    find::{color, image, locating_color},
 };
 
 #[tauri::command]
@@ -69,4 +69,25 @@ pub fn find_locating_color(
         return Ok(point);
     }
     return Err("point is not found".to_string());
+}
+
+#[tauri::command]
+pub fn find_color(
+    origin: String,
+    colors: String,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+    offset_r: u8,
+    offset_g: u8,
+    offset_b: u8,
+) -> Result<Vec<LocatingColor>, String> {
+    let frame = origin.to_frame().unwrap();
+    let colors: Vec<LocatingColor> = serde_json::from_str(&colors).unwrap();
+    let colors: Vec<HexColor> = colors.iter().map(|c| c.hex.clone()).collect();
+    color::find(
+        frame, colors, x, y, width, height, offset_r, offset_g, offset_b,
+    )
+    .or_else(|error| Err(error.to_string()))
 }

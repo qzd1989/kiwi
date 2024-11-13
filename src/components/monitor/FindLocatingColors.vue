@@ -132,65 +132,6 @@ async function findLocatingColor() {
     });
 }
 
-function isEqual(lfLocatingColor, rfLocatingColor) {
-  return (
-    lfLocatingColor.hex == rfLocatingColor.hex &&
-    lfLocatingColor.point.x == rfLocatingColor.point.x &&
-    lfLocatingColor.point.y == rfLocatingColor.point.y
-  );
-}
-
-function getAbsoluteCoordinates(peakAbs, peakRel, locatingColorsRel) {
-  let index = 0;
-  for (let i = 0; i < locatingColorsRel.length; i++) {
-    if (isEqual(peakRel, locatingColorsRel[i])) {
-      index = i;
-      break;
-    }
-  }
-  let tempRels = [];
-  for (let i = 0; i < locatingColorsRel.length; i++) {
-    if (index != i) {
-      let rel = locatingColorsRel[i];
-      rel.point.x = rel.point.x - locatingColorsRel[index].point.x;
-      rel.point.y = rel.point.y - locatingColorsRel[index].point.y;
-      tempRels.push(rel);
-    }
-  }
-  let origin = locatingColorsRel[index];
-  origin.point.x = 0;
-  origin.point.y = 0;
-  tempRels.unshift(origin);
-  for (let i = 0; i < tempRels.length; i++) {
-    tempRels[i].point.x = tempRels[i].point.x + peakAbs.x;
-    tempRels[i].point.y = tempRels[i].point.y + peakAbs.y;
-  }
-  return tempRels;
-}
-
-function getOffsetAndRect() {
-  let x = 0;
-  let y = 0;
-  let right_bottom_x = 0;
-  let right_bottom_y = 0;
-  let width = 0;
-  let height = 0;
-  for (let locationgColor of form.locatingColors) {
-    x = Math.min(locationgColor.point.x, x);
-    y = Math.min(locationgColor.point.y, y);
-    right_bottom_x = Math.max(locationgColor.point.x, right_bottom_x);
-    right_bottom_y = Math.max(locationgColor.point.y, right_bottom_y);
-  }
-  width = right_bottom_x - x;
-  height = right_bottom_y - y;
-  return {
-    x,
-    y,
-    width,
-    height,
-  };
-}
-
 watch(props.form, () => {
   Object.assign(form, props.form);
   form.locatingColors = [];
