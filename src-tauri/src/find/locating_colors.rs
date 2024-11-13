@@ -24,15 +24,15 @@ pub fn find_one(
     // 2. get relatives except peak
     let relatives = get_relatives(&locating_colors, &peak);
     // 3. get rect size of locating_colors
-    let size = get_size(&relatives, &peak);
+    let cropped_size = get_size(&relatives, &peak);
     // 3. scan and match peak point.
     let buffer = frame_to_rgba(frame).unwrap();
     let buffer = crop_rgba(&buffer, x, y, width, height);
     let (width, height) = buffer.dimensions();
     for cropped_y in 0..height {
         for cropped_x in 0..width {
-            // 当剩余高度小于定位矩形高度,停止继续匹配.
-            if height - cropped_y < size.height as u32 {
+            // stop matching while the remaining height is less than the cropped rectangle height.
+            if height - cropped_y < cropped_size.height as u32 {
                 return None;
             }
             let pixel = buffer.get_pixel(cropped_x, cropped_y);
