@@ -2,7 +2,7 @@
 import { ref, onMounted, reactive, watch } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { drawBase64ImageOnCanvas } from "../../utils/common";
-import { msgError, msgInfo, msgSuccess } from "../../utils/msg";
+import { msgError } from "../../utils/msg";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
 
@@ -19,7 +19,6 @@ const supportedLanguages = [
 ];
 
 const form = reactive({
-  offset: 0,
   languages: ["chi_sim", "eng"],
   findArea: {
     start: {
@@ -30,6 +29,13 @@ const form = reactive({
       x: 0,
       y: 0,
     },
+  },
+  monitor: {
+    size: {
+      width: 0,
+      height: 0,
+    },
+    base64Data: null,
   },
   captured: {
     point: {
@@ -43,6 +49,7 @@ const form = reactive({
     base64Data: null,
   },
 });
+const result = ref("");
 const rules = reactive({
   name: [{ required: true, message: "", trigger: "blur" }],
 });
@@ -63,7 +70,27 @@ function drawImage() {
   );
 }
 
-async function save() {}
+async function findText() {
+  const langs = JSON.stringify(form.languages);
+  const x = Number(form.findArea.start.x);
+  const y = Number(form.findArea.start.y);
+  const width = Number(form.findArea.end.x - form.findArea.start.x);
+  const height = Number(form.findArea.end.y - form.findArea.start.y);
+  invoke("find_text", {
+    origin: form.monitor.base64Data,
+    langs,
+    x,
+    y,
+    width,
+    height,
+  })
+    .then((text) => {
+      result.value = text;
+    })
+    .catch((error) => {
+      msgError(error);
+    });
+}
 
 watch(props.form, () => {
   Object.assign(form, props.form);
@@ -72,7 +99,6 @@ watch(props.form, () => {
     x: form.captured.point.x + form.captured.size.width,
     y: form.captured.point.y + form.captured.size.height,
   };
-  form.offset = 0;
   setTimeout(drawImage, 100);
 });
 
@@ -96,7 +122,9 @@ onMounted(async () => {});
           <div class="item">
             <div class="title">
               <span>Find Area</span>
-              <el-button type="primary" @click="save"> Recognize </el-button>
+              <el-button type="primary" @click="findText">
+                Recognize
+              </el-button>
             </div>
             <div style="margin-bottom: -10px">
               <el-row :gutter="10">
@@ -185,18 +213,20 @@ onMounted(async () => {});
             </div>
             <div>
               <el-input
+                v-model="result"
                 style="width: 100%"
                 :rows="2"
                 type="textarea"
                 placeholder="results"
                 readonly
+                autosize="true"
               />
             </div>
           </div>
           <div class="item">
             <div class="title">
               <span>Code</span>
-              <el-button type="primary" @click="save"> copy </el-button>
+              <el-button type="primary" @click="findText"> copy </el-button>
             </div>
             <div>
               <el-input

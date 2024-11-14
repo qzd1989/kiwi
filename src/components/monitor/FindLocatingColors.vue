@@ -46,6 +46,7 @@ const peak = reactive({
     y: -1,
   },
 });
+const result = ref("");
 const rules = reactive({
   name: [{ required: true, message: "", trigger: "blur" }],
 });
@@ -125,7 +126,7 @@ async function findLocatingColor() {
     offsetB: b,
   })
     .then((point) => {
-      console.log(point);
+      result.value = JSON.stringify(point);
     })
     .catch((error) => {
       msgError(error);
@@ -327,11 +328,13 @@ onMounted(async () => {});
             </div>
             <div>
               <el-input
+                v-model="result"
                 style="width: 100%"
                 :rows="2"
                 type="textarea"
-                placeholder="find results"
-                disabled
+                placeholder="results"
+                readonly
+                autosize="true"
               />
             </div>
           </div>

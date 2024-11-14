@@ -1,6 +1,6 @@
 use crate::{
     common::{Base64PngExt, HexColor, LocatingColor, Point, WeightPoint},
-    find::{color, image, locating_color},
+    find::{color, image, locating_color, text},
 };
 
 #[tauri::command]
@@ -90,4 +90,18 @@ pub fn find_color(
         frame, colors, x, y, width, height, offset_r, offset_g, offset_b,
     )
     .or_else(|error| Err(error.to_string()))
+}
+
+#[tauri::command]
+pub fn find_text(
+    origin: String,
+    langs: String,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+) -> Result<String, String> {
+    let frame = origin.to_frame().unwrap();
+    let langs: Vec<String> = serde_json::from_str(&langs).unwrap();
+    text::recognize(frame, langs, x, y, width, height).or_else(|error| Err(error.to_string()))
 }

@@ -96,6 +96,13 @@ const form = reactive({
 });
 
 const formTexts = reactive({
+  monitor: {
+    size: {
+      width: 0,
+      height: 0,
+    },
+    base64Data: null,
+  },
   captured: {
     point: {
       x: 0,
@@ -379,6 +386,7 @@ async function findTexts() {
     monitor.size.width,
     monitor.size.height
   );
+  formTexts.monitor.base64Data = monitorBase64Data;
   formTexts.captured.point = { x, y };
   formTexts.captured.size = {
     width,

@@ -62,6 +62,7 @@ const originForm = reactive({
     base64Data: null,
   },
 });
+const result = ref("");
 const rules = reactive({
   name: [{ required: true, message: "", trigger: "blur" }],
 });
@@ -182,7 +183,7 @@ async function findImage() {
     threshold,
   })
     .then((weightPoint) => {
-      console.log(weightPoint);
+      result.value = JSON.stringify(weightPoint);
     })
     .catch((error) => {
       msgError(error);
@@ -205,7 +206,7 @@ async function findImages() {
     threshold,
   })
     .then((weightPoints) => {
-      console.log(weightPoints);
+      result.value = JSON.stringify(weightPoints);
     })
     .catch((error) => {
       msgError(error);
@@ -404,11 +405,13 @@ onMounted(async () => {
             </div>
             <div>
               <el-input
+                v-model="result"
                 style="width: 100%"
                 :rows="2"
                 type="textarea"
-                placeholder="find results"
-                disabled
+                placeholder="results"
+                readonly
+                autosize="true"
               />
             </div>
           </div>

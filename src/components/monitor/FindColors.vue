@@ -39,6 +39,7 @@ const form = reactive({
   },
 });
 const pixels = ref([]);
+const result = ref("");
 const rules = reactive({
   name: [{ required: true, message: "", trigger: "blur" }],
 });
@@ -113,7 +114,7 @@ async function findColor() {
     offsetB: b,
   })
     .then((locatingColors) => {
-      console.log(locatingColors);
+      result.value = JSON.stringify(locatingColors);
     })
     .catch((error) => {
       msgError(error);
@@ -289,11 +290,13 @@ onMounted(async () => {});
             </div>
             <div>
               <el-input
+                v-model="result"
                 style="width: 100%"
                 :rows="2"
                 type="textarea"
-                placeholder="find results"
-                disabled
+                placeholder="results"
+                readonly
+                autosize="true"
               />
             </div>
           </div>
