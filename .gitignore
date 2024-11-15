@@ -1,5 +1,4 @@
 /node_modules
-/package-lock.json
 src-tauri/*.png
 src-tauri/Cargo.lock
 src-tauri/.DS_Store
