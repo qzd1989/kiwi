@@ -20,13 +20,12 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          target: x86_64-pc-windows-msvc
           override: true
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Tauri app
+      - name: Build
         run: npm run tauri build -- --target x86_64-pc-windows-msvc
 
       - name: Upload artifact
