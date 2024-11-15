@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, reactive } from "vue";
+import { invoke } from "@tauri-apps/api/core";
 import { useResizeObserver } from "@vueuse/core";
 import { useStore } from "vuex";
 import { Stack } from "./../utils/common";
@@ -93,6 +94,9 @@ function removeFile(data) {
 function clearFiles() {
   files.value.clear();
   lastOpenedFile.value = null;
+}
+function cc() {
+  // todo
 }
 useResizeObserver(windowRef, (entries) => {
   const entry = entries[0];
@@ -190,7 +194,10 @@ onUnmounted(() => {
           }"
           @click="store.commit('focus', 'terminal')"
         >
-          <div class="log">这里放日志: {{ store.getters.focus }}</div>
+          <div class="log">
+            这里放日志: {{ store.getters.focus }}
+            <el-button type="primary" @click="cc">cc</el-button>
+          </div>
         </div>
       </div>
       <div
