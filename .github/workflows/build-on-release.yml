@@ -35,9 +35,6 @@ jobs:
           setx VCPKG_ROOT "%cd%\vcpkg"
           setx PATH "%PATH%;%cd%\vcpkg\installed\x64-windows\bin"
 
-      - name: Test pkg-config
-        run: pkg-config --cflags opencv4
-
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
