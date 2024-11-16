@@ -16,6 +16,9 @@ jobs:
         with:
           node-version: "23"
 
+      - name: Install pkg-config via Chocolatey
+        run: choco install pkgconfiglite --yes
+
       - name: Verify pkg-config installation
         run: pkg-config --version
 
