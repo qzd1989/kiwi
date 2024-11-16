@@ -1,4 +1,4 @@
-name: Build Tauri App on Release
+name: windows-build-on-release
 
 on:
   release:
@@ -68,7 +68,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TauriApp
+          name: kiwi
           path: |
             ./src-tauri/target/release/*.exe
             ./src-tauri/target/release/*.dll
