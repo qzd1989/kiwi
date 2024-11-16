@@ -42,6 +42,7 @@ jobs:
           dir "C:\tools\opencv"
           dir "C:\tools\opencv\build\include"
           dir "C:\tools\opencv\build\x64\vc15\lib"
+          dir "C:\tools\opencv\build\x64\vc15\bin"
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
@@ -55,13 +56,17 @@ jobs:
       - name: Build
         run: npm run tauri build
 
+      - name: Copy OpenCV DLL
+        run: |
+          copy "C:\tools\opencv\build\x64\vc15\bin\opencv_world455.dll" "./src-tauri/target/release"
+
       - name: Verify build output
         run: |
           echo "Checking build output:"
           dir ./src-tauri/target/release
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: TauriApp
           path: ./src-tauri/target/release/*.exe
