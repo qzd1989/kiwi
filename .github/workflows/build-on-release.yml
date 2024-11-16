@@ -55,8 +55,13 @@ jobs:
       - name: Build
         run: npm run tauri build
 
+      - name: Verify build output
+        run: |
+          echo "Checking build output:"
+          dir ./src-tauri/target/release
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: TauriApp
-          path: ./dist/x86_64-pc-windows-msvc.exe
+          path: ./src-tauri/target/release/*.exe
