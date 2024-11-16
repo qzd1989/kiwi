@@ -18,31 +18,30 @@ jobs:
 
       - name: Install llvm and opencv via Chocolatey
         run: |
-          choco install llvm --yes
-          choco install opencv --yes
-          refreshenv
+          choco install llvm --version=15.0.0 -y
+          choco install opencv --version=4.5.5 -y
 
       - name: Set OpenCV environment variables
         run: |
-          $opencvDir = "C:\ProgramData\chocolatey\lib\opencv"
+          $opencvDir = "C:\tools\opencv"
           $includePaths = Join-Path -Path $opencvDir -ChildPath "build\include"
           $linkLibs = Join-Path -Path $opencvDir -ChildPath "build\x64\vc15\lib\opencv_world455.lib"
           $linkPaths = Join-Path -Path $opencvDir -ChildPath "build\x64\vc15\lib"
-
           echo "OPENCV_INCLUDE_PATHS=$includePaths" >> $env:GITHUB_ENV
           echo "OPENCV_LINK_LIBS=$linkLibs" >> $env:GITHUB_ENV
           echo "OPENCV_LINK_PATHS=$linkPaths" >> $env:GITHUB_ENV
-
-      - name: Verify OpenCV Installation
-        run: |
-          dir "C:\ProgramData\chocolatey\lib\opencv"
-          dir "C:\ProgramData\chocolatey\lib\opencv\build"
 
       - name: Build and Test
         run: |
           echo "Include Paths: $env:OPENCV_INCLUDE_PATHS"
           echo "Link Libs: $env:OPENCV_LINK_LIBS"
           echo "Link Paths: $env:OPENCV_LINK_PATHS"
+
+      - name: Verify OpenCV Installation
+        run: |
+          dir "C:\tools\opencv"
+          dir "C:\tools\opencv\build\include"
+          dir "C:\tools\opencv\build\x64\vc15\lib"
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
