@@ -16,24 +16,18 @@ jobs:
         with:
           node-version: "23"
 
-      - name: Install pkg-config via Chocolatey
-        run: choco install pkgconfiglite --yes
+      - name: Install llvm via Chocolatey
+        run: choco install llvm --yes
 
-      - name: Verify pkg-config installation
-        run: pkg-config --version
+      - name: Install opencv via Chocolatey
+        run: choco install opencv --yes
 
-      - name: Install vcpkg
+      - name: Configure environment
         run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          .\vcpkg\bootstrap-vcpkg.bat
-
-      - name: Install OpenCV
-        run: .\vcpkg\vcpkg.exe install opencv4:x64-windows
-
-      - name: Configure vcpkg environment
-        run: |
-          setx VCPKG_ROOT "%cd%\vcpkg"
-          setx PATH "%PATH%;%cd%\vcpkg\installed\x64-windows\bin"
+          setx OPENCV_INCLUDE_PATHS "C:\tools\opencv\build\include"
+          setx OPENCV_LINK_LIBS "opencv_world4100.lib"
+          setx OPENCV_LINK_PATHS "C:\tools\opencv\build\x64\vc16\lib"
+          setx PATH "%PATH%;C:\tools\opencv\build\x64\vc16\bin"
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
