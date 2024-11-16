@@ -69,4 +69,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: TauriApp
-          path: ./src-tauri/target/release/*.exe
+          path: |
+          ./src-tauri/target/release/*.exe
+          ./src-tauri/target/release/*.dll
