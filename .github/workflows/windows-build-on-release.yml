@@ -26,15 +26,15 @@ jobs:
           dir "C:\tools\opencv"
           dir "C:\tools\opencv\build\include"
           dir "C:\tools\opencv\build\x64"
-          dir "C:\tools\opencv\build\x64\vc15\lib"
-          dir "C:\tools\opencv\build\x64\vc15\bin"
+          dir "C:\tools\opencv\build\x64\vc16\lib"
+          dir "C:\tools\opencv\build\x64\vc16\bin"
 
       - name: Set OpenCV environment variables
         run: |
           $opencvDir = "C:\tools\opencv"
           $includePaths = Join-Path -Path $opencvDir -ChildPath "build\include"
-          $linkLibs = Join-Path -Path $opencvDir -ChildPath "build\x64\vc15\lib\opencv_world4100.lib"
-          $linkPaths = Join-Path -Path $opencvDir -ChildPath "build\x64\vc15\lib"
+          $linkLibs = Join-Path -Path $opencvDir -ChildPath "build\x64\vc16\lib\opencv_world4100.lib"
+          $linkPaths = Join-Path -Path $opencvDir -ChildPath "build\x64\vc16\lib"
           echo "OPENCV_INCLUDE_PATHS=$includePaths" >> $env:GITHUB_ENV
           echo "OPENCV_LINK_LIBS=$linkLibs" >> $env:GITHUB_ENV
           echo "OPENCV_LINK_PATHS=$linkPaths" >> $env:GITHUB_ENV
@@ -59,7 +59,7 @@ jobs:
 
       - name: Copy OpenCV DLL
         run: |
-          copy "C:\tools\opencv\build\x64\vc15\bin\opencv_world4100.dll" "./src-tauri/target/release"
+          copy "C:\tools\opencv\build\x64\vc16\bin\opencv_world4100.dll" "./src-tauri/target/release"
 
       - name: Verify build output
         run: |
