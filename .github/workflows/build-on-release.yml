@@ -23,33 +23,26 @@ jobs:
           refreshenv
 
       - name: Set OpenCV environment variables
-      run: |
-        $opencvDir = "C:\ProgramData\chocolatey\lib\opencv"
-        $includePaths = Join-Path -Path $opencvDir -ChildPath "build\include"
-        $linkLibs = Join-Path -Path $opencvDir -ChildPath "build\x64\vc15\lib\opencv_world455.lib"
-        $linkPaths = Join-Path -Path $opencvDir -ChildPath "build\x64\vc15\lib"
+        run: |
+          $opencvDir = "C:\ProgramData\chocolatey\lib\opencv"
+          $includePaths = Join-Path -Path $opencvDir -ChildPath "build\include"
+          $linkLibs = Join-Path -Path $opencvDir -ChildPath "build\x64\vc15\lib\opencv_world455.lib"
+          $linkPaths = Join-Path -Path $opencvDir -ChildPath "build\x64\vc15\lib"
 
-        echo "OPENCV_INCLUDE_PATHS=$includePaths" >> $env:GITHUB_ENV
-        echo "OPENCV_LINK_LIBS=$linkLibs" >> $env:GITHUB_ENV
-        echo "OPENCV_LINK_PATHS=$linkPaths" >> $env:GITHUB_ENV
+          echo "OPENCV_INCLUDE_PATHS=$includePaths" >> $env:GITHUB_ENV
+          echo "OPENCV_LINK_LIBS=$linkLibs" >> $env:GITHUB_ENV
+          echo "OPENCV_LINK_PATHS=$linkPaths" >> $env:GITHUB_ENV
 
       - name: Verify OpenCV Installation
-      run: |
-        dir "C:\ProgramData\chocolatey\lib\opencv"
-        dir "C:\ProgramData\chocolatey\lib\opencv\build"
+        run: |
+          dir "C:\ProgramData\chocolatey\lib\opencv"
+          dir "C:\ProgramData\chocolatey\lib\opencv\build"
 
       - name: Build and Test
         run: |
           echo "Include Paths: $env:OPENCV_INCLUDE_PATHS"
           echo "Link Libs: $env:OPENCV_LINK_LIBS"
           echo "Link Paths: $env:OPENCV_LINK_PATHS"
-
-      # - name: Configure environment
-      #   run: |
-      #     setx OPENCV_INCLUDE_PATHS "C:\tools\opencv\build\include"
-      #     setx OPENCV_LINK_LIBS "opencv_world4100.lib"
-      #     setx OPENCV_LINK_PATHS "C:\tools\opencv\build\x64\vc16\lib"
-      #     setx PATH "%PATH%;C:\tools\opencv\build\x64\vc16\bin"
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
