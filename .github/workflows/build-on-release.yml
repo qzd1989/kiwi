@@ -70,5 +70,5 @@ jobs:
         with:
           name: TauriApp
           path: |
-          ./src-tauri/target/release/*.exe
-          ./src-tauri/target/release/*.dll
+            ./src-tauri/target/release/*.exe
+            ./src-tauri/target/release/*.dll
