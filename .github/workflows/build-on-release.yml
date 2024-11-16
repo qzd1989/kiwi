@@ -14,7 +14,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "23" # 根据你的项目需求设置 Node.js 版本
+          node-version: "23"
+
+      - name: Set up Vcpkg
+        uses: lukka/run-vcpkg@v11
+
+      - name: Install opencv4
+        run: vcpkg install opencv4
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
@@ -32,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: TauriApp
-          path: ./dist/x86_64-pc-windows-msvc.exe # 根据实际生成的文件路径调整
+          path: ./dist/x86_64-pc-windows-msvc.exe
