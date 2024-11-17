@@ -37,16 +37,16 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-// use pyo3::prelude::*;
+use pyo3::prelude::*;
 
-// #[pyfunction]
-// fn guess_the_number() -> PyResult<i32> {
-//     println!("Guess the number!");
-//     Ok(5)
-// }
+#[pyfunction]
+fn guess_the_number() -> PyResult<i32> {
+    println!("Guess the number!");
+    Ok(8)
+}
 
-// #[pymodule]
-// fn guessing_game(m: &Bound<'_, PyModule>) -> PyResult<()> {
-//     m.add_function(wrap_pyfunction!(guess_the_number, m)?)?;
-//     Ok(())
-// }
+#[pymodule]
+fn kiwi_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(guess_the_number, m)?)?;
+    Ok(())
+}

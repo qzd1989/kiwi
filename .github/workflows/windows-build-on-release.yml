@@ -11,6 +11,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Venv init
+        run: |
+          cd ./src-tauri
+          python -m venv .venv
+      - name: Venv check
+        run: |
+          dir ./src-tauri
+
+      - name: maturin init
+        run: |
+          cd ./src-tauri
+          pip install -U pip maturin
+          pip freeze
+
+      - name: maturin check
+        run: |
+          dir ./src-tauri/.venv/bin
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
