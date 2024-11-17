@@ -23,6 +23,7 @@ jobs:
       - name: Venv check
         run: |
           dir ./src-tauri
+          dir ./src-tauri/.venv
 
       - name: maturin init
         run: |
