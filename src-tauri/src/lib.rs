@@ -8,6 +8,8 @@ pub mod input;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    //检查是否存在python环境,没有就调用resources/python installer todo
+
     tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
