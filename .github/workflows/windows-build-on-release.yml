@@ -16,33 +16,39 @@ jobs:
         with:
           node-version: "23"
 
-      - name: Install llvm and opencv via Chocolatey
+      - name: Install llvm, vcredist140 and opencv via Chocolatey
         run: |
-          choco install llvm --version=15.0.0 -y
-          choco install opencv --version=4.5.5 -y
+          choco install vcredist140 -y
+          choco install llvm --version=18.1.8 -y
+          choco install opencv --version=4.10.0 -y
 
-      - name: Set OpenCV environment variables
+      - name: Verify Microsoft Visual C++ Installation
         run: |
-          $opencvDir = "C:\tools\opencv"
-          $includePaths = Join-Path -Path $opencvDir -ChildPath "build\include"
-          $linkLibs = Join-Path -Path $opencvDir -ChildPath "build\x64\vc15\lib\opencv_world455.lib"
-          $linkPaths = Join-Path -Path $opencvDir -ChildPath "build\x64\vc15\lib"
-          echo "OPENCV_INCLUDE_PATHS=$includePaths" >> $env:GITHUB_ENV
-          echo "OPENCV_LINK_LIBS=$linkLibs" >> $env:GITHUB_ENV
-          echo "OPENCV_LINK_PATHS=$linkPaths" >> $env:GITHUB_ENV
-
-      - name: Build and Test
-        run: |
-          echo "Include Paths: $env:OPENCV_INCLUDE_PATHS"
-          echo "Link Libs: $env:OPENCV_LINK_LIBS"
-          echo "Link Paths: $env:OPENCV_LINK_PATHS"
+          dir "C:\Windows\System32\*.dll"
 
       - name: Verify OpenCV Installation
         run: |
           dir "C:\tools\opencv"
           dir "C:\tools\opencv\build\include"
-          dir "C:\tools\opencv\build\x64\vc15\lib"
-          dir "C:\tools\opencv\build\x64\vc15\bin"
+          dir "C:\tools\opencv\build\x64"
+          dir "C:\tools\opencv\build\x64\vc16\lib"
+          dir "C:\tools\opencv\build\x64\vc16\bin"
+
+      - name: Set OpenCV environment variables
+        run: |
+          $opencvDir = "C:\tools\opencv"
+          $includePaths = Join-Path -Path $opencvDir -ChildPath "build\include"
+          $linkLibs = Join-Path -Path $opencvDir -ChildPath "build\x64\vc16\lib\opencv_world4100.lib"
+          $linkPaths = Join-Path -Path $opencvDir -ChildPath "build\x64\vc16\lib"
+          echo "OPENCV_INCLUDE_PATHS=$includePaths" >> $env:GITHUB_ENV
+          echo "OPENCV_LINK_LIBS=$linkLibs" >> $env:GITHUB_ENV
+          echo "OPENCV_LINK_PATHS=$linkPaths" >> $env:GITHUB_ENV
+
+      - name: Verify OpenCV environment variables
+        run: |
+          echo "Include Paths: $env:OPENCV_INCLUDE_PATHS"
+          echo "Link Libs: $env:OPENCV_LINK_LIBS"
+          echo "Link Paths: $env:OPENCV_LINK_PATHS"
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
@@ -58,7 +64,14 @@ jobs:
 
       - name: Copy OpenCV DLL
         run: |
-          copy "C:\tools\opencv\build\x64\vc15\bin\opencv_world455.dll" "./src-tauri/target/release"
+          copy "C:\tools\opencv\build\x64\vc16\bin\opencv_world4100.dll" "./src-tauri/target/release"
+
+      - name: Copy vcredist140 DLL
+        run: |
+          copy "C:\Windows\System32\msvcp140.dll" "./src-tauri/target/release"
+          copy "C:\Windows\System32\concrt140.dll" "./src-tauri/target/release"
+          copy "C:\Windows\System32\vcruntime140.dll" "./src-tauri/target/release"
+          copy "C:\Windows\System32\vcruntime140_1.dll" "./src-tauri/target/release"
 
       - name: Verify build output
         run: |
