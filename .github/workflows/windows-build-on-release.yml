@@ -28,7 +28,7 @@ jobs:
       - name: maturin init
         run: |
           cd ./src-tauri
-          pip install -U pip maturin
+          pip install maturin
           pip freeze
 
       - name: maturin check
