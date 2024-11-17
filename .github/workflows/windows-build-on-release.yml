@@ -33,7 +33,8 @@ jobs:
 
       - name: maturin check
         run: |
-          dir ./src-tauri/.venv/bin
+          maturin --version
+          dir ./src-tauri/.venv
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -97,6 +98,20 @@ jobs:
           copy "C:\Windows\System32\vcruntime140.dll" "./src-tauri/target/release"
           copy "C:\Windows\System32\vcruntime140_1.dll" "./src-tauri/target/release"
 
+      - name: maturin build
+        run: |
+          cd ./src-tauri
+          maturin build --release
+
+      - name: maturin build check
+        run: |
+          dir ./src-tauri/target
+          dir ./src-tauri/target/wheels
+
+      - name: Copy wheels
+        run: |
+          copy "./src-tauri/target/*.whl" "./src-tauri/target/release"
+
       - name: Verify build output
         run: |
           echo "Checking build output:"
@@ -109,3 +124,4 @@ jobs:
           path: |
             ./src-tauri/target/release/*.exe
             ./src-tauri/target/release/*.dll
+            ./src-tauri/target/release/*.whl
