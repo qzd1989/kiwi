@@ -110,7 +110,7 @@ jobs:
 
       - name: Copy wheels
         run: |
-          copy "./src-tauri/target/kiwi-0.1.0-cp310-abi3-win_amd64.whl" "./src-tauri/target/release"
+          copy "./src-tauri/target/wheels/kiwi-0.1.0-cp310-abi3-win_amd64.whl" "./src-tauri/target/release"
 
       - name: Verify build output
         run: |
