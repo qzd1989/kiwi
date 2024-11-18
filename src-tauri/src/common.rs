@@ -1,3 +1,4 @@
+///全局对象结构体
 use crate::capture::Frame;
 use anyhow::Result;
 use base64::{engine::general_purpose, Engine as _};

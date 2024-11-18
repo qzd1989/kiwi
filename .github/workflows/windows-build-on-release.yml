@@ -110,7 +110,7 @@ jobs:
 
       - name: Copy wheels
         run: |
-          xcopy "./src-tauri/target/wheels/*.whl" "./src-tauri/target/release"
+          xcopy "./src-tauri/target/wheels" "./src-tauri/target/release" /E /I /Y
 
       - name: Verify build output
         run: |
@@ -124,4 +124,4 @@ jobs:
           path: |
             ./src-tauri/target/release/*.exe
             ./src-tauri/target/release/*.dll
-            ./src-tauri/target/release/*.whl
+            ./src-tauri/target/release/wheels/*.whl
