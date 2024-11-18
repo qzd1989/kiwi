@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "kiwi",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "echo 'maturin begin' && cd ./src-tauri && source .venv/bin/activate && maturin develop && echo 'maturin done' && cd ../ && npm run dev",
     "devUrl": "http://localhost:1425",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"

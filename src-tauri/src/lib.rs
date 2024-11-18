@@ -38,9 +38,10 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
+/// for python
 use pyo3::prelude::*;
 #[pymodule]
 fn kiwi_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(python_commands::input::click_left, m)?)?;
+    python_commands::input_module(m)?;
     Ok(())
 }

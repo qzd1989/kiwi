@@ -5,12 +5,16 @@ use base64::{engine::general_purpose, Engine as _};
 use image::{imageops, ImageBuffer, Rgba};
 use opencv::core::{Mat, CV_8UC1, CV_8UC4};
 use opencv::prelude::*;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
+#[pyclass]
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
 pub struct Point {
+    #[pyo3(get, set)]
     pub x: f64,
+    #[pyo3(get, set)]
     pub y: f64,
 }
 
