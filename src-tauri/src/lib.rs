@@ -5,7 +5,9 @@ pub mod frontend_commands;
 pub mod input;
 pub mod install;
 pub mod python_commands;
+use pyo3::prelude::*;
 
+//for frontend
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     install::install();
@@ -39,9 +41,9 @@ pub fn run() {
 }
 
 /// for python
-use pyo3::prelude::*;
 #[pymodule]
 fn kiwi_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     python_commands::input_module(m)?;
+    python_commands::find_moudle(m)?;
     Ok(())
 }
