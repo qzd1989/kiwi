@@ -18,6 +18,7 @@ export default defineConfig(async () => ({
     port: 1425,
     strictPort: true,
     host: host || false,
+    // host: "0.0.0.0", for windows dev running  todo
     hmr: host
       ? {
           protocol: "ws",
