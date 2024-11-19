@@ -129,4 +129,3 @@ jobs:
             ./src-tauri/target/release/*.exe
             ./src-tauri/target/release/*.dll
             ./src-tauri/target/release/*.whl
-            ./src-tauri/target/release/*.exe
