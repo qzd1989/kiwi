@@ -44,8 +44,10 @@ async function initPython() {
     });
 }
 onMounted(async () => {
-  await initPython();
-  await initProjectsDir();
+  if ((await getCurrentWindow().label) == "main") {
+    await initPython();
+    await initProjectsDir();
+  }
 });
 onUnmounted(() => {});
 </script>
