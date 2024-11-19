@@ -112,6 +112,10 @@ jobs:
         run: |
           copy "./src-tauri/target/wheels/kiwi-0.1.0-cp310-abi3-win_amd64.whl" "./src-tauri/target/release"
 
+      - name: Copy Python Installers
+        run: |
+          copy "./src-tauri/resources/python/python-3.10.11-amd64.exe" "./src-tauri/target/release"
+
       - name: Verify build output
         run: |
           echo "Checking build output:"
@@ -125,3 +129,4 @@ jobs:
             ./src-tauri/target/release/*.exe
             ./src-tauri/target/release/*.dll
             ./src-tauri/target/release/*.whl
+            ./src-tauri/target/release/*.exe
