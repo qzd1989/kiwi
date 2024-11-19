@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, reactive } from "vue";
+import { onMounted, onUnmounted } from "vue";
 import { createDir, exists, currentDir } from "./utils/fs";
 import { projectsDir } from "./stores/app";
 async function initProjects() {

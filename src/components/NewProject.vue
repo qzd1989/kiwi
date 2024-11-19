@@ -1,24 +1,13 @@
 <script setup>
 import { ref, onMounted, reactive } from "vue";
-import { LocalStore } from "../stores/local";
 import { msgSuccess, msgError } from "./../utils/msg";
-import { join, sep } from "@tauri-apps/api/path";
 import {
   projectDir,
   resourceDir,
   scriptDir,
   defaultScriptFile,
 } from "./../stores/app";
-import {
-  createDir,
-  createFile,
-  rename as fsRename,
-  remove as fsRemove,
-  exists,
-  readDir,
-  writeFile,
-} from "./../utils/fs";
-import { invoke } from "@tauri-apps/api/core";
+import { createDir, createFile, exists } from "./../utils/fs";
 const props = defineProps({
   visible: Boolean,
 });
@@ -27,10 +16,8 @@ const nameRef = ref(null);
 const rules = reactive({
   name: [{ required: true, message: "", trigger: "blur" }],
 });
-
 const form = reactive({ name: null });
 const emits = defineEmits(["open:project", "close"]);
-const mainScriptFileName = "main.py";
 async function save() {
   //validate
   await formRef.value.validate(async (valid, fields) => {
