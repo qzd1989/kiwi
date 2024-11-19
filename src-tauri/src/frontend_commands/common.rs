@@ -12,7 +12,7 @@ pub fn install_python(platform: String, architecture: String) -> Result<String, 
         ));
     }
 
-    if platform == "windows" && architecture == "aarch64" {
+    if platform == "windows" && architecture == "x86_64" {
         let base_dir = _current_dir();
         let python_dir = format!("{:?}{:?}", base_dir, r"\python");
         //install python
@@ -70,7 +70,7 @@ pub fn install_python(platform: String, architecture: String) -> Result<String, 
         };
     }
 
-    if platform == "windows" && architecture == "x86_64" {
+    if platform == "windows" && architecture == "aarch64" {
         return Err(format!(
             "{:?}_{:?} not supported yet 2",
             platform, architecture
