@@ -1,5 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import { msgError } from "./msg";
+
+export async function currentDir() {
+  return await invoke("current_dir").catch((e) => {
+    msgError(e);
+    return null;
+  });
+}
 export async function createDir(path) {
   return await invoke("create_dir", { path }).catch((e) => {
     msgError(e);

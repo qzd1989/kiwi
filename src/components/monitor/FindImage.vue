@@ -411,7 +411,7 @@ onMounted(async () => {
                 type="textarea"
                 placeholder="results"
                 readonly
-                autosize="true"
+                :autosize="true"
               />
             </div>
           </div>

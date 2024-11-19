@@ -8,7 +8,6 @@ export const store = createStore({
         width: 0,
         height: 0,
       },
-      monitorSnapshots: [],
     };
   },
   getters: {
@@ -18,9 +17,6 @@ export const store = createStore({
     windowSize(state) {
       return state.windowSize;
     },
-    monitorSnapshots(state) {
-      return state.monitorSnapshots;
-    },
   },
   mutations: {
     focus(state, val) {
@@ -28,9 +24,6 @@ export const store = createStore({
     },
     windowSize(state, val) {
       state.windowSize = val;
-    },
-    monitorSnapshots(state, val) {
-      state.monitorSnapshots = val;
     },
   },
 });

@@ -4,6 +4,12 @@ import { LocalStore } from "../stores/local";
 import { msgSuccess, msgError } from "./../utils/msg";
 import { join, sep } from "@tauri-apps/api/path";
 import {
+  projectDir,
+  resourceDir,
+  scriptDir,
+  defaultScriptFile,
+} from "./../stores/app";
+import {
   createDir,
   createFile,
   rename as fsRename,
@@ -17,41 +23,34 @@ const props = defineProps({
   visible: Boolean,
 });
 const formRef = ref(null);
+const nameRef = ref(null);
 const rules = reactive({
   name: [{ required: true, message: "", trigger: "blur" }],
 });
 
-const form = reactive({ name: "", basePath: "" });
-const emits = defineEmits(["update"]);
+const form = reactive({ name: null });
+const emits = defineEmits(["open:project", "close"]);
 const mainScriptFileName = "main.py";
-function close() {
-  emits("update", { visible: false });
-}
 async function save() {
   //validate
   await formRef.value.validate(async (valid, fields) => {
     if (valid) {
       try {
-        let projectFolder = await join(form.basePath, form.name);
-        let resourceFolder = await join(form.basePath, form.name, "resources");
-        let scriptFolder = await join(form.basePath, form.name, "scripts");
-        let mainScriptFile = await join(
-          form.basePath,
-          form.name,
-          "scripts",
-          mainScriptFileName
-        );
-        if (await exists(projectFolder)) {
+        const project = await projectDir(form.name);
+        if (await exists(project)) {
+          msgError(`project already exists`);
           return;
         }
-        await createDir(projectFolder);
-        await createDir(scriptFolder);
-        await createDir(resourceFolder);
-        await createFile(mainScriptFile);
+        const resouce = await resourceDir(form.name);
+        const script = await scriptDir(form.name);
+        const defaultFile = await defaultScriptFile(form.name);
+        await createDir(project);
+        await createDir(resouce);
+        await createDir(script);
+        await createFile(defaultFile);
         msgSuccess(`create project successfully`);
-        emits("update", { path: projectFolder });
-        await LocalStore.set("projectPath", projectFolder);
-        close();
+        emits("open:project", { project: project });
+        emits("close");
       } catch (e) {
         msgError(`save failed: ${e}`);
       }
@@ -61,8 +60,9 @@ async function save() {
   });
 }
 onMounted(async () => {
-  form.basePath = await LocalStore.get("basePath");
-  form.sep = await sep();
+  setTimeout(() => {
+    nameRef.value.focus();
+  }, 100);
 });
 </script>
 <template>
@@ -78,24 +78,24 @@ onMounted(async () => {
       :destroy-on-close="true"
     >
       <span>
-        <el-form-item label="Path" prop="name">
+        <el-form-item label="Name" prop="name">
           <div style="display: flex" class="path">
             <el-input
               v-model="form.name"
-              placeholder="name"
+              placeholder=""
               autocapitalize="off"
               autocorrect="off"
               spellcheck="false"
+              ref="nameRef"
             >
-              <template #prepend>{{ form.basePath }}{{ form.sep }}</template>
             </el-input>
           </div>
         </el-form-item>
       </span>
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="close">Cancel</el-button>
-          <el-button type="primary" @click="save"> Confirm </el-button>
+          <el-button @click="emits('close')">Cancel</el-button>
+          <el-button type="primary" @click="save"> Create </el-button>
         </div>
       </template>
     </el-dialog>

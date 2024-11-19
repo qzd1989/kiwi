@@ -8,6 +8,13 @@ import {
   readDir,
   writeFile,
 } from "./../utils/fs";
+import {
+  projectsDir,
+  projectDir,
+  resourceDir,
+  scriptDir,
+  defaultScriptFile,
+} from "./../stores/app";
 import { useStore } from "vuex";
 import { ElMessageBox } from "element-plus";
 import { msgError, msgSuccess, msgInfo } from "./../utils/msg";
@@ -342,27 +349,6 @@ async function newFile() {
       break;
   }
 }
-async function newProject(projectPath) {
-  newProjectVisible.value = true;
-  path.value = projectPath;
-  emits("clear:files");
-}
-async function openProject() {
-  try {
-    const basePath = await LocalStore.get("basePath");
-    const directory = await openDialog({
-      multiple: false,
-      directory: true,
-      defaultPath: basePath,
-    });
-    if (!directory) return;
-    path.value = directory;
-    await LocalStore.set("projectPath", path.value);
-    emits("clear:files");
-  } catch (e) {
-    msgError(`open project failed: ${e}`);
-  }
-}
 async function openSetting() {
   settingVisible.value = true;
 }
@@ -372,16 +358,26 @@ async function clearStore() {
 async function updateSetting(result) {
   settingVisible.value = result.visible;
 }
-async function updateNewProject(result) {
-  if (result.visible != undefined) {
-    newProjectVisible.value = result.visible;
+async function newProject() {
+  newProjectVisible.value = true;
+}
+async function openProject(result) {
+  //from newProject
+  if (result.project != undefined) {
+    path.value = result.project;
+    emits("clear:files");
     return;
   }
-  // new Project
-  if (result.path != undefined) {
-    newProjectVisible.value = false;
-    newProject(result.path);
-  }
+
+  //from openProject
+  const dir = await openDialog({
+    multiple: false,
+    directory: true,
+    defaultPath: projectsDir,
+  });
+  if (!dir) return;
+  path.value = dir;
+  emits("clear:files");
 }
 async function refresh() {
   if (path.value) {
@@ -431,20 +427,7 @@ watchEffect(async () => {
     footerSize.height -
     61;
 });
-onMounted(async () => {
-  let projectPath = await LocalStore.get("projectPath");
-  if (projectPath && (await exists(projectPath))) {
-    path.value = projectPath;
-  }
-  //临时代码, todo
-  setTimeout(() => {
-    const data = {
-      name: "main.py",
-      path: "/Users/kiwi/scripts/test/scripts/main.py",
-    };
-    emits("add:file", { file: data });
-  }, 500);
-});
+onMounted(async () => {});
 </script>
 <template>
   <el-container
@@ -476,17 +459,11 @@ onMounted(async () => {
     </el-main>
     <el-footer ref="footerRef">
       <el-row :gutter="0">
-        <el-col :span="6"
-          ><div class="action" @click="newProjectVisible = true">New</div>
+        <el-col :span="12"
+          ><div class="action" @click="newProject">New</div>
         </el-col>
-        <el-col :span="6">
+        <el-col :span="12">
           <div class="action" @click="openProject">Open</div>
-        </el-col>
-        <el-col :span="6">
-          <div class="action" @click="openSetting">Setting</div>
-        </el-col>
-        <el-col :span="6">
-          <div class="action" @click="clearStore">Clear</div>
         </el-col>
       </el-row>
     </el-footer>
@@ -499,7 +476,8 @@ onMounted(async () => {
   <NewProject
     v-if="newProjectVisible"
     :visible="newProjectVisible"
-    @update="updateNewProject"
+    @close="newProjectVisible = false"
+    @open:project="openProject"
   />
 </template>
 <style scoped>

@@ -4,3 +4,4 @@ src-tauri/Cargo.lock
 src-tauri/.DS_Store
 .DS_Store
 src-tauri/.venv
+src-tauri/projects
