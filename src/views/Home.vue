@@ -108,9 +108,12 @@ useResizeObserver(windowRef, (entries) => {
     windowSize.width - leftRef.value.offsetWidth - rightRef.value.offsetWidth;
   topHeight.value = windowSize.height - bottomHeight.value;
 });
+const currentDir = ref("");
 onMounted(async () => {
   document.addEventListener("mousemove", moveListener);
   document.addEventListener("mouseup", upListener);
+
+  currentDir.value = await invoke("current_dir");
 });
 onUnmounted(() => {
   document.removeEventListener("mousemove");
@@ -195,7 +198,7 @@ onUnmounted(() => {
           @click="store.commit('focus', 'terminal')"
         >
           <div class="log">
-            这里放日志: {{ store.getters.focus }}
+            这里放日志: {{ store.getters.focus }}, current dir: {{ currentDir }}
             <el-button type="primary" @click="cc">cc</el-button>
           </div>
         </div>

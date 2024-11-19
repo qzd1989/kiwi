@@ -35,6 +35,7 @@ pub fn run() {
             frontend_commands::find::find_locating_color,
             frontend_commands::find::find_color,
             frontend_commands::find::find_text,
+            frontend_commands::common::current_dir,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
