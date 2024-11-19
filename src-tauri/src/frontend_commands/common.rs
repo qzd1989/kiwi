@@ -4,9 +4,12 @@ pub fn current_dir() -> String {
 }
 
 #[tauri::command]
-pub fn install_python(platform: String, architecture: String) -> Result<(), String> {
+pub fn install_python(platform: String, architecture: String) -> Result<String, String> {
     if platform == "macos" && architecture == "aarch64" {
-        return Ok(());
+        return Err(format!(
+            "{:?}_{:?} not supported yet 1",
+            platform, architecture
+        ));
     }
 
     if platform == "windows" && architecture == "aarch64" {
@@ -55,7 +58,7 @@ pub fn install_python(platform: String, architecture: String) -> Result<(), Stri
                                         "Failed to install kiwi module for python".to_string()
                                     );
                                 }
-                                Ok(())
+                                Ok(format!("{:?}_{:?} install success", platform, architecture))
                             }
                             Err(error) => Err(error.to_string()),
                         };
@@ -67,11 +70,16 @@ pub fn install_python(platform: String, architecture: String) -> Result<(), Stri
         };
     }
 
-    // if platform == "windows" && architecture == "x86_64" {
-    //     //windows x64
-    //     return Ok(());
-    // }
-    Ok(())
+    if platform == "windows" && architecture == "x86_64" {
+        return Err(format!(
+            "{:?}_{:?} not supported yet 2",
+            platform, architecture
+        ));
+    }
+    Err(format!(
+        "{:?}_{:?} not supported yet 3",
+        platform, architecture
+    ))
 }
 
 pub fn _current_dir() -> String {

@@ -34,9 +34,9 @@ async function initPython() {
     platform,
     architecture,
   })
-    .then(async () => {
+    .then(async (result) => {
       //安装结束
-      msgSuccess("Install Python Success");
+      msgSuccess(result);
     })
     .catch(async (error) => {
       //安装报错
