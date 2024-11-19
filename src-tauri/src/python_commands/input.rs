@@ -55,12 +55,6 @@ pub fn location() -> PyResult<Point> {
 }
 
 #[pyfunction]
-pub fn sleep(time: u64) -> PyResult<()> {
-    input::sleep(time);
-    Ok(())
-}
-
-#[pyfunction]
 pub fn scroll_vertical(length: i32) -> PyResult<()> {
     input::scroll_vertical(length);
     Ok(())

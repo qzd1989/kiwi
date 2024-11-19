@@ -13,7 +13,6 @@ pub fn input_module(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     input.add_function(wrap_pyfunction!(input::move_abs, &input)?)?;
     input.add_function(wrap_pyfunction!(input::move_rel, &input)?)?;
     input.add_function(wrap_pyfunction!(input::location, &input)?)?;
-    input.add_function(wrap_pyfunction!(input::sleep, &input)?)?;
     input.add_function(wrap_pyfunction!(input::scroll_vertical, &input)?)?;
     input.add_function(wrap_pyfunction!(input::scroll_horizontal, &input)?)?;
     input.add_class::<Point>()?;

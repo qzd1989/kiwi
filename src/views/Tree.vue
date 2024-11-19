@@ -8,13 +8,7 @@ import {
   readDir,
   writeFile,
 } from "./../utils/fs";
-import {
-  projectsDir,
-  projectDir,
-  resourceDir,
-  scriptDir,
-  defaultScriptFile,
-} from "./../stores/app";
+import { projectsDir } from "./../stores/app";
 import { useStore } from "vuex";
 import { ElMessageBox } from "element-plus";
 import { msgError, msgSuccess, msgInfo } from "./../utils/msg";
