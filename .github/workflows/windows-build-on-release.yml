@@ -31,7 +31,7 @@ jobs:
           pip install maturin
           pip freeze
 
-      - name: maturin check
+      - name: maturin and venv check
         run: |
           maturin --version
           dir ./src-tauri/.venv
@@ -103,7 +103,7 @@ jobs:
           cd ./src-tauri
           maturin build --release
 
-      - name: maturin build check
+      - name: dirs check
         run: |
           dir ./src-tauri/target
           dir ./src-tauri/target/wheels
@@ -118,6 +118,10 @@ jobs:
         run: |
           copy "./src-tauri/resources/python-windows-amd64.exe" "./src-tauri/target/release/resources"
 
+      - name: Remove Unused files
+        run: |
+          rm -f "./src-tauri/target/release/resources/icon.ico"
+
       - name: Verify build output
         run: |
           echo "Checking build output:"
@@ -129,4 +133,5 @@ jobs:
           name: kiwi
           path: |
             ./src-tauri/target/release/resources
+            ./src-tauri/target/release/*.exe
             ./src-tauri/target/release/*.dll
