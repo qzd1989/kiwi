@@ -120,7 +120,7 @@ jobs:
 
       - name: Remove Unused files
         run: |
-          rm -f "./src-tauri/target/release/resources/icon.ico"
+          del "./src-tauri/target/release/resources/icon.ico"
 
       - name: Verify build output
         run: |
