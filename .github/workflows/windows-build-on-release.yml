@@ -107,10 +107,8 @@ jobs:
         run: |
           dir ./src-tauri/target
           dir ./src-tauri/target/wheels
-
-      - name: create resources dir
-        run: |
-          mkdir -p "./src-tauri/target/release/resources"
+          dir ./src-tauri/target/release
+          dir ./src-tauri/target/release/resources
 
       - name: Copy wheels
         run: |
