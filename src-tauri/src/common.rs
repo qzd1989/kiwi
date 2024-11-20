@@ -3,6 +3,10 @@ use crate::capture::Frame;
 use anyhow::Result;
 use base64::{engine::general_purpose, Engine as _};
 use image::{imageops, ImageBuffer, Rgba};
+#[cfg(not(all(windows, debug_assertions)))]
+use opencv::core::{Mat, CV_8UC1, CV_8UC4};
+#[cfg(not(all(windows, debug_assertions)))]
+use opencv::prelude::*;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
@@ -109,7 +113,7 @@ pub type Base64Png = String;
 pub trait Base64PngExt {
     fn to_buffer(&self) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>>;
     #[cfg(not(all(windows, debug_assertions)))]
-    fn to_mat(&self) -> Result<opencv::core::Mat>;
+    fn to_mat(&self) -> Result<Mat>;
     fn to_frame(&self) -> Result<Frame>;
 }
 
@@ -127,9 +131,7 @@ impl Base64PngExt for Base64Png {
     }
 
     #[cfg(not(all(windows, debug_assertions)))]
-    fn to_mat(&self) -> Result<opencv::core::Mat> {
-        use opencv::core::{Mat, CV_8UC1, CV_8UC4};
-        use opencv::prelude::*;
+    fn to_mat(&self) -> Result<Mat> {
         self.to_buffer()?.to_mat()
     }
 
@@ -144,7 +146,7 @@ pub trait MatExt {
 }
 
 #[cfg(not(all(windows, debug_assertions)))]
-impl MatExt for opencv::core::Mat {
+impl MatExt for Mat {
     fn to_buffer(&self) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>> {
         let mat_data = self.data_bytes()?;
         let (width, height) = (self.cols(), self.rows());
@@ -197,7 +199,7 @@ impl RgbColor {
 
 pub trait ImageBufferRgbaExt {
     #[cfg(not(all(windows, debug_assertions)))]
-    fn to_mat(&self) -> Result<opencv::core::Mat>;
+    fn to_mat(&self) -> Result<Mat>;
     fn crop(
         &self,
         x: impl Into<u32>,
@@ -206,14 +208,12 @@ pub trait ImageBufferRgbaExt {
         height: impl Into<u32>,
     ) -> ImageBuffer<Rgba<u8>, Vec<u8>>;
     #[cfg(not(all(windows, debug_assertions)))]
-    fn mask(&self) -> Result<opencv::core::Mat>;
+    fn mask(&self) -> Result<Mat>;
 }
 
 impl ImageBufferRgbaExt for ImageBuffer<Rgba<u8>, Vec<u8>> {
     #[cfg(not(all(windows, debug_assertions)))]
-    fn to_mat(&self) -> Result<opencv::core::Mat> {
-        use opencv::core::{Mat, CV_8UC1, CV_8UC4};
-        use opencv::prelude::*;
+    fn to_mat(&self) -> Result<Mat> {
         // 获取图像的宽度和高度
         let (width, height) = self.dimensions();
         // 获取图像缓冲区的原始数据
@@ -250,9 +250,7 @@ impl ImageBufferRgbaExt for ImageBuffer<Rgba<u8>, Vec<u8>> {
     }
 
     #[cfg(not(all(windows, debug_assertions)))]
-    fn mask(&self) -> Result<opencv::core::Mat> {
-        use opencv::core::{Mat, CV_8UC1, CV_8UC4};
-        use opencv::prelude::*;
+    fn mask(&self) -> Result<Mat> {
         let mut vec = Vec::new();
         for (_, _, pixel) in self.enumerate_pixels() {
             if pixel[3] == 0 {

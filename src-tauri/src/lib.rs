@@ -17,7 +17,9 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_shell::init());
+    #[cfg(all(windows, debug_assertions))]
+    frontend
         .invoke_handler(tauri::generate_handler![
             frontend_commands::fs::create_dir,
             frontend_commands::fs::create_file,
@@ -35,16 +37,31 @@ pub fn run() {
             frontend_commands::find::find_text,
             frontend_commands::common::current_dir,
             frontend_commands::common::install_python
-        ]);
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
     #[cfg(not(all(windows, debug_assertions)))]
-    {
-        frontend
-            ..invoke_handler(tauri::generate_handler![
-                frontend_commands::find::find_image,
-                frontend_commands::find::find_images,
-            ]);
-    }
     frontend
+        .invoke_handler(tauri::generate_handler![
+            frontend_commands::fs::create_dir,
+            frontend_commands::fs::create_file,
+            frontend_commands::fs::read_dir,
+            frontend_commands::fs::rename,
+            frontend_commands::fs::remove,
+            frontend_commands::fs::exists,
+            frontend_commands::fs::write_file,
+            frontend_commands::fs::read_file,
+            frontend_commands::capture::snapshot,
+            frontend_commands::capture::display_size,
+            frontend_commands::find::find_image,
+            frontend_commands::find::find_images,
+            frontend_commands::find::find_peak,
+            frontend_commands::find::find_locating_color,
+            frontend_commands::find::find_color,
+            frontend_commands::find::find_text,
+            frontend_commands::common::current_dir,
+            frontend_commands::common::install_python
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -42,8 +42,6 @@ image = { version = "0.25.5", features = ["jpeg", "png"] }
 base64 = "0.22.1"
 rusty-tesseract = { path = "libs/rusty-tesseract" }
 enigo = "0.2.1"
-
-[target.'cfg(not(all(windows, debug)))'.dependencies]
 opencv = { version = "0.93.4" }
 
 [dependencies.pyo3]
