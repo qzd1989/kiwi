@@ -8,7 +8,7 @@ lazy_static! {
     static ref WINDOWS_PYTHON_DIR: String = format!("{}{}", *BASE_DIR, "\\python");
     static ref WINDOWS_INSTALL_FILE: String =
         format!("{}{}", *BASE_DIR, "\\resources\\python-windows-amd64.exe");
-    static ref WINDOWS_EXEC_FILE: String = format!("{}{}", *WINDOWS_PYTHON_DIR, "\\python.exe");
+    static ref WINDOWS_EXEC_FILE: String = format!("{}{}", *WINDOWS_PYTHON_DIR, "\\pythonw.exe");
     static ref WINDOWS_WHL_FILE: String = format!(
         "{}\\resources\\kiwi-{}-cp310-abi3-win_amd64.whl",
         *BASE_DIR, *VERSION
