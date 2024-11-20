@@ -2,7 +2,6 @@ pub mod crabgrab;
 use anyhow::{anyhow, Result};
 pub use crabgrab as engine;
 use image::{ImageBuffer, Rgba};
-use opencv::core::Mat;
 use serde::Serialize;
 
 use crate::common::ImageBufferRgbaExt;
@@ -29,7 +28,9 @@ impl Frame {
             return Err(anyhow!("Failed to convert frame to rgba buffer"));
         }
     }
-    pub fn to_mat(&self) -> Result<Mat> {
+
+    #[cfg(not(all(windows, debug_assertions)))]
+    pub fn to_mat(&self) -> Result<opencv::core::Mat> {
         self.to_buffer()?.to_mat()
     }
 }

@@ -1,8 +1,11 @@
+#[cfg(not(all(windows, debug_assertions)))]
+use crate::find::image;
 use crate::{
     common::{Base64PngExt, HexColor, LocatingColor, Point, WeightPoint},
-    find::{color, image, locating_color, text},
+    find::{color, locating_color, text},
 };
 
+#[cfg(not(all(windows, debug_assertions)))]
 #[tauri::command]
 pub fn find_image(
     origin: String,
@@ -19,6 +22,7 @@ pub fn find_image(
         .or_else(|error| Err(error.to_string()))
 }
 
+#[cfg(not(all(windows, debug_assertions)))]
 #[tauri::command]
 pub fn find_images(
     origin: String,

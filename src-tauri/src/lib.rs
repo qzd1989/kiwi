@@ -11,7 +11,7 @@ use pyo3::prelude::*;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     install::install();
-    tauri::Builder::default()
+    let frontend = tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_store::Builder::new().build())
@@ -30,14 +30,21 @@ pub fn run() {
             frontend_commands::capture::snapshot,
             frontend_commands::capture::display_size,
             frontend_commands::find::find_peak,
-            frontend_commands::find::find_image,
-            frontend_commands::find::find_images,
             frontend_commands::find::find_locating_color,
             frontend_commands::find::find_color,
             frontend_commands::find::find_text,
             frontend_commands::common::current_dir,
             frontend_commands::common::install_python
-        ])
+        ]);
+    #[cfg(not(all(windows, debug_assertions)))]
+    {
+        frontend
+            ..invoke_handler(tauri::generate_handler![
+                frontend_commands::find::find_image,
+                frontend_commands::find::find_images,
+            ]);
+    }
+    frontend
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
