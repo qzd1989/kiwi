@@ -5,3 +5,6 @@ src-tauri/.DS_Store
 .DS_Store
 src-tauri/.venv
 src-tauri/projects
+src-tauri/.installed
+src-tauri/python
+src-tauri/resources/*.whl

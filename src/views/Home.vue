@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, reactive } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { useResizeObserver } from "@vueuse/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useStore } from "vuex";
 import { Stack } from "./../utils/common";
 import Tree from "./Tree.vue";
@@ -28,6 +29,7 @@ const draggingRight = ref(false);
 const draggingBottom = ref(false);
 const files = ref(new Map());
 const lastOpenedFile = ref(null);
+const currentDir = ref(null);
 function moveListener(event) {
   const containerRect = windowRef.value.getBoundingClientRect();
   point.x = event.clientX - containerRect.left;
@@ -95,9 +97,6 @@ function clearFiles() {
   files.value.clear();
   lastOpenedFile.value = null;
 }
-function cc() {
-  // todo
-}
 useResizeObserver(windowRef, (entries) => {
   const entry = entries[0];
   const { width, height } = entry.contentRect;
@@ -108,11 +107,9 @@ useResizeObserver(windowRef, (entries) => {
     windowSize.width - leftRef.value.offsetWidth - rightRef.value.offsetWidth;
   topHeight.value = windowSize.height - bottomHeight.value;
 });
-const currentDir = ref("");
 onMounted(async () => {
   document.addEventListener("mousemove", moveListener);
   document.addEventListener("mouseup", upListener);
-
   currentDir.value = await invoke("current_dir");
 });
 onUnmounted(() => {
@@ -198,8 +195,8 @@ onUnmounted(() => {
           @click="store.commit('focus', 'terminal')"
         >
           <div class="log">
-            这里放日志: {{ store.getters.focus }}, current dir: {{ currentDir }}
-            <el-button type="primary" @click="cc">cc</el-button>
+            这里放日志: {{ store.getters.focus }}, current dir:
+            {{ currentDir }}
           </div>
         </div>
       </div>

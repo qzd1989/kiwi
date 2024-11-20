@@ -1,16 +1,17 @@
 pub mod capture;
 pub mod common;
 pub mod find;
-pub mod frontend_commands;
 pub mod input;
-pub mod install;
+pub mod utils;
+
+pub mod frontend_commands;
 pub mod python_commands;
+
 use pyo3::prelude::*;
 
 //for frontend
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    install::install();
     let frontend = tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
@@ -21,6 +22,7 @@ pub fn run() {
     #[cfg(all(windows, debug_assertions))]
     frontend
         .invoke_handler(tauri::generate_handler![
+            frontend_commands::fs::current_dir,
             frontend_commands::fs::create_dir,
             frontend_commands::fs::create_file,
             frontend_commands::fs::read_dir,
@@ -35,14 +37,21 @@ pub fn run() {
             frontend_commands::find::find_locating_color,
             frontend_commands::find::find_color,
             frontend_commands::find::find_text,
-            frontend_commands::common::current_dir,
-            frontend_commands::common::install_python
+            frontend_commands::install::install_projects,
+            frontend_commands::install::install_python,
+            frontend_commands::install::uninstall_python,
+            frontend_commands::install::repair_python,
+            frontend_commands::install::install_pip,
+            frontend_commands::install::install_whl,
+            frontend_commands::install::is_installed,
+            frontend_commands::install::lock_install_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
     #[cfg(not(all(windows, debug_assertions)))]
     frontend
         .invoke_handler(tauri::generate_handler![
+            frontend_commands::fs::current_dir,
             frontend_commands::fs::create_dir,
             frontend_commands::fs::create_file,
             frontend_commands::fs::read_dir,
@@ -59,8 +68,14 @@ pub fn run() {
             frontend_commands::find::find_locating_color,
             frontend_commands::find::find_color,
             frontend_commands::find::find_text,
-            frontend_commands::common::current_dir,
-            frontend_commands::common::install_python
+            frontend_commands::install::install_projects,
+            frontend_commands::install::install_python,
+            frontend_commands::install::uninstall_python,
+            frontend_commands::install::repair_python,
+            frontend_commands::install::install_pip,
+            frontend_commands::install::install_whl,
+            frontend_commands::install::is_installed,
+            frontend_commands::install::lock_install_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

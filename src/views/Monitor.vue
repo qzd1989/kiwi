@@ -4,6 +4,7 @@ import { useStore } from "vuex";
 import { useResizeObserver } from "@vueuse/core";
 import { Stack } from "./../utils/common";
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   arrayImageDataToBase64ImageData,
   cropBase64Image,
@@ -162,7 +163,7 @@ function draw() {
     imageData.data.set(u8);
     canvas.width = monitor.size.width;
     canvas.height = monitor.size.height;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     ctx.putImageData(imageData, 0, 0);
     hex.value = getPixelHex(ctx, point.x, point.y);
   }
@@ -406,7 +407,9 @@ onMounted(async () => {
   monitors.value = await getMonitors();
   //init
   monitorKey.value = "primary_display";
-  capture();
+  if ((await getCurrentWindow().label) == "monitor") {
+    capture();
+  }
   // gap
   document.addEventListener("mousemove", moveListener);
   document.addEventListener("mouseup", upListener);

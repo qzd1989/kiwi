@@ -1,18 +1,15 @@
+use crate::utils;
 use serde::Serialize;
 use std::fs;
+
+#[tauri::command]
+pub fn current_dir() -> String {
+    utils::fs::current_dir()
+}
+
 #[tauri::command]
 pub fn create_dir(path: String) -> Result<bool, String> {
-    let exists = fs::exists(path.clone());
-    if let Err(error) = exists {
-        return Err(format!("{}", error));
-    }
-    if exists.unwrap() {
-        return Err(format!("Directory {:?} already exists", path));
-    }
-    if let Err(error) = fs::create_dir_all(path) {
-        return Err(format!("{}", error));
-    }
-    Ok(true)
+    utils::fs::create_dir(path)
 }
 
 #[tauri::command]
@@ -39,10 +36,7 @@ pub fn rename(from: String, to: String) -> Result<bool, String> {
 }
 #[tauri::command]
 pub fn write_file(path: String, contents: String) -> Result<bool, String> {
-    if let Err(error) = fs::write(path, contents) {
-        return Err(format!("{}", error));
-    }
-    Ok(true)
+    utils::fs::write_file(path, contents)
 }
 
 #[tauri::command]
@@ -74,11 +68,7 @@ pub fn remove(path: String) -> Result<bool, String> {
 }
 #[tauri::command]
 pub fn exists(path: String) -> Result<bool, String> {
-    let result = fs::exists(path);
-    if let Err(error) = result {
-        return Err(format!("{}", error));
-    }
-    Ok(result.unwrap())
+    utils::fs::exists(path)
 }
 #[tauri::command]
 pub fn read_dir(path: String) -> Result<Vec<Entry>, String> {
