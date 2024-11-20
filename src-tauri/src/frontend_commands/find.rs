@@ -1,7 +1,9 @@
 #[cfg(not(all(windows, debug_assertions)))]
+use crate::common::WeightPoint;
+#[cfg(not(all(windows, debug_assertions)))]
 use crate::find::image;
 use crate::{
-    common::{Base64PngExt, HexColor, LocatingColor, Point, WeightPoint},
+    common::{Base64PngExt, HexColor, LocatingColor, Point},
     find::{color, locating_color, text},
 };
 

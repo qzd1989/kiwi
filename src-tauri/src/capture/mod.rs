@@ -1,10 +1,10 @@
 pub mod crabgrab;
+#[cfg(not(all(windows, debug_assertions)))]
+use crate::common::ImageBufferRgbaExt;
 use anyhow::{anyhow, Result};
 pub use crabgrab as engine;
 use image::{ImageBuffer, Rgba};
 use serde::Serialize;
-
-use crate::common::ImageBufferRgbaExt;
 #[derive(Debug, Clone, Serialize)]
 pub struct Frame {
     pub width: u32,
