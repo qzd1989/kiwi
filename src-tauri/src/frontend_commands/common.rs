@@ -12,11 +12,17 @@ pub fn install_python(platform: String, architecture: String) -> Result<String, 
         ));
     }
 
-    if platform == "windows" && architecture == "x86_64" {
+    if platform == "windows" && (architecture == "x86_64" || architecture == "aarch64") {
         let base_dir = _current_dir();
         let python_dir = format!("{:?}{:?}", base_dir, r"\python");
+        let python_install_file =
+            format!("{:?}{:?}", base_dir, r"\resources\python-windows-amd64.exe");
+        let python_exec_file = format!("{:?}{:?}", python_dir, r"\python.exe");
+        let whl_file = format!(
+            "{:?}{:?}",
+            base_dir, r"\kiwi-1.0.0-cp310-abi3-win_amd64.whl"
+        );
         //install python
-        let python_install_file = format!("{:?}{:?}", base_dir, r"\python-3.10.11-amd64.exe");
         let python_result = std::process::Command::new(python_install_file)
             .arg("/quiet")
             .arg("/norestart")
@@ -29,7 +35,6 @@ pub fn install_python(platform: String, architecture: String) -> Result<String, 
                     return Err("Failed to install Python".to_string());
                 }
                 //install pip
-                let python_exec_file = format!("{:?}{:?}", python_dir, r"\python.exe");
                 let pip_result = std::process::Command::new(python_exec_file.clone())
                     .arg("-m")
                     .arg("ensurepip")
@@ -40,10 +45,6 @@ pub fn install_python(platform: String, architecture: String) -> Result<String, 
                         if !status.success() {
                             return Err("Failed to install pip".to_string());
                         }
-                        let whl_file = format!(
-                            "{:?}{:?}",
-                            base_dir, r"\kiwi-0.1.0-cp310-abi3-win_amd64.whl"
-                        );
                         //install whl
                         let whl_result = std::process::Command::new(python_exec_file)
                             .arg("-m")

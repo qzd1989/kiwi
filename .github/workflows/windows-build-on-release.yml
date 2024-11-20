@@ -108,13 +108,17 @@ jobs:
           dir ./src-tauri/target
           dir ./src-tauri/target/wheels
 
+      - name: create resources dir
+        run: |
+          mkdir -p "./src-tauri/target/release/resources"
+
       - name: Copy wheels
         run: |
-          copy "./src-tauri/target/wheels/kiwi-0.1.0-cp310-abi3-win_amd64.whl" "./src-tauri/target/release"
+          copy "./src-tauri/target/wheels/kiwi-1.0.0-cp310-abi3-win_amd64.whl" "./src-tauri/target/release/resources"
 
       - name: Copy Python Installers
         run: |
-          copy "./src-tauri/resources/python-3.10.11-amd64.exe" "./src-tauri/target/release"
+          copy "./src-tauri/resources/python-windows-amd64.exe" "./src-tauri/target/release/resources"
 
       - name: Verify build output
         run: |
@@ -126,6 +130,5 @@ jobs:
         with:
           name: kiwi
           path: |
-            ./src-tauri/target/release/*.exe
+            ./src-tauri/target/release/resources
             ./src-tauri/target/release/*.dll
-            ./src-tauri/target/release/*.whl
