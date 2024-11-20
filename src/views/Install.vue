@@ -69,7 +69,7 @@ onMounted(async () => {});
         :disabled="progress > 0"
         >Install</el-button
       >
-      <div class="description" v-if="progress > 0">Please Waiting...</div>
+      <div class="description" v-if="progress > 0">Please Wait...</div>
     </div>
   </div>
   <div v-if="progress == 100" class="begin">
