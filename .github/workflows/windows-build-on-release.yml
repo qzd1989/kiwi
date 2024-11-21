@@ -121,6 +121,7 @@ jobs:
       - name: Remove Unused files
         run: |
           del "./src-tauri/target/release/resources/icon.ico"
+          del "./src-tauri/target/release/resources/python-macos.pkg"
 
       - name: Verify build output
         run: |
