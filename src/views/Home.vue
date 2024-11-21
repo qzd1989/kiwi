@@ -29,7 +29,6 @@ const draggingRight = ref(false);
 const draggingBottom = ref(false);
 const files = ref(new Map());
 const lastOpenedFile = ref(null);
-const currentDir = ref(null);
 function moveListener(event) {
   const containerRect = windowRef.value.getBoundingClientRect();
   point.x = event.clientX - containerRect.left;
@@ -110,7 +109,6 @@ useResizeObserver(windowRef, (entries) => {
 onMounted(async () => {
   document.addEventListener("mousemove", moveListener);
   document.addEventListener("mouseup", upListener);
-  currentDir.value = await invoke("current_dir");
 });
 onUnmounted(() => {
   document.removeEventListener("mousemove");
@@ -194,10 +192,7 @@ onUnmounted(() => {
           }"
           @click="store.commit('focus', 'terminal')"
         >
-          <div class="log">
-            这里放日志: {{ store.getters.focus }}, current dir:
-            {{ currentDir }}
-          </div>
+          <div class="log">这里放日志: {{ store.getters.focus }}</div>
         </div>
       </div>
       <div

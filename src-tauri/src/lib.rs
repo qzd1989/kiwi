@@ -22,7 +22,7 @@ pub fn run() {
     #[cfg(all(windows, debug_assertions))]
     frontend
         .invoke_handler(tauri::generate_handler![
-            frontend_commands::fs::current_dir,
+            frontend_commands::projects_dir,
             frontend_commands::fs::create_dir,
             frontend_commands::fs::create_file,
             frontend_commands::fs::read_dir,
@@ -51,7 +51,7 @@ pub fn run() {
     #[cfg(not(all(windows, debug_assertions)))]
     frontend
         .invoke_handler(tauri::generate_handler![
-            frontend_commands::fs::current_dir,
+            frontend_commands::projects_dir,
             frontend_commands::fs::create_dir,
             frontend_commands::fs::create_file,
             frontend_commands::fs::read_dir,

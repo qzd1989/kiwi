@@ -1,8 +1,7 @@
-import { currentDir } from "../utils/fs";
+import { invoke } from "@tauri-apps/api/core";
 import { sep } from "@tauri-apps/api/path";
 
-export const rootDir = await currentDir();
-export const projectsDir = (await currentDir()) + (await sep()) + "projects";
+export const projectsDir = await invoke("projects_dir");
 export const defaultScript = "main.py";
 
 export const projectDir = async (project) => {

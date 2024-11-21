@@ -3,11 +3,6 @@ use serde::Serialize;
 use std::fs;
 
 #[tauri::command]
-pub fn current_dir() -> String {
-    utils::fs::current_dir()
-}
-
-#[tauri::command]
 pub fn create_dir(path: String) -> Result<bool, String> {
     utils::fs::create_dir(path)
 }

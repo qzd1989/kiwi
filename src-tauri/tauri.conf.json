@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0",
   "productName": "kiwi",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "identifier": "kiwi",
   "build": {
     "beforeDevCommand": "echo 'maturin begin' && cd ./src-tauri && source .venv/bin/activate && maturin develop && echo 'maturin done' && cd ../ && npm run dev",

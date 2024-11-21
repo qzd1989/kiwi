@@ -1,7 +1,6 @@
-use std::fs;
-pub fn current_dir() -> String {
-    let dir = std::env::current_dir().unwrap();
-    dir.to_str().unwrap().to_string()
+use std::{fs, path::PathBuf};
+pub fn current_dir() -> PathBuf {
+    std::env::current_dir().unwrap()
 }
 
 pub fn exists(path: String) -> Result<bool, String> {

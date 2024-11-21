@@ -1,8 +1,10 @@
 ///全局对象结构体
 use crate::capture::Frame;
+use crate::utils;
 use anyhow::Result;
 use base64::{engine::general_purpose, Engine as _};
 use image::{imageops, ImageBuffer, Rgba};
+use lazy_static::lazy_static;
 #[cfg(not(all(windows, debug_assertions)))]
 use opencv::core::{Mat, CV_8UC1, CV_8UC4};
 #[cfg(not(all(windows, debug_assertions)))]
@@ -10,6 +12,64 @@ use opencv::prelude::*;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
+
+lazy_static! {
+    pub static ref VERSION: String = String::from("1.0.0");
+    pub static ref PYTHON_VERSION: String = String::from("3.10");
+    pub static ref PROJECTS_DIR: String = {
+        #[cfg(target_os = "macos")]
+        {
+            #[cfg(debug_assertions)]
+            {
+                utils::fs::current_dir()
+                    .join("projects")
+                    .to_str()
+                    .unwrap()
+                    .to_string()
+            }
+            #[cfg(not(debug_assertions))]
+            {
+                directories::UserDirs::new()
+                    .unwrap()
+                    .document_dir()
+                    .unwrap()
+                    .to_path_buf()
+                    .join("Kiwi")
+                    .join("Projects")
+                    .to_str()
+                    .unwrap()
+                    .to_string()
+            }
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            utils::fs::current_dir()
+                .join("projects")
+                .to_str()
+                .unwrap()
+                .to_string()
+        }
+    };
+    pub static ref PYTHON_EXEC_FILE: String = {
+        #[cfg(target_os = "macos")]
+        {
+            format!(
+                "/Library/Frameworks/Python.framework/Versions/{}/bin/python{}",
+                *PYTHON_VERSION, *PYTHON_VERSION
+            )
+        }
+        #[cfg(target_os = "windows")]
+        {
+            utils::fs::current_dir()
+                .join("python")
+                .join("pythonw.exe")
+                .to_str()
+                .unwrap()
+                .to_string()
+        }
+    };
+}
 
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]

@@ -8,3 +8,5 @@ src-tauri/projects
 src-tauri/.installed
 src-tauri/python
 src-tauri/resources/*.whl
+src-tauri/Cargo.lock
+dist
