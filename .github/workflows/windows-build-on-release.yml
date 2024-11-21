@@ -116,7 +116,7 @@ jobs:
 
       - name: Copy Python Installers
         run: |
-          copy "./src-tauri/resources/python-windows-amd64.exe" "./src-tauri/target/release/resources"
+          copy "./src-tauri/resources/python-windows.exe" "./src-tauri/target/release/resources"
 
       - name: Remove Unused files
         run: |
