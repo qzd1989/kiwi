@@ -18,16 +18,14 @@ lazy_static! {
 
 #[tauri::command]
 pub fn is_installed() -> bool {
+    //判断python文件是否存在
+    //判断pip是否安装
+    //判断whl是否安装
     utils::fs::exists(LOCK_FILE.to_string()).unwrap()
 }
 
 #[tauri::command]
-pub fn lock_install_file() {
-    utils::fs::write_file(LOCK_FILE.to_string(), "".to_string()).unwrap();
-}
-
-#[tauri::command]
-pub fn install_projects(architecture: String) -> Result<bool, String> {
+pub fn initialize_projects(architecture: String) -> Result<bool, String> {
     if architecture == "x86_64" || architecture == "aarch64" {
         if let Err(error) = utils::fs::create_dir(PROJECTS_DIR.to_string()) {
             return Err(error.to_string());

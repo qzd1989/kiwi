@@ -4,10 +4,7 @@ pub fn is_installed() -> bool {
 }
 
 #[tauri::command]
-pub fn lock_install_file() {}
-
-#[tauri::command]
-pub fn install_projects(architecture: String) -> Result<bool, String> {
+pub fn initialize_projects(architecture: String) -> Result<bool, String> {
     if architecture == "aarch64" {
         return Ok(true);
     }

@@ -6,11 +6,11 @@ import { msgError } from "../utils/msg";
 const emits = defineEmits(["finished"]);
 const progress = ref(0);
 const repaired = ref(false);
-async function install() {
+async function initialize() {
   let platform = type();
   let architecture = arch();
   progress.value = 1;
-  invoke("install_projects", { platform, architecture })
+  invoke("initialize_projects", { platform, architecture })
     .then(async () => {
       return invoke("uninstall_python", { platform, architecture });
     })
@@ -41,11 +41,6 @@ async function install() {
         return invoke("install_whl", { platform, architecture });
       }
     })
-    .then(async (result) => {
-      if (result) {
-        return invoke("lock_install_file");
-      }
-    })
     .then(async () => {
       progress.value = 100;
     })
@@ -64,10 +59,10 @@ onMounted(async () => {});
     <div class="install-box">
       <el-button
         type="primary"
-        @click="install"
+        @click="initialize"
         size="large"
         :disabled="progress > 0"
-        >Install</el-button
+        >Initialize</el-button
       >
       <div class="description" v-if="progress > 0">Please Wait...</div>
     </div>
