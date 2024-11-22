@@ -36,6 +36,12 @@ pub fn initialize_projects(architecture: String) -> Result<bool, String> {
 }
 
 #[tauri::command]
+pub fn install_tesseract(architecture: String) -> Result<bool, String> {
+    //todo
+    Ok(true)
+}
+
+#[tauri::command]
 pub fn install_python(architecture: String) -> Result<bool, String> {
     if architecture == "x86_64" || architecture == "aarch64" {
         let result = std::process::Command::new(PYTHON_INSTALL_FILE.to_string())
