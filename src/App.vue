@@ -15,7 +15,11 @@ onMounted(async () => {
     return;
   }
   isInstalled.value = await invoke("is_installed");
-  //install check end
+
+  //init
+  if (isInstalled.value) {
+    await invoke("init");
+  }
 });
 onUnmounted(() => {});
 </script>
