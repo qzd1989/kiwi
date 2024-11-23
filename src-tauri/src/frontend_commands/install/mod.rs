@@ -10,6 +10,21 @@ mod windows;
 pub use windows::*;
 
 lazy_static! {
+    static ref TESSERACT_INSTALL_FILE: String = {
+        #[cfg(target_os = "macos")]
+        {
+            todo!()
+        }
+        #[cfg(target_os = "windows")]
+        {
+            utils::fs::current_dir()
+                .join("resources")
+                .join("tesseract-windows.exe")
+                .to_str()
+                .unwrap()
+                .to_string()
+        }
+    };
     static ref PYTHON_INSTALL_FILE: String = {
         #[cfg(target_os = "macos")]
         {
