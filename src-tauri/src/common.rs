@@ -34,8 +34,7 @@ lazy_static! {
                     .document_dir()
                     .unwrap()
                     .to_path_buf()
-                    .join("Kiwi")
-                    .join("Projects")
+                    .join("KiwiProjects")
                     .to_str()
                     .unwrap()
                     .to_string()
@@ -44,8 +43,12 @@ lazy_static! {
 
         #[cfg(target_os = "windows")]
         {
-            utils::fs::current_dir()
-                .join("projects")
+            directories::UserDirs::new()
+                .unwrap()
+                .document_dir()
+                .unwrap()
+                .to_path_buf()
+                .join("KiwiProjects")
                 .to_str()
                 .unwrap()
                 .to_string()

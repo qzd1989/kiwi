@@ -39,12 +39,16 @@ pub fn run() {
             frontend_commands::find::find_color,
             frontend_commands::find::find_text,
             frontend_commands::install::initialize_projects,
+            frontend_commands::install::install_tesseract,
+            frontend_commands::install::uninstall_tesseract,
+            frontend_commands::install::install_tessdata,
             frontend_commands::install::install_python,
             frontend_commands::install::uninstall_python,
             frontend_commands::install::repair_python,
             frontend_commands::install::install_pip,
             frontend_commands::install::install_whl,
             frontend_commands::install::is_installed,
+            frontend_commands::has_permission,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -70,12 +74,16 @@ pub fn run() {
             frontend_commands::find::find_color,
             frontend_commands::find::find_text,
             frontend_commands::install::initialize_projects,
+            frontend_commands::install::install_tesseract,
+            frontend_commands::install::uninstall_tesseract,
+            frontend_commands::install::install_tessdata,
             frontend_commands::install::install_python,
             frontend_commands::install::uninstall_python,
             frontend_commands::install::repair_python,
             frontend_commands::install::install_pip,
             frontend_commands::install::install_whl,
             frontend_commands::install::is_installed,
+            frontend_commands::has_permission,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

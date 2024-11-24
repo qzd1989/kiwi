@@ -42,7 +42,8 @@ anyhow = "1.0.93"
 image = { version = "0.25.5", features = ["jpeg", "png"] }
 base64 = "0.22.1"
 rusty-tesseract = { path = "libs/rusty-tesseract" }
-enigo = "0.2.1"
+enigo = "0.3.0"
+windows = "0.58"
 opencv = { version = "0.93.4" }
 
 [dependencies.pyo3]

@@ -10,7 +10,7 @@ mod windows;
 pub use windows::*;
 
 lazy_static! {
-    static ref TESSERACT_INSTALL_FILE: String = {
+    pub static ref TESSERACT_INSTALL_FILE: String = {
         #[cfg(target_os = "macos")]
         {
             todo!()
@@ -25,7 +25,7 @@ lazy_static! {
                 .to_string()
         }
     };
-    static ref PYTHON_INSTALL_FILE: String = {
+    pub static ref PYTHON_INSTALL_FILE: String = {
         #[cfg(target_os = "macos")]
         {
             #[cfg(debug_assertions)]

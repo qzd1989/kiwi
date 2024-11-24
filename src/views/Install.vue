@@ -5,40 +5,41 @@ import { invoke } from "@tauri-apps/api/core";
 import { msgError } from "../utils/msg";
 const emits = defineEmits(["finished"]);
 const progress = ref(0);
-const repaired = ref(false);
 async function initialize() {
   let platform = type();
   let architecture = arch();
   progress.value = 1;
-  invoke("initialize_projects", { platform, architecture })
-    .then(async () => {
-      return invoke("uninstall_python", { platform, architecture });
+  invoke("initialize_projects", { architecture })
+    .then(async (result) => {
+      if (result) {
+        return invoke("install_tesseract", { architecture });
+      }
     })
     .then(async (result) => {
       if (result) {
-        return invoke("install_python", { platform, architecture });
-      } else {
-        repaired.value = true;
-        return invoke("repair_python", { platform, architecture });
+        return invoke("install_tessdata", { architecture });
       }
     })
     .then(async (result) => {
-      if (repaired && !result) {
-        return invoke("install_python", { platform, architecture });
+      if (result) {
+        return invoke("install_python", { architecture });
       }
+    })
+    .then(async (result) => {
       if (!result) {
-        return false;
-      }
-      return true;
-    })
-    .then(async (result) => {
-      if (result) {
-        return invoke("install_pip", { platform, architecture });
+        return invoke("repair_python", { architecture });
+      } else {
+        return result;
       }
     })
     .then(async (result) => {
       if (result) {
-        return invoke("install_whl", { platform, architecture });
+        return invoke("install_pip", { architecture });
+      }
+    })
+    .then(async (result) => {
+      if (result) {
+        return invoke("install_whl", { architecture });
       }
     })
     .then(async () => {
