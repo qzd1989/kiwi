@@ -66,7 +66,7 @@ lazy_static! {
         {
             utils::fs::current_dir()
                 .join("python")
-                .join("pythonw.exe")
+                .join("python.exe")
                 .to_str()
                 .unwrap()
                 .to_string()

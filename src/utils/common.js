@@ -171,3 +171,17 @@ export function getCurrentTimeWithMilliseconds() {
     millisecond
   );
 }
+
+export function formatLogTime(timestamp) {
+  const date = new Date(timestamp * 1000);
+  const year = date.getFullYear().toString().slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = (date.getSeconds() + (timestamp % 1))
+    .toFixed(3)
+    .padStart(6, "0");
+  const formattedTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  return formattedTime;
+}

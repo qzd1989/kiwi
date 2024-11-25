@@ -44,6 +44,7 @@ base64 = "0.22.1"
 rusty-tesseract = { path = "libs/rusty-tesseract" }
 enigo = "0.3.0"
 windows = "0.58"
+libc = "0.2.164" #kill command on macos && linux
 opencv = { version = "0.93.4" }
 
 [dependencies.pyo3]

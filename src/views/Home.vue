@@ -192,7 +192,7 @@ onUnmounted(() => {
           @click="store.commit('focus', 'terminal')"
         >
           <div class="log">
-            <Log />
+            <Log :height="bottomHeight" />
           </div>
         </div>
       </div>

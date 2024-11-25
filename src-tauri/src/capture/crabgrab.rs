@@ -15,6 +15,14 @@ pub async fn get_primary_display() -> CapturableDisplay {
     content.displays().next().unwrap()
 }
 
+pub async fn listen<F>(frame_callback: F)
+where
+    F: Fn(Frame),
+{
+    let primary_display = get_primary_display().await;
+    frame(primary_display, frame_callback).await;
+}
+
 pub async fn frame<F>(display: CapturableDisplay, frame_callback: F)
 where
     F: Fn(Frame),

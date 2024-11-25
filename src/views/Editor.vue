@@ -39,7 +39,6 @@ const fileType = computed(async () => {
 });
 function select(file) {
   store.commit("filePath", file.path);
-  console.log("select", file.path, store.getters.filePath);
   currentFile.value = file;
 }
 function close(event, file) {

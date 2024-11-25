@@ -49,6 +49,8 @@ pub fn run() {
             frontend_commands::install::install_whl,
             frontend_commands::install::is_installed,
             frontend_commands::has_permission,
+            frontend_commands::run,
+            frontend_commands::stop,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -84,6 +86,8 @@ pub fn run() {
             frontend_commands::install::install_whl,
             frontend_commands::install::is_installed,
             frontend_commands::has_permission,
+            frontend_commands::run,
+            frontend_commands::stop,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -11,6 +11,14 @@ lazy_static! {
         .to_str()
         .unwrap()
         .to_string();
+    pub static ref PYTHON_EXEC_BACKEND_FILE: String = {
+        utils::fs::current_dir()
+            .join("python")
+            .join("pythonw.exe")
+            .to_str()
+            .unwrap()
+            .to_string()
+    };
     pub static ref TESSERACT_UNINSTALL_FILE: String =
         PathBuf::from(std::env::var("ProgramFiles").unwrap())
             .join("Tesseract-OCR")
@@ -135,7 +143,7 @@ pub fn repair_python(architecture: String) -> Result<bool, String> {
 pub fn install_pip(architecture: String) -> Result<bool, String> {
     println!("install_pip");
     if architecture == "x86_64" || architecture == "aarch64" {
-        let result = std::process::Command::new(PYTHON_EXEC_FILE.to_string())
+        let result = std::process::Command::new(PYTHON_EXEC_BACKEND_FILE.to_string())
             .arg("-m")
             .arg("ensurepip")
             .arg("--upgrade")
@@ -157,7 +165,7 @@ pub fn install_pip(architecture: String) -> Result<bool, String> {
 pub fn install_whl(architecture: String) -> Result<bool, String> {
     println!("install_whl");
     if architecture == "x86_64" || architecture == "aarch64" {
-        let result = std::process::Command::new(PYTHON_EXEC_FILE.to_string())
+        let result = std::process::Command::new(PYTHON_EXEC_BACKEND_FILE.to_string())
             .arg("-m")
             .arg("pip")
             .arg("install")
