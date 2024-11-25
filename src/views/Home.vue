@@ -1,13 +1,12 @@
 <script setup>
 import { ref, onMounted, onUnmounted, reactive } from "vue";
-import { invoke } from "@tauri-apps/api/core";
 import { useResizeObserver } from "@vueuse/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useStore } from "vuex";
 import { Stack } from "./../utils/common";
 import Tree from "./Tree.vue";
 import Editor from "./Editor.vue";
 import Monitor from "./Monitor.vue";
+import Log from "./Log.vue";
 const store = useStore();
 const windowRef = ref(null);
 const leftRef = ref(null);
@@ -192,7 +191,9 @@ onUnmounted(() => {
           }"
           @click="store.commit('focus', 'terminal')"
         >
-          <div class="log">这里放日志: {{ store.getters.focus }}</div>
+          <div class="log">
+            <Log />
+          </div>
         </div>
       </div>
       <div

@@ -15,9 +15,8 @@ onMounted(async () => {
 
   //has permission
   hasPermission.value = await invoke("has_permission");
-  console.log("hasPermission", hasPermission.value);
   if (!hasPermission.value) {
-    await message("Permission denied, please run as admin", "error");
+    await message("Please run as admin", "error");
     await getCurrentWindow().close();
     return;
   }

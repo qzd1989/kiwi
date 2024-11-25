@@ -362,7 +362,6 @@ async function openProject(result) {
     emits("clear:files");
     return;
   }
-
   //from openProject
   const dir = await openDialog({
     multiple: false,
@@ -408,6 +407,7 @@ async function remove(event, node, data) {
 watch(path, async (newPath) => {
   data.value = await fetch(newPath);
   name.value = await basename(newPath);
+  store.commit("projectPath", newPath);
 });
 watchEffect(async () => {
   if (store.getters.focus != "left") {

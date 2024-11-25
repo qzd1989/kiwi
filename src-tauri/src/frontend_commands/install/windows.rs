@@ -27,28 +27,9 @@ lazy_static! {
 
 #[tauri::command]
 pub fn is_installed() -> bool {
-    //python folder
-    if !exists(PYTHON_DIR.to_string()).unwrap() {
-        return false;
-    }
     //python exec file
     if !exists(PYTHON_EXEC_FILE.to_string()).unwrap() {
         return false;
-    }
-    //whl file is installed
-    let whl_output = std::process::Command::new(PYTHON_EXEC_FILE.to_string())
-        .arg("-m")
-        .arg("pip")
-        .arg("list")
-        .output()
-        .unwrap();
-    if whl_output.status.success() {
-        if !String::from_utf8_lossy(&whl_output.stdout)
-            .to_string()
-            .contains("kiwi")
-        {
-            return false;
-        }
     }
     //tesseract folder
     if !exists(TESSERACT_DIR.to_string()).unwrap() {

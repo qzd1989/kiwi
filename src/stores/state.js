@@ -8,6 +8,8 @@ export const store = createStore({
         width: 0,
         height: 0,
       },
+      projectPath: null, //current project (abs path)
+      filePath: null, //current file (abs path)
     };
   },
   getters: {
@@ -17,6 +19,12 @@ export const store = createStore({
     windowSize(state) {
       return state.windowSize;
     },
+    projectPath(state) {
+      return state.projectPath;
+    },
+    filePath(state) {
+      return state.filePath;
+    },
   },
   mutations: {
     focus(state, val) {
@@ -24,6 +32,12 @@ export const store = createStore({
     },
     windowSize(state, val) {
       state.windowSize = val;
+    },
+    projectPath(state, val) {
+      state.projectPath = val;
+    },
+    filePath(state, val) {
+      state.filePath = val;
     },
   },
 });

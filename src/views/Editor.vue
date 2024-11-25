@@ -38,6 +38,8 @@ const fileType = computed(async () => {
   return await extname(currentFile.value.name);
 });
 function select(file) {
+  store.commit("filePath", file.path);
+  console.log("select", file.path, store.getters.filePath);
   currentFile.value = file;
 }
 function close(event, file) {
@@ -51,7 +53,7 @@ function close(event, file) {
     return;
   }
   const first = Array.from(props.files)[0][1];
-  currentFile.value = first;
+  select(first);
 }
 async function shortcutSave(event) {
   if (
@@ -97,14 +99,14 @@ function modified(file) {
 }
 
 function openMonitor() {
-  const webview = new WebviewWindow("monitor", {
+  const monitor = new WebviewWindow("monitor", {
     url: "/monitor",
     title: "monitor",
   });
-  webview.once("tauri://created", function () {
+  monitor.once("tauri://created", async () => {
     console.log("window successfully created");
   });
-  webview.once("tauri://error", function (e) {
+  monitor.once("tauri://error", function (e) {
     console.log("an error happened creating the window", e);
   });
 }
@@ -112,11 +114,11 @@ watch(
   () => props.lastOpenedFile,
   (newValue, oldValue) => {
     if (props.lastOpenedFile) {
-      currentFile.value = props.lastOpenedFile;
+      select(props.lastOpenedFile);
     }
   }
 );
-watchEffect(() => {
+watchEffect(async () => {
   if (store.getters.focus != "editor") {
     window.removeEventListener("keydown", shortcutSave);
   } else {
