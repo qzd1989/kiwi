@@ -13,11 +13,10 @@ import {
   unregister,
   isRegistered,
 } from "@tauri-apps/plugin-global-shortcut";
-
 const props = defineProps(["height", "files"]);
 const store = useStore();
 const runFile = ref(null);
-const runAtFrontend = ref(false);
+const hideWhileRunning = ref(false);
 const env = ref(null);
 const logs = ref(new Stack(100));
 const logsContainerRef = ref(null);
@@ -25,8 +24,6 @@ const logsRef = ref(null);
 const logsSize = reactive({ width: 0, height: 0 });
 logsSize.value = useElementSize(logsRef);
 async function runCurrent() {
-  console.log("runCurrent");
-  runAtFrontend.value = false;
   if (props.files.size == 0) {
     return;
   }
@@ -34,39 +31,12 @@ async function runCurrent() {
   await invoke("run", { file: runFile.value });
 }
 async function runProject() {
-  console.log("runProject");
-  runAtFrontend.value = false;
   runFile.value = await getDefaultScriptFileByProjctPath(
     store.getters.projectPath
   );
   await invoke("run", { file: runFile.value });
 }
 async function stop() {
-  console.log("stop");
-  runAtFrontend.value = false;
-  await invoke("stop");
-}
-
-async function runCurrentAtFrontEnd() {
-  console.log("runCurrentAtFrontEnd");
-  runAtFrontend.value = true;
-  if (props.files.size == 0) {
-    return;
-  }
-  runFile.value = store.getters.filePath;
-  await invoke("run", { file: runFile.value });
-}
-async function runProjectAtFrontEnd() {
-  console.log("runProjectAtFrontEnd");
-  runAtFrontend.value = true;
-  runFile.value = await getDefaultScriptFileByProjctPath(
-    store.getters.projectPath
-  );
-  await invoke("run", { file: runFile.value });
-}
-async function stopAtFrontEnd() {
-  console.log("stopAtFrontEnd");
-  runAtFrontend.value = false;
   await invoke("stop");
 }
 
@@ -123,14 +93,12 @@ async function init() {
 }
 listen("run:status", async (event) => {
   if (event.payload.data == "running") {
-    console.log("running", runAtFrontend.value);
-    if (!runAtFrontend.value) {
+    if (hideWhileRunning.value) {
       await minimizeAll();
     }
   }
   if (event.payload.data == "stopped") {
-    console.log("running", runAtFrontend.value);
-    if (!runAtFrontend.value) {
+    if (hideWhileRunning.value) {
       await unminimizeAll();
     }
   }
@@ -163,26 +131,32 @@ onMounted(async () => {
     }"
   >
     <el-header>
+      <el-checkbox
+        class="hide-while-running"
+        v-model="hideWhileRunning"
+        title="hide while running"
+      ></el-checkbox>
       <el-button
         type="primary"
-        @click="runCurrentAtFrontEnd"
+        @click="runCurrent"
         :icon="VideoPlay"
         v-show="files.size > 0"
+        style="margin-left: 12px"
       >
         current file (F9)
       </el-button>
-      <el-button type="primary" @click="runProjectAtFrontEnd" :icon="VideoPlay"
+      <el-button type="primary" @click="runProject" :icon="VideoPlay"
         >project (F10)</el-button
       >
-      <el-button type="primary" @click="stopAtFrontEnd" :icon="VideoPause"
+      <el-button type="primary" @click="stop" :icon="VideoPause"
         >stop (F11)</el-button
       >
       <el-button type="primary" @click="clear">clear</el-button>
-      <el-button type="primary" @click="init">init</el-button>
+      <!-- <el-button type="primary" @click="init">init</el-button> -->
     </el-header>
     <el-main ref="logsContainerRef">
       <div class="logs" ref="logsRef">
-        <div class="log">{{ env }}</div>
+        <div class="log" style="display: none">{{ env }}</div>
         <div class="log" v-for="log in logs.stack">
           <span class="time">{{ formatLogTime(log.time) }}</span>
           <span class="data">{{ log.data }}</span>
@@ -195,8 +169,9 @@ onMounted(async () => {
 <style scoped>
 .el-container {
   .el-header {
-    text-align: right;
     margin-bottom: 10px;
+    display: flex;
+    justify-content: right;
   }
   .el-main {
     height: 100%;

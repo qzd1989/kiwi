@@ -1,4 +1,4 @@
-use super::Frame;
+use super::{Frame, CAPTURE_SWITCH, IS_CAPTURING};
 use crabgrab::prelude::*;
 use crossbeam_channel::bounded;
 use std::sync::{Arc, Mutex};
@@ -15,7 +15,7 @@ pub async fn get_primary_display() -> CapturableDisplay {
     content.displays().next().unwrap()
 }
 
-pub async fn listen<F>(frame_callback: F)
+pub async fn listen_primary_display<F>(frame_callback: F)
 where
     F: Fn(Frame),
 {
@@ -47,13 +47,16 @@ where
                         *pixel = image::Rgba([r, g, b, a]);
                     }
                     let frame = Frame::new(width, height, rgba_buffer.to_vec());
-                    sender.lock().unwrap().send(frame).unwrap();
+                    let _ = sender.lock().unwrap().send(frame);
                 }
             }
         }
     };
     let mut _stream = CaptureStream::new(token, config, callback).unwrap();
     loop {
+        if *CAPTURE_SWITCH.lock().unwrap() == false {
+            break;
+        }
         if let Ok(data) = receiver.try_recv() {
             frame_callback(data);
         }

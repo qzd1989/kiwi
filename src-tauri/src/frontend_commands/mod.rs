@@ -1,4 +1,5 @@
 use crate::{
+    capture::{listen_primary_display, CAPTURE_SWITCH},
     common::{PROJECTS_DIR, PYTHON_EXEC_FILE},
     utils::current_time,
 };
@@ -83,6 +84,10 @@ pub fn run(app: AppHandle, file: String) {
     app.lock()
         .unwrap()
         .emit_with_timestamp("run:status", "running");
+    {
+        *CAPTURE_SWITCH.lock().unwrap() = true;
+        listen_primary_display();
+    }
     std::thread::spawn(move || {
         let handle = Command::new(PYTHON_EXEC_FILE.to_string())
             .arg(file)
@@ -142,12 +147,18 @@ pub fn run(app: AppHandle, file: String) {
                     .emit_with_timestamp("log:error", &error.to_string());
             }
         };
-        *PID.lock().unwrap() = 0;
+        {
+            *CAPTURE_SWITCH.lock().unwrap() = false;
+            *PID.lock().unwrap() = 0;
+        }
     });
 }
 
 #[tauri::command]
 pub fn stop(app: AppHandle) {
+    {
+        *CAPTURE_SWITCH.lock().unwrap() = false;
+    }
     let pid = *PID.lock().unwrap();
     if pid == 0 {
         app.emit_with_timestamp("log:info", "pid does not exist");
@@ -160,6 +171,8 @@ pub fn stop(app: AppHandle) {
             .arg("/F")
             .arg("/PID")
             .arg(pid.to_string())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .spawn();
         if let Ok(mut handle) = handle {
             let _ = handle.wait();
