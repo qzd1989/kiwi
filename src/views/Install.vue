@@ -43,9 +43,6 @@ async function initialize() {
       }
     })
     .then(async () => {
-      return invoke("init");
-    })
-    .then(async () => {
       progress.value = 100;
     })
     .catch((error) => {
@@ -53,8 +50,10 @@ async function initialize() {
       msgError(error);
     });
 }
-function begin() {
-  emits("finished");
+async function begin() {
+  invoke("init").then(async () => {
+    emits("finished");
+  });
 }
 onMounted(async () => {});
 </script>

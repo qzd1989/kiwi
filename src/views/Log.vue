@@ -116,6 +116,11 @@ async function shortcutExecute() {
 async function getEnv() {
   env.value = await invoke("env_string");
 }
+async function init() {
+  invoke("init").then(async () => {
+    await getEnv();
+  });
+}
 listen("run:status", async (event) => {
   if (event.payload.data == "running") {
     console.log("running", runAtFrontend.value);
@@ -173,6 +178,7 @@ onMounted(async () => {
         >stop (F11)</el-button
       >
       <el-button type="primary" @click="clear">clear</el-button>
+      <el-button type="primary" @click="init">init</el-button>
     </el-header>
     <el-main ref="logsContainerRef">
       <div class="logs" ref="logsRef">
