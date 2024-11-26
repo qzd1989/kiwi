@@ -52,7 +52,9 @@ async function minimizeAll() {
 async function unminimizeAll() {
   const windows = await getAllWindows();
   for (const window of windows) {
-    await window.unminimize();
+    window.unminimize().then(() => {
+      return window.setFocus();
+    });
   }
 }
 async function shortcutExecute() {
@@ -135,6 +137,7 @@ onMounted(async () => {
         class="hide-while-running"
         v-model="hideWhileRunning"
         title="hide while running"
+        tabindex="-1"
       ></el-checkbox>
       <el-button
         type="primary"
@@ -142,13 +145,18 @@ onMounted(async () => {
         :icon="VideoPlay"
         v-show="files.size > 0"
         style="margin-left: 12px"
+        tabindex="-1"
       >
         current file (F9)
       </el-button>
-      <el-button type="primary" @click="runProject" :icon="VideoPlay"
+      <el-button
+        type="primary"
+        @click="runProject"
+        :icon="VideoPlay"
+        tabindex="-1"
         >project (F10)</el-button
       >
-      <el-button type="primary" @click="stop" :icon="VideoPause"
+      <el-button type="primary" @click="stop" :icon="VideoPause" tabindex="-1"
         >stop (F11)</el-button
       >
       <el-button type="primary" @click="clear">clear</el-button>
