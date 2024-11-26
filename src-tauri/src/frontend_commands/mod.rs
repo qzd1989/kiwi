@@ -15,10 +15,12 @@ use serde::{Deserialize, Serialize};
 use std::{
     env,
     io::{BufRead, BufReader},
+    os::windows::process::CommandExt,
     process::{Command, Stdio},
     sync::{Arc, Mutex},
 };
 use tauri::{AppHandle, Emitter};
+use windows::Win32::System::Threading::CREATE_NO_WINDOW;
 
 #[tauri::command]
 pub fn projects_dir() -> String {
@@ -171,8 +173,7 @@ pub fn stop(app: AppHandle) {
             .arg("/F")
             .arg("/PID")
             .arg(pid.to_string())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
+            .creation_flags(CREATE_NO_WINDOW.0)
             .spawn();
         if let Ok(mut handle) = handle {
             let _ = handle.wait();
