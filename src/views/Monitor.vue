@@ -27,7 +27,6 @@ const gapLength = ref(10);
 const pagePoint = reactive({ x: 0, y: 0 });
 const mouseVerticalStack = new Stack(2);
 const draggingRight = ref(false);
-const projectPath = ref(null);
 function moveListener(event) {
   const containerRect = windowRef.value.$el.getBoundingClientRect();
   pagePoint.x = event.clientX - containerRect.left;
@@ -462,7 +461,6 @@ onUnmounted(() => {
         >
           <el-text>capture</el-text>
         </el-button>
-        <el-button type="primary">{{ projectPath }}</el-button>
       </el-header>
       <el-main
         ref="mainRef"
