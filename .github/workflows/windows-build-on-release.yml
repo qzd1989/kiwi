@@ -118,6 +118,14 @@ jobs:
         run: |
           copy "./src-tauri/resources/python-windows.exe" "./src-tauri/target/release/resources"
 
+      - name: Copy Tesseract traineddata
+        run: |
+          mkdir "./src-tauri/target/release/resources/tessdata"
+          copy "./src-tauri/resources/tessdata/chi_sim.traineddata" "./src-tauri/target/release/resources/tessdata"
+          copy "./src-tauri/resources/tessdata/eng.traineddata" "./src-tauri/target/release/resources/tessdata"
+          copy "./src-tauri/resources/tessdata/osd.traineddata" "./src-tauri/target/release/resources/tessdata"
+          copy "./src-tauri/resources/tessdata/snum.traineddata" "./src-tauri/target/release/resources/tessdata"
+
       - name: Remove Unused files
         run: |
           del "./src-tauri/target/release/resources/icon.ico"

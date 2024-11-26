@@ -154,7 +154,7 @@ onUnmounted(() => {
         }"
       >
         <div
-          v-show="files.size > 0"
+          v-show="store.getters.projectPath != null"
           class="editor"
           :style="{
             height: topHeight + 'px',
@@ -169,6 +169,7 @@ onUnmounted(() => {
             }"
           >
             <Editor
+              v-show="files.size > 0"
               :width="middleWidth"
               :height="topHeight - gapLength"
               :files="files"
@@ -183,7 +184,7 @@ onUnmounted(() => {
           ></div>
         </div>
         <div
-          v-show="files.size > 0"
+          v-show="store.getters.projectPath != null"
           ref="bottomRef"
           class="terminal"
           :style="{
@@ -192,7 +193,7 @@ onUnmounted(() => {
           @click="store.commit('focus', 'terminal')"
         >
           <div class="log">
-            <Log :height="bottomHeight" />
+            <Log :height="bottomHeight" :files="files" />
           </div>
         </div>
       </div>

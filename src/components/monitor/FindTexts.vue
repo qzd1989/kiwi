@@ -16,6 +16,10 @@ const supportedLanguages = [
     label: "English",
     value: "eng",
   },
+  {
+    label: "Number",
+    value: "snum",
+  },
 ];
 
 const form = reactive({

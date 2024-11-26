@@ -8,7 +8,7 @@ import { Stack, formatLogTime } from "./../utils/common";
 import { useElementSize } from "@vueuse/core";
 import { VideoPlay, VideoPause } from "@element-plus/icons-vue";
 
-const props = defineProps(["height"]);
+const props = defineProps(["height", "files"]);
 const store = useStore();
 const runFile = ref(null);
 const logs = ref(new Stack(100));
@@ -32,6 +32,24 @@ async function stop() {
 async function clear() {
   logs.value = new Stack(100);
 }
+async function shortcutExecute(event) {
+  //runCurrentFile, runProject, stop
+  if (event.key === "F9") {
+    event.preventDefault();
+    if (props.files.size == 0) {
+      return;
+    }
+    await runCurrent();
+  }
+  if (event.key === "F10") {
+    event.preventDefault();
+    await runProject();
+  }
+  if (event.key === "F11") {
+    event.preventDefault();
+    await stop();
+  }
+}
 listen("log:info", (event) => {
   logs.value.push(event.payload);
   if (logsContainerRef.value !== null) {
@@ -48,7 +66,10 @@ listen("log:error", (event) => {
     }, 50);
   }
 });
-onMounted(async () => {});
+onMounted(async () => {
+  window.removeEventListener("keyup", shortcutExecute);
+  window.addEventListener("keyup", shortcutExecute);
+});
 </script>
 <template>
   <el-container
@@ -57,14 +78,19 @@ onMounted(async () => {});
     }"
   >
     <el-header>
-      <el-button type="primary" @click="runCurrent" :icon="VideoPlay">
-        current file
+      <el-button
+        type="primary"
+        @click="runCurrent"
+        :icon="VideoPlay"
+        v-show="files.size > 0"
+      >
+        current file (F9)
       </el-button>
       <el-button type="primary" @click="runProject" :icon="VideoPlay"
-        >project</el-button
+        >project (F10)</el-button
       >
       <el-button type="primary" @click="stop" :icon="VideoPause"
-        >stop</el-button
+        >stop (F11)</el-button
       >
       <el-button type="primary" @click="clear">clear</el-button>
     </el-header>

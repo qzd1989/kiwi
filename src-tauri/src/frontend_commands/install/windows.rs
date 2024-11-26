@@ -224,7 +224,12 @@ pub fn install_tesseract(architecture: String) -> Result<bool, String> {
 #[tauri::command]
 pub fn install_tessdata(architecture: String) -> Result<bool, String> {
     if architecture == "x86_64" || architecture == "aarch64" {
-        let data_names = vec!["chi_sim.traineddata"];
+        let data_names = vec![
+            "chi_sim.traineddata",
+            "eng.traineddata",
+            "osd.traineddata",
+            "snum.traineddata",
+        ];
         for data_name in data_names {
             let from = current_dir()
                 .join("resources")
