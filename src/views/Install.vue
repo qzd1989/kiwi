@@ -43,6 +43,9 @@ async function initialize() {
       }
     })
     .then(async () => {
+      return invoke("init");
+    })
+    .then(async () => {
       progress.value = 100;
     })
     .catch((error) => {
