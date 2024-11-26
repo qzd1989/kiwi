@@ -66,6 +66,9 @@ pub fn run(app: AppHandle, file: String) {
         );
         return;
     }
+    app.lock()
+        .unwrap()
+        .emit_with_timestamp("run:status", "running");
     std::thread::spawn(move || {
         let handle = Command::new(PYTHON_EXEC_FILE.to_string())
             .arg(file)
@@ -115,6 +118,9 @@ pub fn run(app: AppHandle, file: String) {
             Ok(_) => {
                 let _ = stdout_thread.join();
                 let _ = stderr_thread.join();
+                app.lock()
+                    .unwrap()
+                    .emit_with_timestamp("run:status", "stopped");
             }
             Err(error) => {
                 app.lock()
@@ -136,7 +142,6 @@ pub fn stop(app: AppHandle) {
     *PID.lock().unwrap() = 0;
     #[cfg(target_os = "windows")]
     {
-        println!("kill pid: {}", pid);
         let handle = Command::new("taskkill")
             .arg("/F")
             .arg("/PID")
@@ -156,6 +161,7 @@ pub fn stop(app: AppHandle) {
         "log:info",
         format!("script is stopped (pid: {}).", pid).as_str(),
     );
+    app.emit_with_timestamp("run:status", "stopped");
 }
 
 lazy_static! {

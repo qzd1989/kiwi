@@ -4,19 +4,29 @@ import { useStore } from "vuex";
 import { getDefaultScriptFileByProjctPath } from "../stores/app";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
+import { getAllWindows } from "@tauri-apps/api/window";
 import { Stack, formatLogTime } from "./../utils/common";
 import { useElementSize } from "@vueuse/core";
 import { VideoPlay, VideoPause } from "@element-plus/icons-vue";
+import {
+  register,
+  unregister,
+  isRegistered,
+} from "@tauri-apps/plugin-global-shortcut";
 
 const props = defineProps(["height", "files"]);
 const store = useStore();
 const runFile = ref(null);
+const runStatus = ref(0);
 const logs = ref(new Stack(100));
 const logsContainerRef = ref(null);
 const logsRef = ref(null);
 const logsSize = reactive({ width: 0, height: 0 });
 logsSize.value = useElementSize(logsRef);
 async function runCurrent() {
+  if (props.files.size == 0) {
+    return;
+  }
   runFile.value = store.getters.filePath;
   await invoke("run", { file: runFile.value });
 }
@@ -32,24 +42,54 @@ async function stop() {
 async function clear() {
   logs.value = new Stack(100);
 }
-async function shortcutExecute(event) {
-  //runCurrentFile, runProject, stop
-  if (event.key === "F9") {
-    event.preventDefault();
-    if (props.files.size == 0) {
-      return;
-    }
-    await runCurrent();
-  }
-  if (event.key === "F10") {
-    event.preventDefault();
-    await runProject();
-  }
-  if (event.key === "F11") {
-    event.preventDefault();
-    await stop();
+async function minimizeAll() {
+  const windows = await getAllWindows();
+  for (const window of windows) {
+    await window.minimize();
   }
 }
+async function unminimizeAll() {
+  const windows = await getAllWindows();
+  for (const window of windows) {
+    await window.unminimize();
+  }
+}
+async function shortcutExecute() {
+  if (await isRegistered("F9")) {
+    await unregister("F9");
+  }
+  if (await isRegistered("F10")) {
+    await unregister("F10");
+  }
+  if (await isRegistered("F11")) {
+    await unregister("F11");
+  }
+  await register("F9", async (event) => {
+    if (event.state == "Released") {
+      await runCurrent();
+    }
+  });
+
+  await register("F10", async (event) => {
+    if (event.state == "Released") {
+      await runProject();
+    }
+  });
+
+  await register("F11", async (event) => {
+    if (event.state == "Released") {
+      await stop();
+    }
+  });
+}
+listen("run:status", async (event) => {
+  if (event.payload.data == "stopped") {
+    await unminimizeAll();
+  }
+  if (event.payload.data == "running") {
+    await minimizeAll();
+  }
+});
 listen("log:info", (event) => {
   logs.value.push(event.payload);
   if (logsContainerRef.value !== null) {
@@ -67,8 +107,7 @@ listen("log:error", (event) => {
   }
 });
 onMounted(async () => {
-  window.removeEventListener("keyup", shortcutExecute);
-  window.addEventListener("keyup", shortcutExecute);
+  await shortcutExecute();
 });
 </script>
 <template>

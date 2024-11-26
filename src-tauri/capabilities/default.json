@@ -14,6 +14,7 @@
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
     "global-shortcut:allow-is-registered",
+    "global-shortcut:allow-unregister-all",
 
     "fs:default",
     "fs:read-all",
@@ -36,6 +37,8 @@
     "core:window:allow-create",
     "core:window:allow-destroy",
     "core:window:allow-close",
+    "core:window:allow-minimize",
+    "core:window:allow-unminimize",
     "core:webview:allow-create-webview",
     "core:webview:allow-create-webview-window"
   ]
