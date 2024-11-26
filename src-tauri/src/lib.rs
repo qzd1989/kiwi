@@ -51,6 +51,7 @@ pub fn run() {
             frontend_commands::has_permission,
             frontend_commands::run,
             frontend_commands::stop,
+            frontend_commands::env_string,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -88,6 +89,7 @@ pub fn run() {
             frontend_commands::has_permission,
             frontend_commands::run,
             frontend_commands::stop,
+            frontend_commands::env_string,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

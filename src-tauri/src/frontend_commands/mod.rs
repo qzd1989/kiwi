@@ -46,13 +46,27 @@ pub fn init() -> Result<bool, String> {
         let new_path = format!("{};{:?}", current_path, TESSERACT_DIR.to_string());
         env::set_var("PATH", new_path);
         //allow python can output chinese
-        env::set_var("PYTHONUTF8", "1");
         env::set_var("PYTHONIOENCODING", "utf-8");
         Ok(true)
     }
     #[cfg(target_os = "macos")]
     {
         Ok(true)
+    }
+}
+
+#[tauri::command]
+pub fn env_string() -> Result<String, String> {
+    #[cfg(target_os = "windows")]
+    {
+        //add tesseract to PATH
+        let path = env::var("PATH").unwrap_or_else(|_| String::new());
+        let python = env::var("PYTHONIOENCODING").unwrap_or_else(|_| String::new());
+        Ok(vec![path, python].join("----"))
+    }
+    #[cfg(target_os = "macos")]
+    {
+        Ok("".to_string())
     }
 }
 

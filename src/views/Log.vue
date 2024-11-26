@@ -17,13 +17,16 @@ import {
 const props = defineProps(["height", "files"]);
 const store = useStore();
 const runFile = ref(null);
-const runStatus = ref(0);
+const runAtFrontend = ref(false);
+const env = ref(null);
 const logs = ref(new Stack(100));
 const logsContainerRef = ref(null);
 const logsRef = ref(null);
 const logsSize = reactive({ width: 0, height: 0 });
 logsSize.value = useElementSize(logsRef);
 async function runCurrent() {
+  console.log("runCurrent");
+  runAtFrontend.value = false;
   if (props.files.size == 0) {
     return;
   }
@@ -31,14 +34,42 @@ async function runCurrent() {
   await invoke("run", { file: runFile.value });
 }
 async function runProject() {
+  console.log("runProject");
+  runAtFrontend.value = false;
   runFile.value = await getDefaultScriptFileByProjctPath(
     store.getters.projectPath
   );
   await invoke("run", { file: runFile.value });
 }
 async function stop() {
+  console.log("stop");
+  runAtFrontend.value = false;
   await invoke("stop");
 }
+
+async function runCurrentAtFrontEnd() {
+  console.log("runCurrentAtFrontEnd");
+  runAtFrontend.value = true;
+  if (props.files.size == 0) {
+    return;
+  }
+  runFile.value = store.getters.filePath;
+  await invoke("run", { file: runFile.value });
+}
+async function runProjectAtFrontEnd() {
+  console.log("runProjectAtFrontEnd");
+  runAtFrontend.value = true;
+  runFile.value = await getDefaultScriptFileByProjctPath(
+    store.getters.projectPath
+  );
+  await invoke("run", { file: runFile.value });
+}
+async function stopAtFrontEnd() {
+  console.log("stopAtFrontEnd");
+  runAtFrontend.value = false;
+  await invoke("stop");
+}
+
 async function clear() {
   logs.value = new Stack(100);
 }
@@ -82,12 +113,21 @@ async function shortcutExecute() {
     }
   });
 }
+async function getEnv() {
+  env.value = await invoke("env_string");
+}
 listen("run:status", async (event) => {
-  if (event.payload.data == "stopped") {
-    await unminimizeAll();
-  }
   if (event.payload.data == "running") {
-    await minimizeAll();
+    console.log("running", runAtFrontend.value);
+    if (!runAtFrontend.value) {
+      await minimizeAll();
+    }
+  }
+  if (event.payload.data == "stopped") {
+    console.log("running", runAtFrontend.value);
+    if (!runAtFrontend.value) {
+      await unminimizeAll();
+    }
   }
 });
 listen("log:info", (event) => {
@@ -108,6 +148,7 @@ listen("log:error", (event) => {
 });
 onMounted(async () => {
   await shortcutExecute();
+  await getEnv();
 });
 </script>
 <template>
@@ -119,22 +160,23 @@ onMounted(async () => {
     <el-header>
       <el-button
         type="primary"
-        @click="runCurrent"
+        @click="runCurrentAtFrontEnd"
         :icon="VideoPlay"
         v-show="files.size > 0"
       >
         current file (F9)
       </el-button>
-      <el-button type="primary" @click="runProject" :icon="VideoPlay"
+      <el-button type="primary" @click="runProjectAtFrontEnd" :icon="VideoPlay"
         >project (F10)</el-button
       >
-      <el-button type="primary" @click="stop" :icon="VideoPause"
+      <el-button type="primary" @click="stopAtFrontEnd" :icon="VideoPause"
         >stop (F11)</el-button
       >
       <el-button type="primary" @click="clear">clear</el-button>
     </el-header>
     <el-main ref="logsContainerRef">
       <div class="logs" ref="logsRef">
+        <div class="log">{{ env }}</div>
         <div class="log" v-for="log in logs.stack">
           <span class="time">{{ formatLogTime(log.time) }}</span>
           <span class="data">{{ log.data }}</span>
