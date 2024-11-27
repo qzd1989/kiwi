@@ -14,6 +14,7 @@ import { writeFile } from "./../utils/fs";
 import { msgError, msgSuccess } from "./../utils/msg";
 import { extname } from "@tauri-apps/api/path";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { emitTo } from "@tauri-apps/api/event";
 import Python from "./../components/editors/Python.vue";
 const props = defineProps(["width", "height", "files", "lastOpenedFile"]);
 const emits = defineEmits(["remove:file"]);
@@ -104,6 +105,10 @@ function openMonitor() {
   });
   monitor.once("tauri://created", async () => {
     console.log("window successfully created");
+    await emitTo("monitor", "update:project-path", {
+      path: store.getters.projectPath,
+      from: "editor",
+    });
   });
   monitor.once("tauri://error", function (e) {
     console.log("an error happened creating the window", e);

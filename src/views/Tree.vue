@@ -16,6 +16,7 @@ import { join, basename, extname, sep } from "@tauri-apps/api/path";
 import { useElementSize } from "@vueuse/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { LocalStore } from "../stores/local";
+import { emitTo } from "@tauri-apps/api/event";
 import Setting from "../components/Setting.vue";
 import NewProject from "../components/NewProject.vue";
 const props = defineProps(["files"]);
@@ -407,7 +408,11 @@ async function remove(event, node, data) {
 watch(path, async (newPath) => {
   data.value = await fetch(newPath);
   name.value = await basename(newPath);
-  store.commit("projectPath", newPath);
+  store.commit("projectPath", newPath); //for other views of main window
+  await emitTo("monitor", "update:project-path", {
+    path: newPath,
+    from: "tree",
+  });
 });
 watchEffect(async () => {
   if (store.getters.focus != "left") {

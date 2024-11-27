@@ -4,6 +4,7 @@ import { useStore } from "vuex";
 import { useResizeObserver } from "@vueuse/core";
 import { Stack } from "./../utils/common";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   arrayImageDataToBase64ImageData,
@@ -402,6 +403,10 @@ async function findTexts() {
   );
   cancelCapture();
 }
+
+listen("update:project-path", (event) => {
+  store.commit("projectPath", event.payload.path);
+});
 
 onMounted(async () => {
   monitors.value = await getMonitors();
