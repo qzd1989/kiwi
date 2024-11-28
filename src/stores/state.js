@@ -3,13 +3,18 @@ import { createStore } from "vuex";
 export const store = createStore({
   state() {
     return {
-      focus: "left", //区域焦点: left, editor, terminal, right
+      //区域焦点: left, editor, terminal, right
+      focus: "left",
+      //为了让各views的宽高自适应
       windowSize: {
         width: 0,
         height: 0,
       },
-      projectPath: null, //current project (abs path)
-      filePath: null, //current file (abs path)
+      //各views使用
+      currentProjectPath: null,
+      currentProjectName: null,
+      currentFilePath: null,
+      currentFileName: null,
     };
   },
   getters: {
@@ -19,8 +24,17 @@ export const store = createStore({
     windowSize(state) {
       return state.windowSize;
     },
-    projectPath(state) {
-      return state.projectPath;
+    currentProjectPath(state) {
+      return state.currentProjectPath;
+    },
+    currentProjectName(state) {
+      return state.currentProjectName;
+    },
+    currentFilePath(state) {
+      return state.currentFilePath;
+    },
+    currentFileName(state) {
+      return state.currentFileName;
     },
     filePath(state) {
       return state.filePath;
@@ -33,8 +47,17 @@ export const store = createStore({
     windowSize(state, val) {
       state.windowSize = val;
     },
-    projectPath(state, val) {
-      state.projectPath = val;
+    currentProjectPath(state, val) {
+      state.currentProjectPath = val;
+    },
+    currentProjectName(state, val) {
+      state.currentProjectName = val;
+    },
+    currentFilePath(state, val) {
+      state.currentFilePath = val;
+    },
+    currentFileName(state, val) {
+      state.currentFileName = val;
     },
     filePath(state, val) {
       state.filePath = val;

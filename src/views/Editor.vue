@@ -31,13 +31,6 @@ const editorHeight = computed(() => {
   return props.height - headerSize.height - footerSize.height - 60;
 });
 const currentFile = ref(null);
-const fileContent = ref("");
-const fileType = computed(async () => {
-  if (!currentFile.value) {
-    return "unknown";
-  }
-  return await extname(currentFile.value.name);
-});
 function select(file) {
   store.commit("filePath", file.path);
   currentFile.value = file;
@@ -105,10 +98,6 @@ function openMonitor() {
   });
   monitor.once("tauri://created", async () => {
     console.log("window successfully created");
-    await emitTo("monitor", "update:project-path", {
-      path: store.getters.projectPath,
-      from: "editor",
-    });
   });
   monitor.once("tauri://error", function (e) {
     console.log("an error happened creating the window", e);

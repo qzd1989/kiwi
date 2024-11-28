@@ -6,9 +6,11 @@ import {
 } from "../../utils/common";
 import { invoke } from "@tauri-apps/api/core";
 import { msgError } from "../../utils/msg";
-const props = defineProps(["form"]);
+import { useStore } from "vuex";
+const props = defineProps(["form", "projectPath"]);
 const emits = defineEmits(["close", "form"]);
 
+const store = useStore();
 const dataExtSideLength = 100; //额外扩展的画布长度,让图像居中方便擦除
 const bgLight = "/src/assets/canvas-bg-light.png";
 const bgDark = "/src/assets/canvas-bg-dark.png";
@@ -223,6 +225,7 @@ watch(props.form, () => {
 
 onMounted(async () => {
   form.name = generateRandomString(3);
+  console.log("a", props.projectPath);
 });
 </script>
 <template>
@@ -322,6 +325,17 @@ onMounted(async () => {
               >
                 <template #prepend>image name</template>
                 <template #append>.png</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item prop="imagePath" style="margin-bottom: 0px">
+              <el-input
+                v-model="store.getters.currentProjectPath"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                disabled
+              >
+                <template #prepend>image path</template>
               </el-input>
             </el-form-item>
           </div>

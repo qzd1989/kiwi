@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, reactive, watchEffect, watch } from "vue";
+import { ref, onMounted, reactive, watchEffect } from "vue";
 import {
   createDir,
   rename as fsRename,
@@ -17,6 +17,7 @@ import { useElementSize } from "@vueuse/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { LocalStore } from "../stores/local";
 import { emitTo } from "@tauri-apps/api/event";
+import { listen } from "@tauri-apps/api/event";
 import Setting from "../components/Setting.vue";
 import NewProject from "../components/NewProject.vue";
 const props = defineProps(["files"]);
@@ -24,8 +25,6 @@ const emits = defineEmits(["add:file", "clear:files"]);
 const store = useStore();
 const editableExtensions = ["py"];
 //project info
-const path = ref(null);
-const name = ref(null);
 const data = ref([]);
 //project info end
 const headerRef = ref(null);
@@ -267,7 +266,7 @@ async function newFolder() {
   }
   switch (nodeType) {
     case "rootDirectory":
-      entry.path = await join(path.value, name);
+      entry.path = await join(store.getters.currentProjectPath, name);
       break;
     case "directory":
       entry.path = await join(currentNode.value.data.path, name);
@@ -315,7 +314,7 @@ async function newFile() {
   }
   switch (nodeType) {
     case "rootDirectory":
-      entry.path = await join(path.value, name);
+      entry.path = await join(store.getters.currentProjectPath, name);
       break;
     case "directory":
       entry.path = await join(currentNode.value.data.path, name);
@@ -357,25 +356,31 @@ async function newProject() {
   newProjectVisible.value = true;
 }
 async function openProject(result) {
-  //from newProject
+  const storeCommit = async (projectPath) => {
+    store.commit("currentProjectPath", projectPath);
+    store.commit("currentProjectName", await basename(projectPath));
+    //active send project path to monitor
+    await emitTo("monitor", "update:project-path", { path: projectPath });
+  };
+  //come from newProject
   if (result.project != undefined) {
-    path.value = result.project;
+    await storeCommit(result.project);
     emits("clear:files");
     return;
   }
-  //from openProject
+  //come from openProject
   const dir = await openDialog({
     multiple: false,
     directory: true,
     defaultPath: projectsDir,
   });
   if (!dir) return;
-  path.value = dir;
+  await storeCommit(dir);
   emits("clear:files");
 }
 async function refresh() {
-  if (path.value) {
-    data.value = await fetch(path.value);
+  if (store.getters.currentProjectPath) {
+    data.value = await fetch(store.getters.currentProjectPath);
   }
 }
 async function remove(event, node, data) {
@@ -405,16 +410,16 @@ async function remove(event, node, data) {
       msgInfo(`Delete canceled`);
     });
 }
-watch(path, async (newPath) => {
-  data.value = await fetch(newPath);
-  name.value = await basename(newPath);
-  store.commit("projectPath", newPath); //for other views of main window
+//listen event from monitor
+listen("get:project-path", async () => {
   await emitTo("monitor", "update:project-path", {
-    path: newPath,
-    from: "tree",
+    path: store.getters.currentProjectPath,
   });
 });
 watchEffect(async () => {
+  if (store.getters.currentProjectPath != null) {
+    data.value = await fetch(store.getters.currentProjectPath);
+  }
   if (store.getters.focus != "left") {
     window.removeEventListener("keyup", enterHandler);
   } else {
@@ -434,11 +439,14 @@ onMounted(async () => {});
     :class="{ unselect: !isEditing }"
     ref="containerRef"
   >
-    <el-header ref="headerRef" :class="{ 'no-data': path == null }">
-      <div class="project-name" v-if="path">
-        {{ name }}
+    <el-header
+      ref="headerRef"
+      :class="{ 'no-data': store.getters.currentProjectName == null }"
+    >
+      <div class="project-name" v-if="store.getters.currentProjectName">
+        {{ store.getters.currentProjectName }}
       </div>
-      <div v-if="path">
+      <div v-if="store.getters.currentProjectName">
         <el-icon @click="refresh"><Refresh /></el-icon>
         <el-icon @click="newFolder"><FolderAdd /></el-icon>
         <el-icon @click="newFile"><DocumentAdd /></el-icon>

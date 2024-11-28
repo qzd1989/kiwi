@@ -6,22 +6,21 @@ export const scriptDirName = "scripts";
 export const resourceDirName = "resources";
 export const defaultScriptName = "main.py";
 
-export const projectDir = async (project) => {
-  return projectsDir + (await sep()) + project;
-};
-export const resourceDir = async (project) => {
+export const resourceDir = async (projectName) => {
   return (
-    projectsDir + (await sep()) + project + (await sep()) + resourceDirName
+    projectsDir + (await sep()) + projectName + (await sep()) + resourceDirName
   );
 };
-export const scriptDir = async (project) => {
-  return projectsDir + (await sep()) + project + (await sep()) + scriptDirName;
+export const scriptDir = async (projectName) => {
+  return (
+    projectsDir + (await sep()) + projectName + (await sep()) + scriptDirName
+  );
 };
-export const defaultScriptFile = async (project) => {
+export const defaultScriptFile = async (projectName) => {
   return (
     projectsDir +
     (await sep()) +
-    project +
+    projectName +
     (await sep()) +
     scriptDirName +
     (await sep()) +
@@ -37,8 +36,4 @@ export const getDefaultScriptFileByProjctPath = async (projectAbsPath) => {
     (await sep()) +
     defaultScriptName
   );
-};
-
-export const getProjectByProjectPath = async (projectAbsPath) => {
-  return projectAbsPath.replace(scriptDir + (await sep()), "");
 };

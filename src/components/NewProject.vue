@@ -2,11 +2,12 @@
 import { ref, onMounted, reactive } from "vue";
 import { msgSuccess, msgError } from "./../utils/msg";
 import {
-  projectDir,
+  projectsDir,
   resourceDir,
   scriptDir,
   defaultScriptFile,
 } from "./../stores/app";
+import { sep } from "@tauri-apps/api/path";
 import { createDir, createFile, exists } from "./../utils/fs";
 const props = defineProps({
   visible: Boolean,
@@ -23,7 +24,7 @@ async function save() {
   await formRef.value.validate(async (valid, fields) => {
     if (valid) {
       try {
-        const project = await projectDir(form.name);
+        const project = projectsDir + (await sep()) + form.name;
         if (await exists(project)) {
           msgError(`project already exists`);
           return;

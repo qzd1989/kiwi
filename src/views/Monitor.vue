@@ -6,6 +6,8 @@ import { Stack } from "./../utils/common";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { emitTo } from "@tauri-apps/api/event";
+import { basename } from "@tauri-apps/api/path";
 import {
   arrayImageDataToBase64ImageData,
   cropBase64Image,
@@ -404,8 +406,17 @@ async function findTexts() {
   cancelCapture();
 }
 
-listen("update:project-path", (event) => {
-  store.commit("projectPath", event.payload.path);
+async function getProjectPath() {
+  await emitTo("main", "get:project-path");
+}
+
+//listen event from main
+listen("update:project-path", async (event) => {
+  if (event.payload.path == null) {
+    return;
+  }
+  store.commit("currentProjectPath", event.payload.path);
+  store.commit("currentProjectName", await basename(event.payload.path));
 });
 
 onMounted(async () => {
@@ -419,6 +430,9 @@ onMounted(async () => {
   document.addEventListener("mousemove", moveListener);
   document.addEventListener("mouseup", upListener);
   // gap end
+
+  //get project path
+  await getProjectPath();
 });
 onUnmounted(() => {
   // gap

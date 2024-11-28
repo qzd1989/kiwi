@@ -1,6 +1,5 @@
 ///全局对象结构体
 use crate::capture::Frame;
-use crate::utils;
 use anyhow::Result;
 use base64::{engine::general_purpose, Engine as _};
 use image::{imageops, ImageBuffer, Rgba};
@@ -12,48 +11,24 @@ use opencv::prelude::*;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
 lazy_static! {
     pub static ref VERSION: String = String::from("1.0.0");
     pub static ref PYTHON_VERSION: String = String::from("3.10");
     pub static ref PROJECTS_DIR: String = {
-        #[cfg(target_os = "macos")]
-        {
-            #[cfg(debug_assertions)]
-            {
-                utils::fs::current_dir()
-                    .join("projects")
-                    .to_str()
-                    .unwrap()
-                    .to_string()
-            }
-            #[cfg(not(debug_assertions))]
-            {
-                directories::UserDirs::new()
-                    .unwrap()
-                    .document_dir()
-                    .unwrap()
-                    .to_path_buf()
-                    .join("KiwiProjects")
-                    .to_str()
-                    .unwrap()
-                    .to_string()
-            }
-        }
-
-        #[cfg(target_os = "windows")]
-        {
-            directories::UserDirs::new()
-                .unwrap()
-                .document_dir()
-                .unwrap()
-                .to_path_buf()
-                .join("KiwiProjects")
-                .to_str()
-                .unwrap()
-                .to_string()
-        }
+        directories::UserDirs::new()
+            .unwrap()
+            .document_dir()
+            .unwrap()
+            .to_path_buf()
+            .join("KiwiProjects")
+            .to_str()
+            .unwrap()
+            .to_string()
     };
+    pub static ref PROJECT_DIR: Arc<Mutex<Option<PathBuf>>> = Arc::new(Mutex::new(None));
     pub static ref PYTHON_EXEC_FILE: String = {
         #[cfg(target_os = "macos")]
         {

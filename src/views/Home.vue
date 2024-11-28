@@ -154,7 +154,7 @@ onUnmounted(() => {
         }"
       >
         <div
-          v-show="store.getters.projectPath != null"
+          v-show="store.getters.currentProjectName"
           class="editor"
           :style="{
             height: topHeight + 'px',
@@ -169,7 +169,6 @@ onUnmounted(() => {
             }"
           >
             <Editor
-              v-show="files.size > 0"
               :width="middleWidth"
               :height="topHeight - gapLength"
               :files="files"
@@ -184,7 +183,7 @@ onUnmounted(() => {
           ></div>
         </div>
         <div
-          v-show="store.getters.projectPath != null"
+          v-show="store.getters.currentProjectName"
           ref="bottomRef"
           class="terminal"
           :style="{

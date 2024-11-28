@@ -17,7 +17,6 @@ const props = defineProps(["height", "files"]);
 const store = useStore();
 const runFile = ref(null);
 const hideWhileRunning = ref(false);
-const env = ref(null);
 const logs = ref(new Stack(100));
 const logsContainerRef = ref(null);
 const logsRef = ref(null);
@@ -31,9 +30,8 @@ async function runCurrent() {
   await invoke("run", { file: runFile.value });
 }
 async function runProject() {
-  runFile.value = await getDefaultScriptFileByProjctPath(
-    store.getters.projectPath
-  );
+  let projectPath = await invoke("get_project_dir");
+  runFile.value = await getDefaultScriptFileByProjctPath(projectPath);
   await invoke("run", { file: runFile.value });
 }
 async function stop() {
@@ -85,13 +83,8 @@ async function shortcutExecute() {
     }
   });
 }
-async function getEnv() {
-  env.value = await invoke("env_string");
-}
 async function init() {
-  invoke("init").then(async () => {
-    await getEnv();
-  });
+  await invoke("init");
 }
 listen("run:status", async (event) => {
   if (event.payload.data == "running") {
@@ -123,7 +116,6 @@ listen("log:error", (event) => {
 });
 onMounted(async () => {
   await shortcutExecute();
-  await getEnv();
 });
 </script>
 <template>
@@ -164,7 +156,6 @@ onMounted(async () => {
     </el-header>
     <el-main ref="logsContainerRef">
       <div class="logs" ref="logsRef">
-        <div class="log" style="display: none">{{ env }}</div>
         <div class="log" v-for="log in logs.stack">
           <span class="time">{{ formatLogTime(log.time) }}</span>
           <span class="data">{{ log.data }}</span>
