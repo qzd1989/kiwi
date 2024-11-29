@@ -32,7 +32,7 @@ const editorHeight = computed(() => {
 });
 const currentFile = ref(null);
 function select(file) {
-  store.commit("filePath", file.path);
+  console.log(currentFile.value);
   currentFile.value = file;
 }
 function close(event, file) {
@@ -105,12 +105,21 @@ function openMonitor() {
 }
 watch(
   () => props.lastOpenedFile,
-  (newValue, oldValue) => {
+  () => {
     if (props.lastOpenedFile) {
       select(props.lastOpenedFile);
     }
   }
 );
+watch(currentFile, async () => {
+  if (currentFile.value == null) {
+    store.commit("currentFilePath", null);
+    store.commit("currentFileName", null);
+    return;
+  }
+  store.commit("currentFilePath", currentFile.value.path);
+  store.commit("currentFileName", currentFile.value.name);
+});
 watchEffect(async () => {
   if (store.getters.focus != "editor") {
     window.removeEventListener("keydown", shortcutSave);

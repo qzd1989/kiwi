@@ -26,12 +26,13 @@ async function runCurrent() {
   if (props.files.size == 0) {
     return;
   }
-  runFile.value = store.getters.filePath;
+  runFile.value = store.getters.currentFilePath;
   await invoke("run", { file: runFile.value });
 }
 async function runProject() {
-  let projectPath = await invoke("get_project_dir");
-  runFile.value = await getDefaultScriptFileByProjctPath(projectPath);
+  runFile.value = await getDefaultScriptFileByProjctPath(
+    store.getters.currentProjectPath
+  );
   await invoke("run", { file: runFile.value });
 }
 async function stop() {
