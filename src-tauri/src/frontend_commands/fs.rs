@@ -1,6 +1,10 @@
-use crate::utils;
+use crate::{
+    common::{Base64Png, Base64PngExt},
+    utils,
+};
 use serde::Serialize;
 use std::fs;
+use std::path::Path;
 
 #[tauri::command]
 pub fn create_dir(path: String) -> Result<bool, String> {
@@ -79,6 +83,18 @@ pub fn read_dir(path: String) -> Result<Vec<Entry>, String> {
         files.push(Entry::new(entry.unwrap()));
     }
     Ok(files)
+}
+
+#[tauri::command]
+pub fn save_base64_image(path: String, data: Base64Png) -> Result<bool, String> {
+    let buffer = data.to_buffer().unwrap();
+    let path = Path::new(path.as_str());
+    let parent_path = path.parent().unwrap();
+    let _ = utils::fs::create_dir(parent_path.to_str().unwrap().to_string());
+    if let Err(error) = buffer.save(path) {
+        return Err(error.to_string());
+    }
+    Ok(true)
 }
 
 #[derive(Debug, Serialize, Clone)]

@@ -4,8 +4,14 @@ import { sep } from "@tauri-apps/api/path";
 export const projectsDir = await invoke("projects_dir");
 export const scriptDirName = "scripts";
 export const resourceDirName = "resources";
+export const moduleDirName = "modules";
 export const defaultScriptName = "main.py";
 
+export const moduleDir = async (projectName) => {
+  return (
+    projectsDir + (await sep()) + projectName + (await sep()) + moduleDirName
+  );
+};
 export const resourceDir = async (projectName) => {
   return (
     projectsDir + (await sep()) + projectName + (await sep()) + resourceDirName

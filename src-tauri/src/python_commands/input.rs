@@ -1,4 +1,4 @@
-use crate::{common::Point, input};
+use crate::input;
 use pyo3::prelude::*;
 
 #[pyfunction]
@@ -50,8 +50,9 @@ pub fn move_rel(x: i32, y: i32) -> PyResult<()> {
 }
 
 #[pyfunction]
-pub fn location() -> PyResult<Point> {
-    Ok(input::location())
+pub fn location() -> PyResult<(f64, f64)> {
+    let point = input::location();
+    Ok((point.x, point.y))
 }
 
 #[pyfunction]

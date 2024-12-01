@@ -1,12 +1,15 @@
 <script setup>
-import { ref, onMounted, reactive, watch } from "vue";
+import { ref, onMounted, reactive, watch, computed } from "vue";
 import {
   drawBase64ImageOnCanvas,
   generateRandomString,
 } from "../../utils/common";
 import { invoke } from "@tauri-apps/api/core";
-import { msgError } from "../../utils/msg";
 import { useStore } from "vuex";
+import { resourceDir } from "../../stores/app";
+import { sep } from "@tauri-apps/api/path";
+import { cropBase64Image } from "../../utils/common";
+import { msgError, msgSuccess } from "../../utils/msg";
 const props = defineProps(["form", "projectPath"]);
 const emits = defineEmits(["close", "form"]);
 
@@ -27,6 +30,9 @@ const relativePosition = reactive({ x: 0, y: 0 }); //相对于截图的位置
 const canvasRef = ref(null);
 const hiddenCanvasRef = ref(null);
 const magnifyingGlassCanvasRef = ref(null);
+
+const filePath = ref(null);
+const saved = ref(false);
 
 const form = reactive({
   name: null,
@@ -215,6 +221,45 @@ async function findImages() {
     });
 }
 
+async function buildFilePath() {
+  if (form.name == null) {
+    return "";
+  }
+  const relativeFilePath = form.name
+    .replace(/[\u3000 ]/g, "")
+    .replace(/[/\\]/g, await sep());
+  return (
+    (await resourceDir(store.getters.currentProjectName)) +
+    (await sep()) +
+    relativeFilePath +
+    ".png"
+  );
+}
+
+async function save() {
+  if (form.name == null) {
+    return;
+  }
+  const data = await cropBase64Image(
+    canvasRef.value.toDataURL("image/png"),
+    dataExtSideLength / 2,
+    dataExtSideLength / 2,
+    form.captured.size.width,
+    form.captured.size.height
+  );
+  invoke("save_base64_image", {
+    path: filePath.value,
+    data,
+  })
+    .then((result) => {
+      saved.value = result;
+      msgSuccess("save successed, you can copy the code now");
+    })
+    .catch((error) => {
+      msgError(error);
+    });
+}
+
 watch(props.form, () => {
   Object.assign(form, props.form);
   Object.assign(originForm, props.form);
@@ -223,9 +268,12 @@ watch(props.form, () => {
   form.findArea.end.y = form.monitor.size.height;
 });
 
+watch(form, async () => {
+  filePath.value = await buildFilePath();
+});
+
 onMounted(async () => {
   form.name = generateRandomString(3);
-  console.log("a", props.projectPath);
 });
 </script>
 <template>
@@ -329,13 +377,13 @@ onMounted(async () => {
             </el-form-item>
             <el-form-item prop="imagePath" style="margin-bottom: 0px">
               <el-input
-                v-model="store.getters.currentProjectPath"
+                v-model="filePath"
                 autocapitalize="off"
                 autocorrect="off"
                 spellcheck="false"
                 disabled
               >
-                <template #prepend>image path</template>
+                <template #prepend>fullpath</template>
               </el-input>
             </el-form-item>
           </div>
@@ -432,7 +480,14 @@ onMounted(async () => {
           <div class="item">
             <div class="title">
               <span>Code</span>
-              <el-button type="primary" @click=""> copy </el-button>
+              <el-button
+                type="primary"
+                @click=""
+                :disabled="!saved"
+                title="save image before copy"
+              >
+                copy
+              </el-button>
             </div>
             <div>
               <el-input
@@ -448,8 +503,8 @@ onMounted(async () => {
       </el-form>
     </el-main>
     <el-footer>
-      <el-button @click="close">Cancel</el-button>
-      <el-button type="primary" @click=""> Save </el-button>
+      <el-button @click="close">Close</el-button>
+      <el-button type="primary" @click="save"> Save </el-button>
     </el-footer>
   </el-container>
 </template>

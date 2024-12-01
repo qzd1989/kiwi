@@ -6,6 +6,7 @@ import {
   resourceDir,
   scriptDir,
   defaultScriptFile,
+  moduleDir,
 } from "./../stores/app";
 import { sep } from "@tauri-apps/api/path";
 import { createDir, createFile, exists } from "./../utils/fs";
@@ -29,9 +30,13 @@ async function save() {
           msgError(`project already exists`);
           return;
         }
+        const module = await moduleDir(form.name);
         const resouce = await resourceDir(form.name);
         const script = await scriptDir(form.name);
         const defaultFile = await defaultScriptFile(form.name);
+        await createDir(module);
+        //copy default moudles into module folder
+        //todo
         await createDir(project);
         await createDir(resouce);
         await createDir(script);
