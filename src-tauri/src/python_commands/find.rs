@@ -30,7 +30,7 @@ pub fn global_find_images(path: String, threshold: f64) -> Vec<(f64, f64)> {
 
 #[pyfunction]
 pub fn find_locating_color(
-    colors: Vec<LocatingColor>,
+    locating_colors: Vec<LocatingColor>,
     start: (i32, i32),
     end: (i32, i32),
     offsets: (u8, u8, u8),
@@ -39,13 +39,16 @@ pub fn find_locating_color(
 }
 
 #[pyfunction]
-pub fn global_find_locating_color(colors: Vec<LocatingColor>, offsets: (u8, u8, u8)) -> (f64, f64) {
+pub fn global_find_locating_color(
+    locating_colors: Vec<LocatingColor>,
+    offsets: (u8, u8, u8),
+) -> (f64, f64) {
     (-1.0, -1.0)
 }
 
 #[pyfunction]
 pub fn find_color(
-    colors: Vec<HexColor>,
+    hex_colors: Vec<HexColor>,
     start: (i32, i32),
     end: (i32, i32),
     offsets: (u8, u8, u8),
@@ -54,7 +57,7 @@ pub fn find_color(
 }
 
 #[pyfunction]
-pub fn global_find_color(colors: Vec<HexColor>, offsets: (u8, u8, u8)) -> (f64, f64) {
+pub fn global_find_color(hex_colors: Vec<HexColor>, offsets: (u8, u8, u8)) -> (f64, f64) {
     (-1.0, -1.0)
 }
 
