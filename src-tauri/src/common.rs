@@ -94,9 +94,12 @@ impl WeightPoint {
     }
 }
 
+#[pyclass]
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct LocatingColor {
+    #[pyo3(get, set)]
     pub point: Point,
+    #[pyo3(get, set)]
     pub hex: HexColor,
 }
 

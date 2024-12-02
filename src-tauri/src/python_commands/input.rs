@@ -2,67 +2,57 @@ use crate::input;
 use pyo3::prelude::*;
 
 #[pyfunction]
-pub fn click_left() -> PyResult<()> {
+pub fn click_left() {
     input::click_left();
-    Ok(())
 }
 
 #[pyfunction]
-pub fn click_right() -> PyResult<()> {
+pub fn click_right() {
     input::click_right();
-    Ok(())
 }
 
 #[pyfunction]
-pub fn press_left() -> PyResult<()> {
+pub fn press_left() {
     input::press_left();
-    Ok(())
 }
 
 #[pyfunction]
-pub fn press_right() -> PyResult<()> {
+pub fn press_right() {
     input::press_right();
-    Ok(())
 }
 
 #[pyfunction]
-pub fn release_left() -> PyResult<()> {
+pub fn release_left() {
     input::release_left();
-    Ok(())
 }
 
 #[pyfunction]
-pub fn release_right() -> PyResult<()> {
+pub fn release_right() {
     input::release_right();
-    Ok(())
 }
 
 #[pyfunction]
-pub fn move_abs(x: i32, y: i32) -> PyResult<()> {
+pub fn move_abs(x: i32, y: i32) {
     input::move_abs(x, y);
-    Ok(())
 }
 
 #[pyfunction]
-pub fn move_rel(x: i32, y: i32) -> PyResult<()> {
+pub fn move_rel(x: i32, y: i32) {
     input::move_rel(x, y);
-    Ok(())
 }
 
 #[pyfunction]
-pub fn location() -> PyResult<(f64, f64)> {
+pub fn get_location() -> (f64, f64) {
     let point = input::location();
-    Ok((point.x, point.y))
+    (point.x, point.y)
 }
 
 #[pyfunction]
-pub fn scroll_vertical(length: i32) -> PyResult<()> {
+pub fn scroll_vertical(length: i32) {
     input::scroll_vertical(length);
-    Ok(())
 }
 
 #[pyfunction]
-pub fn scroll_horizontal(length: i32) -> PyResult<()> {
+pub fn scroll_horizontal(length: i32) {
     input::scroll_horizontal(length);
-    Ok(())
 }

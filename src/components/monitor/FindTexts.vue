@@ -185,18 +185,6 @@ onMounted(async () => {});
               </el-row>
             </div>
             <div>
-              <el-form-item prop="offset" style="margin-bottom: 0px">
-                <el-input
-                  v-model="form.offset"
-                  autocapitalize="off"
-                  autocorrect="off"
-                  spellcheck="false"
-                >
-                  <template #prepend>color offset</template>
-                </el-input>
-              </el-form-item>
-            </div>
-            <div>
               <el-form-item prop="languages" style="margin-bottom: 0px">
                 <el-select
                   v-model="form.languages"
