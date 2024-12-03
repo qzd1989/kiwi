@@ -14,6 +14,7 @@ import { ElMessageBox } from "element-plus";
 import { msgError, msgSuccess, msgInfo } from "./../utils/msg";
 import { join, basename, extname, sep } from "@tauri-apps/api/path";
 import { useElementSize } from "@vueuse/core";
+import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { LocalStore } from "../stores/local";
 import { emitTo } from "@tauri-apps/api/event";
@@ -356,11 +357,12 @@ async function newProject() {
   newProjectVisible.value = true;
 }
 async function openProject(result) {
-  const storeCommit = async (projectPath) => {
-    store.commit("currentProjectPath", projectPath);
-    store.commit("currentProjectName", await basename(projectPath));
+  const storeCommit = async (path) => {
+    store.commit("currentProjectPath", path);
+    store.commit("currentProjectName", await basename(path));
     //active send project path to monitor
-    await emitTo("monitor", "update:project-path", { path: projectPath });
+    await emitTo("monitor", "update:project-path", { path });
+    await invoke("set_project", { path });
   };
   //come from newProject
   if (result.project != undefined) {

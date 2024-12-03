@@ -27,10 +27,11 @@ pub fn find_moudle(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     find.add_function(wrap_pyfunction!(find::find_images, &find)?)?;
     find.add_function(wrap_pyfunction!(find::find_locating_color, &find)?)?;
     find.add_function(wrap_pyfunction!(find::find_color, &find)?)?;
-    find.add_function(wrap_pyfunction!(find::recognize_text, &find)?)?;
+    find.add_function(wrap_pyfunction!(find::find_text, &find)?)?;
     find.add_function(wrap_pyfunction!(find::global_find_image, &find)?)?;
     find.add_function(wrap_pyfunction!(find::global_find_images, &find)?)?;
     find.add_function(wrap_pyfunction!(find::global_find_locating_color, &find)?)?;
     find.add_function(wrap_pyfunction!(find::global_find_color, &find)?)?;
+    find.add_function(wrap_pyfunction!(find::find_haha, &find)?)?;
     parent.add_submodule(&find)
 }

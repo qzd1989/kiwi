@@ -11,8 +11,7 @@ use opencv::prelude::*;
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
-use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 lazy_static! {
     pub static ref VERSION: String = String::from("1.0.0");
@@ -28,7 +27,8 @@ lazy_static! {
             .unwrap()
             .to_string()
     };
-    pub static ref PROJECT_DIR: Arc<Mutex<Option<PathBuf>>> = Arc::new(Mutex::new(None));
+    pub static ref PROJECT_DIR: Mutex<Option<String>> = Mutex::new(None);
+    pub static ref HAHA: Mutex<Option<String>> = Mutex::new(None);
     pub static ref PYTHON_EXEC_FILE: String = {
         #[cfg(target_os = "macos")]
         {

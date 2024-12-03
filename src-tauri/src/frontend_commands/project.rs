@@ -1,12 +1,11 @@
 use super::AppHandleExt as _;
 use crate::{
-    capture::{listen_primary_display, CAPTURE_SWITCH},
-    common::{PROJECT_DIR, PYTHON_EXEC_FILE},
+    capture::{listen_primary_display, CAPTURE_SWITCH, FRAME},
+    common::{HAHA, PROJECT_DIR, PYTHON_EXEC_FILE},
 };
 use lazy_static::lazy_static;
 use std::{
     io::{BufRead, BufReader},
-    path::PathBuf,
     process::{Command, Stdio},
     sync::{Arc, Mutex},
 };
@@ -18,7 +17,6 @@ use install::TESSERACT_DIR;
 use std::os::windows::process::CommandExt;
 #[cfg(target_os = "windows")]
 use windows::Win32::System::Threading::CREATE_NO_WINDOW;
-/// project about
 #[tauri::command]
 pub fn run(app: AppHandle, file: String) {
     let app: Arc<Mutex<AppHandle>> = Arc::new(Mutex::new(app));
@@ -35,7 +33,22 @@ pub fn run(app: AppHandle, file: String) {
     {
         *CAPTURE_SWITCH.lock().unwrap() = true;
         listen_primary_display();
+        //waiting until the frame is not empty
+        loop {
+            if FRAME.lock().unwrap().is_some() {
+                break;
+            }
+        }
     }
+    println!("set haha");
+    *HAHA.lock().unwrap() = Some("huhu".to_string());
+    println!(
+        "haha: {:?}",
+        HAHA.lock()
+            .unwrap()
+            .clone()
+            .unwrap_or("none from run".to_string())
+    );
     std::thread::spawn(move || {
         let handle = Command::new(PYTHON_EXEC_FILE.to_string())
             .arg(file)
@@ -140,16 +153,15 @@ pub fn stop(app: AppHandle) {
 
 #[tauri::command]
 pub fn set_project(path: String) {
-    let path_buff = PathBuf::from(path);
-    *PROJECT_DIR.lock().unwrap() = Some(path_buff);
+    *PROJECT_DIR.lock().unwrap() = Some(path);
 }
 
 #[tauri::command]
 pub fn get_project_dir() -> Result<String, String> {
-    let project_path = PROJECT_DIR.lock().unwrap();
-    match project_path.as_ref() {
-        Some(path_buff) => Ok(path_buff.to_str().unwrap().to_string()),
-        None => Ok("".to_string()),
+    let project_path = PROJECT_DIR.lock().unwrap().clone();
+    match project_path {
+        Some(path) => Ok(path),
+        None => Err("project dir is not set".to_string()),
     }
 }
 
