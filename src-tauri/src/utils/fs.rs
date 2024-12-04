@@ -1,3 +1,4 @@
+use std::io::Write;
 use std::{fs, path::PathBuf};
 pub fn current_dir() -> PathBuf {
     std::env::current_dir().unwrap()
@@ -12,7 +13,16 @@ pub fn exists(path: String) -> Result<bool, String> {
 }
 
 pub fn write_file(path: String, contents: String) -> Result<bool, String> {
-    if let Err(error) = fs::write(path, contents) {
+    let file = fs::OpenOptions::new()
+        .write(true)
+        .append(true)
+        .create(true)
+        .open(path);
+    if let Err(error) = file {
+        return Err(format!("{}", error));
+    }
+    let mut file = file.unwrap();
+    if let Err(error) = file.write_all(contents.as_bytes()) {
         return Err(format!("{}", error));
     }
     Ok(true)

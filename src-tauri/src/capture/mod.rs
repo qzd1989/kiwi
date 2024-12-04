@@ -3,7 +3,6 @@ use std::sync::{Arc, Mutex};
 
 #[cfg(not(all(windows, debug_assertions)))]
 use crate::common::ImageBufferRgbaExt;
-use crate::utils::fs::write_file;
 use anyhow::{anyhow, Result};
 pub use crabgrab as engine;
 use image::{ImageBuffer, Rgba};
@@ -44,13 +43,14 @@ pub fn listen_primary_display() {
         let runtime = tokio::runtime::Runtime::new().unwrap();
         runtime.block_on(engine::listen_primary_display(|frame| {
             FRAME.lock().unwrap().replace(frame);
-            *IS_CAPTURING.lock().unwrap() = true;
         }));
     });
 }
 
+// pub static CAPTURE_SWITCH: std::cell::LazyLock<Mutex<bool>> = std::cell::LazyLock::new(|| Mutex::new(false));
+// pub static FRAME: std::cell::LazyLock<Mutex<Option<Frame>>> = std::cell::LazyLock::new(|| Mutex::new(None));
+
 lazy_static! {
     pub static ref CAPTURE_SWITCH: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
-    pub static ref IS_CAPTURING: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
     pub static ref FRAME: Arc<Mutex<Option<Frame>>> = Arc::new(Mutex::new(None));
 }

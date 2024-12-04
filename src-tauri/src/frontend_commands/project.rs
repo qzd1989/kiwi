@@ -1,7 +1,7 @@
 use super::AppHandleExt as _;
 use crate::{
     capture::{listen_primary_display, CAPTURE_SWITCH, FRAME},
-    common::{HAHA, PROJECT_DIR, PYTHON_EXEC_FILE},
+    common::{PROJECT_DIR, PYTHON_EXEC_FILE},
 };
 use lazy_static::lazy_static;
 use std::{
@@ -33,24 +33,16 @@ pub fn run(app: AppHandle, file: String) {
     {
         *CAPTURE_SWITCH.lock().unwrap() = true;
         listen_primary_display();
-        //waiting until the frame is not empty
+        //waiting until the frame is not None
         loop {
             if FRAME.lock().unwrap().is_some() {
                 break;
             }
         }
     }
-    println!("set haha");
-    *HAHA.lock().unwrap() = Some("huhu".to_string());
-    println!(
-        "haha: {:?}",
-        HAHA.lock()
-            .unwrap()
-            .clone()
-            .unwrap_or("none from run".to_string())
-    );
     std::thread::spawn(move || {
         let handle = Command::new(PYTHON_EXEC_FILE.to_string())
+            .arg("-u") //没有缓冲
             .arg(file)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -70,34 +62,34 @@ pub fn run(app: AppHandle, file: String) {
         );
         let app_stdout = Arc::clone(&app);
         let app_stderr = Arc::clone(&app);
-        let mut stdout_thread = std::thread::spawn(move || {});
-        let mut stderr_thread = std::thread::spawn(move || {});
         if let Some(stdout) = handle.stdout.take() {
-            stdout_thread = std::thread::spawn(move || {
-                let app = Arc::clone(&app_stdout);
+            std::thread::spawn(move || {
                 let reader = BufReader::new(stdout);
                 for line in reader.lines() {
                     if let Ok(line) = line {
-                        app.lock().unwrap().emit_with_timestamp("log:info", &line);
+                        app_stdout
+                            .lock()
+                            .unwrap()
+                            .emit_with_timestamp("log:info", &line);
                     }
                 }
             });
         }
         if let Some(stderr) = handle.stderr.take() {
-            stderr_thread = std::thread::spawn(move || {
-                let app = Arc::clone(&app_stderr);
+            std::thread::spawn(move || {
                 let reader = BufReader::new(stderr);
                 for line in reader.lines() {
                     if let Ok(line) = line {
-                        app.lock().unwrap().emit_with_timestamp("log:info", &line);
+                        app_stderr
+                            .lock()
+                            .unwrap()
+                            .emit_with_timestamp("log:error", &line);
                     }
                 }
             });
         }
         match handle.wait() {
             Ok(_) => {
-                let _ = stdout_thread.join();
-                let _ = stderr_thread.join();
                 app.lock()
                     .unwrap()
                     .emit_with_timestamp("run:status", "stopped");

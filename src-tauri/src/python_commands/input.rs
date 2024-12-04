@@ -56,3 +56,10 @@ pub fn scroll_vertical(length: i32) {
 pub fn scroll_horizontal(length: i32) {
     input::scroll_horizontal(length);
 }
+
+#[pyfunction]
+pub fn sleep(time: u64) {
+    println!("sleep start in pyfunction");
+    std::thread::sleep(std::time::Duration::from_millis(time));
+    println!("sleep end in pyfunction");
+}

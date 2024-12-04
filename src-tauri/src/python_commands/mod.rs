@@ -17,6 +17,7 @@ pub fn input_module(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     input.add_function(wrap_pyfunction!(input::get_location, &input)?)?;
     input.add_function(wrap_pyfunction!(input::scroll_vertical, &input)?)?;
     input.add_function(wrap_pyfunction!(input::scroll_horizontal, &input)?)?;
+    input.add_function(wrap_pyfunction!(input::sleep, &input)?)?;
     input.add_class::<Point>()?;
     parent.add_submodule(&input)
 }
@@ -32,6 +33,6 @@ pub fn find_moudle(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     find.add_function(wrap_pyfunction!(find::global_find_images, &find)?)?;
     find.add_function(wrap_pyfunction!(find::global_find_locating_color, &find)?)?;
     find.add_function(wrap_pyfunction!(find::global_find_color, &find)?)?;
-    find.add_function(wrap_pyfunction!(find::find_haha, &find)?)?;
+    find.add_function(wrap_pyfunction!(find::get_project_dir, &find)?)?;
     parent.add_submodule(&find)
 }

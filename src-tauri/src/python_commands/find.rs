@@ -1,4 +1,3 @@
-use crate::common::HAHA;
 use crate::find;
 use crate::{
     capture::FRAME,
@@ -30,16 +29,7 @@ const EMPTY_LOCATING_COLORS: Vec<(i32, i32, HexColor)> = Vec::new();
 const EMPTY_TEXT: &str = "";
 
 #[pyfunction]
-pub fn find_haha(py: Python) {
-    println!("find_haha");
-    let haha = py.allow_threads(|| {
-        HAHA.lock()
-            .unwrap()
-            .clone()
-            .unwrap_or("none from find_haha".to_string())
-    });
-    println!("find_haha: {}", haha);
-}
+pub fn get_project_dir() {}
 
 #[pyfunction]
 pub fn find_image(

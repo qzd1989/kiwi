@@ -1,4 +1,4 @@
-use super::{Frame, CAPTURE_SWITCH, IS_CAPTURING};
+use super::{Frame, CAPTURE_SWITCH};
 use crabgrab::prelude::*;
 use crossbeam_channel::bounded;
 use std::sync::{Arc, Mutex};

@@ -28,7 +28,6 @@ lazy_static! {
             .to_string()
     };
     pub static ref PROJECT_DIR: Mutex<Option<String>> = Mutex::new(None);
-    pub static ref HAHA: Mutex<Option<String>> = Mutex::new(None);
     pub static ref PYTHON_EXEC_FILE: String = {
         #[cfg(target_os = "macos")]
         {
