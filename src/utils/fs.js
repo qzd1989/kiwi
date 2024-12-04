@@ -43,8 +43,8 @@ export async function readDir(path) {
   });
 }
 
-export async function writeFile(path, contents) {
-  return await invoke("write_file", { path, contents }).catch((e) => {
+export async function writeFile(path, contents, append) {
+  return await invoke("write_file", { path, contents, append }).catch((e) => {
     msgError(e);
     return false;
   });

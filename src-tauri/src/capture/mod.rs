@@ -1,5 +1,5 @@
 pub mod crabgrab;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 #[cfg(not(all(windows, debug_assertions)))]
 use crate::common::ImageBufferRgbaExt;
@@ -47,10 +47,14 @@ pub fn listen_primary_display() {
     });
 }
 
-// pub static CAPTURE_SWITCH: std::cell::LazyLock<Mutex<bool>> = std::cell::LazyLock::new(|| Mutex::new(false));
-// pub static FRAME: std::cell::LazyLock<Mutex<Option<Frame>>> = std::cell::LazyLock::new(|| Mutex::new(None));
+pub static CAPTURE_SWITCH: std::sync::LazyLock<Mutex<bool>> =
+    std::sync::LazyLock::new(|| Mutex::new(false));
+pub static FRAME: std::sync::LazyLock<Mutex<Option<Frame>>> =
+    std::sync::LazyLock::new(|| Mutex::new(None));
 
 lazy_static! {
-    pub static ref CAPTURE_SWITCH: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
-    pub static ref FRAME: Arc<Mutex<Option<Frame>>> = Arc::new(Mutex::new(None));
+//     pub static ref CAPTURE_SWITCH: std::sync::Arc<Mutex<bool>> =
+//         std::sync::Arc::new(Mutex::new(false));
+//     pub static ref FRAME: std::sync::Arc<Mutex<Option<Frame>>> =
+//         std::sync::Arc::new(Mutex::new(None));
 }

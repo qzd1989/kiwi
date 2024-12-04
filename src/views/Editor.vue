@@ -64,7 +64,7 @@ async function shortcutSave(event) {
     const content = modifiedMap.value.get(key);
     //save file
     try {
-      await writeFile(key, content).then(() => {
+      await writeFile(key, content, false).then(() => {
         modifiedMap.value.delete(key);
         funny.value = !funny.value;
         msgSuccess(`save file success`);

@@ -327,7 +327,7 @@ async function newFile() {
   if (await exists(entry.path)) {
     return;
   }
-  if (!(await writeFile(entry.path, ""))) {
+  if (!(await writeFile(entry.path, "", false))) {
     return;
   }
   switch (nodeType) {

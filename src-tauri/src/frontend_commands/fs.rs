@@ -34,8 +34,8 @@ pub fn rename(from: String, to: String) -> Result<bool, String> {
     Ok(true)
 }
 #[tauri::command]
-pub fn write_file(path: String, contents: String) -> Result<bool, String> {
-    utils::fs::write_file(path, contents)
+pub fn write_file(path: String, contents: String, append: bool) -> Result<bool, String> {
+    utils::fs::write_file(path, contents, append)
 }
 
 #[tauri::command]
