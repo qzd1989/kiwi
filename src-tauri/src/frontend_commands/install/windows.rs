@@ -2,28 +2,7 @@ use super::{PYTHON_INSTALL_FILE, TESSERACT_INSTALL_FILE, WHL_FILE};
 use crate::common::{PROJECTS_DIR, PYTHON_EXEC_FILE};
 use crate::utils;
 use crate::utils::fs::{current_dir, exists};
-use lazy_static::lazy_static;
 use std::path::PathBuf;
-
-lazy_static! {
-    pub static ref PYTHON_DIR: String = utils::fs::current_dir()
-        .join("python")
-        .to_str()
-        .unwrap()
-        .to_string();
-    pub static ref TESSERACT_UNINSTALL_FILE: String =
-        PathBuf::from(std::env::var("ProgramFiles").unwrap())
-            .join("Tesseract-OCR")
-            .join("tesseract-uninstall.exe")
-            .to_str()
-            .unwrap()
-            .to_string();
-    pub static ref TESSERACT_DIR: String = PathBuf::from(std::env::var("ProgramFiles").unwrap())
-        .join("Tesseract-OCR")
-        .to_str()
-        .unwrap()
-        .to_string();
-}
 
 #[tauri::command]
 pub fn is_installed() -> bool {
@@ -247,3 +226,26 @@ pub fn install_tessdata(architecture: String) -> Result<bool, String> {
     }
     Err("Not supported yet".to_string())
 }
+
+pub static PYTHON_DIR: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+    utils::fs::current_dir()
+        .join("python")
+        .to_str()
+        .unwrap()
+        .to_string()
+});
+pub static TESSERACT_UNINSTALL_FILE: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+    PathBuf::from(std::env::var("ProgramFiles").unwrap())
+        .join("Tesseract-OCR")
+        .join("tesseract-uninstall.exe")
+        .to_str()
+        .unwrap()
+        .to_string()
+});
+pub static TESSERACT_DIR: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+    PathBuf::from(std::env::var("ProgramFiles").unwrap())
+        .join("Tesseract-OCR")
+        .to_str()
+        .unwrap()
+        .to_string()
+});

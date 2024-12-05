@@ -138,5 +138,5 @@ async fn init_client() {
     *CLIENT.lock().unwrap() = Some(client);
 }
 
-pub static CLIENT: LazyLock<Mutex<Option<FindServiceClient<Channel>>>> =
+static CLIENT: LazyLock<Mutex<Option<FindServiceClient<Channel>>>> =
     LazyLock::new(|| Mutex::new(None));
