@@ -1,14 +1,4 @@
-use lazy_static::lazy_static;
 use std::path::PathBuf;
-
-lazy_static! {
-    //todo
-    pub static ref TESSERACT_DIR: String = PathBuf::from(std::env::var("ProgramFiles").unwrap())
-        .join("Tesseract-OCR")
-        .to_str()
-        .unwrap()
-        .to_string();
-}
 
 #[tauri::command]
 pub fn is_installed() -> bool {
@@ -85,3 +75,11 @@ pub fn install_tessdata(architecture: String) -> Result<bool, String> {
     //todo
     Ok(true)
 }
+
+pub static TESSERACT_DIR: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+    PathBuf::from(std::env::var("ProgramFiles").unwrap())
+        .join("Tesseract-OCR")
+        .to_str()
+        .unwrap()
+        .to_string()
+});

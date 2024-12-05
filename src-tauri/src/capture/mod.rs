@@ -6,7 +6,6 @@ use crate::common::ImageBufferRgbaExt;
 use anyhow::{anyhow, Result};
 pub use crabgrab as engine;
 use image::{ImageBuffer, Rgba};
-use lazy_static::lazy_static;
 use serde::Serialize;
 #[derive(Debug, Clone, Serialize)]
 pub struct Frame {
@@ -51,10 +50,3 @@ pub static CAPTURE_SWITCH: std::sync::LazyLock<Mutex<bool>> =
     std::sync::LazyLock::new(|| Mutex::new(false));
 pub static FRAME: std::sync::LazyLock<Mutex<Option<Frame>>> =
     std::sync::LazyLock::new(|| Mutex::new(None));
-
-lazy_static! {
-//     pub static ref CAPTURE_SWITCH: std::sync::Arc<Mutex<bool>> =
-//         std::sync::Arc::new(Mutex::new(false));
-//     pub static ref FRAME: std::sync::Arc<Mutex<Option<Frame>>> =
-//         std::sync::Arc::new(Mutex::new(None));
-}

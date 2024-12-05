@@ -1,9 +1,9 @@
+use super::EMPTY_WEIGHT_POINT;
+use super::RUN_TIME;
 use crate::capture::FRAME;
 use crate::common::PROJECT_DIR;
 use crate::find as system_find;
 use crate::utils::fs::exists;
-
-use super::RUN_TIME;
 use anyhow::Result;
 use find::{
     find_service_client::FindServiceClient, find_service_server::FindService, FindImageReply,
@@ -15,7 +15,6 @@ use std::sync::Mutex;
 use tonic::transport::channel::Channel;
 use tonic::{Request, Response, Status};
 
-use super::EMPTY_WEIGHT_POINT;
 pub mod find {
     tonic::include_proto!("find_kiwi");
 }

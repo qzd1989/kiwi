@@ -4,7 +4,6 @@ use crate::{
     capture::{listen_primary_display, CAPTURE_SWITCH, FRAME},
     common::PROJECT_DIR,
 };
-use lazy_static::lazy_static;
 use std::{
     io::{BufRead, BufReader},
     process::{Command, Stdio},
@@ -158,6 +157,5 @@ pub fn get_project_dir() -> Result<String, String> {
     }
 }
 
-lazy_static! {
-    pub static ref PID: Arc<Mutex<u32>> = Arc::new(Mutex::new(0));
-}
+pub static PID: std::sync::LazyLock<Arc<Mutex<u32>>> =
+    std::sync::LazyLock::new(|| Arc::new(Mutex::new(0)));

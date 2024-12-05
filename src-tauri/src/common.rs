@@ -3,7 +3,6 @@ use crate::capture::Frame;
 use anyhow::Result;
 use base64::{engine::general_purpose, Engine as _};
 use image::{imageops, ImageBuffer, Rgba};
-use lazy_static::lazy_static;
 #[cfg(not(all(windows, debug_assertions)))]
 use opencv::core::{Mat, CV_8UC1, CV_8UC4};
 #[cfg(not(all(windows, debug_assertions)))]
@@ -12,21 +11,6 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::sync::Mutex;
-
-lazy_static! {
-    pub static ref PROJECTS_DIR: String = {
-        directories::UserDirs::new()
-            .unwrap()
-            .document_dir()
-            .unwrap()
-            .to_path_buf()
-            .join("KiwiProjects")
-            .to_str()
-            .unwrap()
-            .to_string()
-    };
-    pub static ref PROJECT_DIR: Mutex<Option<String>> = Mutex::new(None);
-}
 
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq)]
@@ -287,3 +271,17 @@ impl ImageBufferRgbaExt for ImageBuffer<Rgba<u8>, Vec<u8>> {
         Ok(mat)
     }
 }
+
+pub static PROJECTS_DIR: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+    directories::UserDirs::new()
+        .unwrap()
+        .document_dir()
+        .unwrap()
+        .to_path_buf()
+        .join("KiwiProjects")
+        .to_str()
+        .unwrap()
+        .to_string()
+});
+pub static PROJECT_DIR: std::sync::LazyLock<Mutex<Option<String>>> =
+    std::sync::LazyLock::new(|| Mutex::new(None));

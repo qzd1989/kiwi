@@ -6,7 +6,6 @@ pub mod fs;
 pub mod install;
 pub mod project;
 
-use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter};
 
@@ -76,24 +75,23 @@ impl Emit {
     }
 }
 
-lazy_static! {
-    pub static ref PYTHON_VERSION: String = String::from("3.10");
-    pub static ref PYTHON_EXEC_FILE: String = {
-        #[cfg(target_os = "macos")]
-        {
-            format!(
-                "/Library/Frameworks/Python.framework/Versions/{}/bin/python{}",
-                *PYTHON_VERSION, *PYTHON_VERSION
-            )
-        }
-        #[cfg(target_os = "windows")]
-        {
-            utils::fs::current_dir()
-                .join("python")
-                .join("pythonw.exe")
-                .to_str()
-                .unwrap()
-                .to_string()
-        }
-    };
-}
+pub static PYTHON_VERSION: std::sync::LazyLock<String> =
+    std::sync::LazyLock::new(|| String::from("3.10"));
+pub static PYTHON_EXEC_FILE: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+    #[cfg(target_os = "macos")]
+    {
+        format!(
+            "/Library/Frameworks/Python.framework/Versions/{}/bin/python{}",
+            *PYTHON_VERSION, *PYTHON_VERSION
+        )
+    }
+    #[cfg(target_os = "windows")]
+    {
+        utils::fs::current_dir()
+            .join("python")
+            .join("pythonw.exe")
+            .to_str()
+            .unwrap()
+            .to_string()
+    }
+});
