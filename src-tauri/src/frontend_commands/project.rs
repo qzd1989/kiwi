@@ -1,7 +1,8 @@
 use super::AppHandleExt as _;
+use super::PYTHON_EXEC_FILE;
 use crate::{
     capture::{listen_primary_display, CAPTURE_SWITCH, FRAME},
-    common::{PROJECT_DIR, PYTHON_EXEC_FILE},
+    common::PROJECT_DIR,
 };
 use lazy_static::lazy_static;
 use std::{

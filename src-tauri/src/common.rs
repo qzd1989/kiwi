@@ -14,8 +14,6 @@ use std::collections::VecDeque;
 use std::sync::Mutex;
 
 lazy_static! {
-    pub static ref VERSION: String = String::from("1.0.0");
-    pub static ref PYTHON_VERSION: String = String::from("3.10");
     pub static ref PROJECTS_DIR: String = {
         directories::UserDirs::new()
             .unwrap()
@@ -28,24 +26,6 @@ lazy_static! {
             .to_string()
     };
     pub static ref PROJECT_DIR: Mutex<Option<String>> = Mutex::new(None);
-    pub static ref PYTHON_EXEC_FILE: String = {
-        #[cfg(target_os = "macos")]
-        {
-            format!(
-                "/Library/Frameworks/Python.framework/Versions/{}/bin/python{}",
-                *PYTHON_VERSION, *PYTHON_VERSION
-            )
-        }
-        #[cfg(target_os = "windows")]
-        {
-            utils::fs::current_dir()
-                .join("python")
-                .join("pythonw.exe")
-                .to_str()
-                .unwrap()
-                .to_string()
-        }
-    };
 }
 
 #[pyclass]

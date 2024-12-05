@@ -2,26 +2,19 @@ use crate::find;
 use crate::{
     capture::FRAME,
     common::{HexColor, LocatingColor, PROJECT_DIR},
+    grpc,
     utils::fs::exists,
 };
 use pyo3::prelude::*;
 use std::path::PathBuf;
 
 fn project_check() -> bool {
-    let project_dir = PROJECT_DIR.lock().unwrap().clone();
-    match project_dir {
-        Some(_) => true,
-        None => false,
-    }
+    !PROJECT_DIR.lock().unwrap().is_none()
 }
 
 fn frame_check() -> bool {
-    if FRAME.lock().unwrap().is_none() {
-        return false;
-    }
-    true
+    !FRAME.lock().unwrap().is_none()
 }
-
 const EMPTY_WEIGHT_POINT: (i32, i32, f64) = (-1, -1, 0.0);
 const EMPTY_WEIGHT_POINTS: Vec<(i32, i32, f64)> = Vec::new();
 const EMPTY_POINT: (i32, i32) = (-1, -1);
@@ -38,53 +31,9 @@ pub fn find_image(
     end: (u32, u32),
     threshold: f64,
 ) -> (i32, i32, f64) {
-    if !project_check() {
-        println!("project_check error");
-        return EMPTY_WEIGHT_POINT;
-    }
-    if !frame_check() {
-        println!("frame_check error");
-        return EMPTY_WEIGHT_POINT;
-    }
-    let frame = FRAME.lock().unwrap().clone().unwrap();
-    let project_path = PROJECT_DIR.lock().unwrap().clone().unwrap();
-    let project_pathbuf = PathBuf::from(project_path);
-    let full_path = format!(
-        "{}{}",
-        project_pathbuf
-            .join("resources")
-            .join(path)
-            .to_str()
-            .unwrap()
-            .to_string(),
-        ".png"
-    );
-    println!("full path is {:?}", full_path.clone());
-    if let Err(error) = exists(full_path.clone()) {
-        println!("exists caused error: {}", error.to_string());
-        return EMPTY_WEIGHT_POINT;
-    }
-    if !exists(full_path.clone()).unwrap() {
-        println!("file not exist");
-        return EMPTY_WEIGHT_POINT;
-    }
-    let (width, height) = (end.0 - start.0, end.1 - start.1);
-    if width <= 0 || height <= 0 {
-        println!("width ({}) or height ({}) is zero", width, height);
-        return EMPTY_WEIGHT_POINT;
-    }
-    let template = image::open(full_path.clone()).unwrap().to_rgba8();
-    match find::image::find_one(frame, template, start.0, start.1, width, height, threshold) {
-        Ok(weight_point) => (
-            weight_point.point.x as i32,
-            weight_point.point.y as i32,
-            weight_point.weight,
-        ),
-        Err(error) => {
-            println!("find_one caused error: {}", error.to_string());
-            EMPTY_WEIGHT_POINT
-        }
-    }
+    let (start_x, start_y, end_x, end_y) = (start.0, start.1, end.0, end.1);
+    let request = grpc::FindImageRequest::new(path, start_x, start_y, end_x, end_y, threshold);
+    request.send().to_tuple()
 }
 
 #[pyfunction]

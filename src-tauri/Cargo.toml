@@ -16,14 +16,15 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2.0.3", features = [] }
+tonic-build = "0.12.3"
 
 [dependencies]
 tauri = { version = "2.1.1", features = ["unstable"] }
 tauri-plugin-shell = "2.0.2"
 serde = { version = "1.0.215", features = ["derive"] }
 serde_json = "1.0.133"
-tauri-plugin-fs = "2.0.3"
-tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2.1.0"
+tauri-plugin-dialog = "2.0.4"
 tauri-plugin-store = "2.1.0"
 tauri-plugin-os = "2"
 
@@ -36,24 +37,25 @@ crabgrab = { git = "https://github.com/qzd1989/CrabGrab.git", features = [
 ] }
 futures = "0.3"
 wgpu = "23.0.0"
-tokio = { version = "1.41.1", features = ["rt", "macros", "rt-multi-thread"] }
+tokio = { version = "1.42.0", features = ["rt", "macros", "rt-multi-thread"] }
 tokio-tungstenite = "0.24.0"
 crossbeam-channel = "0.5.13"
 lazy_static = "1.5.0"
-anyhow = "1.0.93"
+anyhow = "1.0.94"
 image = { version = "0.25.5", features = ["jpeg", "png"] }
 base64 = "0.22.1"
 rusty-tesseract = { path = "libs/rusty-tesseract" }
 enigo = "0.3.0"
-libc = "0.2.164" #kill command on macos && linux
-opencv = { version = "0.93.4" }
-
+libc = "0.2.167" #kill command on macos && linux
+opencv = { version = "0.93.5" }
+tonic = "0.12.3"
+prost = "0.13.3"
 
 [target.'cfg(windows)'.dependencies]
 windows = "0.58"
 
 [dependencies.pyo3]
-version = "0.23.1"
+version = "0.23.3"
 features = ["abi3-py310"]
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]

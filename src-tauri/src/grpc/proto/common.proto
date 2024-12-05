@@ -1,0 +1,18 @@
+syntax = "proto3";
+package find_kiwi;
+service FindService {
+  rpc FindImage(FindImageRequest) returns (FindImageReply);
+}
+message FindImageRequest {
+  string path = 1;
+  uint32 start_x = 2;
+  uint32 start_y = 3;
+  uint32 end_x = 4;
+  uint32 end_y = 5;
+  double threshold = 6;
+}
+message FindImageReply {
+  int32 x = 1;
+  int32 y = 2;
+  double threshold = 3;
+}

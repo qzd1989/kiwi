@@ -1,4 +1,4 @@
-use crate::{common::VERSION, utils};
+use crate::utils;
 use lazy_static::lazy_static;
 #[cfg(target_os = "macos")]
 mod macos;
@@ -10,6 +10,7 @@ mod windows;
 pub use windows::*;
 
 lazy_static! {
+    pub static ref VERSION: String = String::from("1.0.0");
     pub static ref TESSERACT_INSTALL_FILE: String = {
         #[cfg(target_os = "macos")]
         {

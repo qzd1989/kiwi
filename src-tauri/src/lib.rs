@@ -1,6 +1,7 @@
 pub mod capture;
 pub mod common;
 pub mod find;
+pub mod grpc;
 pub mod input;
 pub mod utils;
 
@@ -13,6 +14,10 @@ use pyo3::prelude::*;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     env_logger::init();
+
+    //response calling from python or other requests
+    grpc::run_spawn();
+
     let frontend = tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
