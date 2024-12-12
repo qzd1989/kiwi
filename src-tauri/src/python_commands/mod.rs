@@ -33,6 +33,5 @@ pub fn find_moudle(parent: &Bound<'_, PyModule>) -> PyResult<()> {
     find.add_function(wrap_pyfunction!(find::global_find_images, &find)?)?;
     find.add_function(wrap_pyfunction!(find::global_find_locating_color, &find)?)?;
     find.add_function(wrap_pyfunction!(find::global_find_color, &find)?)?;
-    find.add_function(wrap_pyfunction!(find::get_project_dir, &find)?)?;
     parent.add_submodule(&find)
 }

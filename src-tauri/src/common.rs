@@ -99,6 +99,7 @@ pub type HexColor = String;
 pub trait HexColorExt {
     fn to_rgb(&self) -> RgbColor;
     fn to_u32(&self) -> u32;
+    fn empty() -> Self;
 }
 
 impl HexColorExt for HexColor {
@@ -110,6 +111,9 @@ impl HexColorExt for HexColor {
     }
     fn to_u32(&self) -> u32 {
         u32::from_str_radix(self.trim_start_matches('#'), 16).unwrap()
+    }
+    fn empty() -> Self {
+        "#000000".to_string()
     }
 }
 

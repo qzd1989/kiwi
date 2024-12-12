@@ -2,6 +2,16 @@ syntax = "proto3";
 package find_kiwi;
 service FindService {
   rpc FindImage(FindImageRequest) returns (FindImageReply);
+  rpc FindImages(FindImagesRequest) returns (FindImagesReply);
+  rpc FindLocatingColor(FindLocatingColorRequest)
+      returns (FindLocatingColorReply);
+  rpc FindColor(FindColorRequest) returns (FindColorReply);
+  rpc FindText(FindTextRequest) returns (FindTextReply);
+  rpc GlobalFindImage(GlobalFindImageRequest) returns (GlobalFindImageReply);
+  rpc GlobalFindImages(GlobalFindImagesRequest) returns (GlobalFindImagesReply);
+  rpc GlobalFindLocatingColor(GlobalFindLocatingColorRequest)
+      returns (GlobalFindLocatingColorReply);
+  rpc GlobalFindColor(GlobalFindColorRequest) returns (GlobalFindColorReply);
 }
 message FindImageRequest {
   string path = 1;
@@ -12,7 +22,87 @@ message FindImageRequest {
   double threshold = 6;
 }
 message FindImageReply {
-  int32 x = 1;
-  int32 y = 2;
-  double threshold = 3;
+  string json = 1; // grpc::WeightPoint
+}
+
+message FindImagesRequest {
+  string path = 1;
+  uint32 start_x = 2;
+  uint32 start_y = 3;
+  uint32 end_x = 4;
+  uint32 end_y = 5;
+  double threshold = 6;
+}
+message FindImagesReply {
+  string json = 1; // grpc::WeightPoints
+}
+
+message GlobalFindImageRequest {
+  string path = 1;
+  double threshold = 2;
+}
+message GlobalFindImageReply {
+  string json = 1; // grpc::WeightPoint
+}
+
+message GlobalFindImagesRequest {
+  string path = 1;
+  double threshold = 2;
+}
+message GlobalFindImagesReply {
+  string json = 1; // grpc::WeightPoints
+}
+message FindLocatingColorRequest {
+  string locating_colors = 1; // grpc::LocatingColors
+  uint32 start_x = 2;
+  uint32 start_y = 3;
+  uint32 end_x = 4;
+  uint32 end_y = 5;
+  uint32 offset_r = 6;
+  uint32 offset_g = 7;
+  uint32 offset_b = 8;
+}
+message FindLocatingColorReply {
+  string json = 1; // grpc::Point
+}
+message GlobalFindLocatingColorRequest {
+  string locating_colors = 1; // grpc::LocatingColors
+  uint32 offset_r = 2;
+  uint32 offset_g = 3;
+  uint32 offset_b = 4;
+}
+message GlobalFindLocatingColorReply {
+  string json = 1; // grpc::Point
+}
+message FindColorRequest {
+  string hex_colors = 1; // grpc::HexColors
+  uint32 start_x = 2;
+  uint32 start_y = 3;
+  uint32 end_x = 4;
+  uint32 end_y = 5;
+  uint32 offset_r = 6;
+  uint32 offset_g = 7;
+  uint32 offset_b = 8;
+}
+message FindColorReply {
+  string json = 1; // grpc::LocatingColors
+}
+message GlobalFindColorRequest {
+  string hex_colors = 1; // grpc::HexColors
+  uint32 offset_r = 6;
+  uint32 offset_g = 7;
+  uint32 offset_b = 8;
+}
+message GlobalFindColorReply {
+  string json = 1; // grpc::LocatingColors
+}
+message FindTextRequest {
+  string langs = 1; // grpc::Langs
+  uint32 start_x = 2;
+  uint32 start_y = 3;
+  uint32 end_x = 4;
+  uint32 end_y = 5;
+}
+message FindTextReply {
+  string text = 1; // String
 }
