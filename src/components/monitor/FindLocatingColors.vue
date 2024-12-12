@@ -5,7 +5,8 @@ import { base64ToPixels, rgbToHex } from "../../utils/common";
 import { msgError, msgInfo, msgSuccess } from "../../utils/msg";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
-
+const copyable = ref(false);
+const code = ref("");
 const form = reactive({
   offset: {
     r: 0,
@@ -127,19 +128,27 @@ async function findLocatingColor() {
   })
     .then((point) => {
       result.value = JSON.stringify(point);
+      copyable.value = true;
+      const colors = [];
+      for (const locatingColor of form.locatingColors) {
+        colors.push(
+          `(${[
+            locatingColor.point.x,
+            locatingColor.point.y,
+            `"${locatingColor.hex}"`,
+          ].join(",")})`
+        );
+      }
+      code.value = `find_locating_color([${colors.join(",")}],(${
+        form.findArea.start.x
+      }, ${form.findArea.start.y}), (${form.findArea.end.x}, ${
+        form.findArea.end.x
+      }), (${form.offset.r}, ${form.offset.g},${form.offset.b}))`;
     })
     .catch((error) => {
       msgError(error);
     });
 }
-
-watch(props.form, () => {
-  Object.assign(form, props.form);
-  form.locatingColors = [];
-  setTimeout(drawImage, 100);
-  form.findArea.end.x = form.monitor.size.width;
-  form.findArea.end.y = form.monitor.size.height;
-});
 
 async function getPeakPoint() {
   let locatingColors = JSON.stringify(form.locatingColors);
@@ -148,6 +157,13 @@ async function getPeakPoint() {
     peak.point = data.point;
   });
 }
+watch(props.form, () => {
+  Object.assign(form, props.form);
+  form.locatingColors = [];
+  setTimeout(drawImage, 100);
+  form.findArea.end.x = form.monitor.size.width;
+  form.findArea.end.y = form.monitor.size.height;
+});
 
 watch(form, async (newVal) => {
   if (newVal.locatingColors.length > 0) {
@@ -345,6 +361,7 @@ onMounted(async () => {});
             </div>
             <div>
               <el-input
+                v-model="code"
                 style="width: 100%"
                 :rows="2"
                 type="textarea"

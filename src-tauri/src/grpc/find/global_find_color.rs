@@ -36,7 +36,7 @@ pub async fn find(
                 .iter()
                 .map(|lc| {
                     let locating_color: grpc::LocatingColor =
-                        (lc.point.x as i32, lc.point.y as i32, Some(lc.hex.clone()));
+                        (lc.point.x as f64, lc.point.y as f64, Some(lc.hex.clone()));
                     locating_color
                 })
                 .collect();

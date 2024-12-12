@@ -47,9 +47,13 @@ pub async fn find(
 }
 
 impl FindLocatingColorReply {
-    pub fn new(point: Point) -> Self {
-        let point: grpc::Point = (point.x as i32, point.y as i32);
-        let json = serde_json::to_string(&point).unwrap();
+    pub fn new(locating_color: LocatingColor) -> Self {
+        let locating_color: grpc::LocatingColor = (
+            locating_color.point.x,
+            locating_color.point.y,
+            Some(locating_color.hex),
+        );
+        let json = serde_json::to_string(&locating_color).unwrap();
         Self { json }
     }
     pub fn empty() -> Self {
@@ -59,12 +63,12 @@ impl FindLocatingColorReply {
     pub fn response(self) -> Response<Self> {
         Response::new(self)
     }
-    pub fn python_response(self) -> Option<grpc::Point> {
-        let point: grpc::Point = serde_json::from_str(&self.json).unwrap();
-        if point.0 == -1 {
+    pub fn python_response(self) -> Option<grpc::LocatingColor> {
+        let locating_color: grpc::LocatingColor = serde_json::from_str(&self.json).unwrap();
+        if locating_color.0 == -1.0 {
             return None;
         }
-        Some(point)
+        Some(locating_color)
     }
 }
 

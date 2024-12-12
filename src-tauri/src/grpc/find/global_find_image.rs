@@ -56,8 +56,8 @@ pub async fn find(
         request.threshold,
     ) {
         let (x, y, weight) = (
-            weight_point.point.x as i32,
-            weight_point.point.y as i32,
+            weight_point.point.x,
+            weight_point.point.y,
             weight_point.weight,
         );
         return Ok(GlobalFindImageReply::new(x, y, weight).response());
@@ -66,7 +66,7 @@ pub async fn find(
 }
 
 impl GlobalFindImageReply {
-    pub fn new(x: i32, y: i32, threshold: f64) -> Self {
+    pub fn new(x: f64, y: f64, threshold: f64) -> Self {
         let weight_point: grpc::WeightPoint = (x, y, threshold);
         let json = serde_json::to_string(&weight_point).unwrap();
         Self { json }
@@ -80,7 +80,7 @@ impl GlobalFindImageReply {
     }
     pub fn python_response(self) -> Option<grpc::WeightPoint> {
         let weight_point: grpc::WeightPoint = serde_json::from_str(&self.json).unwrap();
-        if weight_point.0 == -1 {
+        if weight_point.0 == -1.0 {
             return None;
         }
         Some(weight_point)

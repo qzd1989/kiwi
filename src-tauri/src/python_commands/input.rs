@@ -32,13 +32,13 @@ pub fn release_right() {
 }
 
 #[pyfunction]
-pub fn move_abs(x: i32, y: i32) {
-    input::move_abs(x, y);
+pub fn move_abs(x: f64, y: f64) {
+    input::move_abs(x as i32, y as i32);
 }
 
 #[pyfunction]
-pub fn move_rel(x: i32, y: i32) {
-    input::move_rel(x, y);
+pub fn move_rel(x: f64, y: f64) {
+    input::move_rel(x as i32, y as i32);
 }
 
 #[pyfunction]
@@ -48,18 +48,16 @@ pub fn get_location() -> (f64, f64) {
 }
 
 #[pyfunction]
-pub fn scroll_vertical(length: i32) {
-    input::scroll_vertical(length);
+pub fn scroll_vertical(length: f64) {
+    input::scroll_vertical(length as i32);
 }
 
 #[pyfunction]
-pub fn scroll_horizontal(length: i32) {
-    input::scroll_horizontal(length);
+pub fn scroll_horizontal(length: f64) {
+    input::scroll_horizontal(length as i32);
 }
 
 #[pyfunction]
-pub fn sleep(time: u64) {
-    println!("sleep start in pyfunction");
-    std::thread::sleep(std::time::Duration::from_millis(time));
-    println!("sleep end in pyfunction");
+pub fn sleep(time: f64) {
+    std::thread::sleep(std::time::Duration::from_millis(time as u64));
 }

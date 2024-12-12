@@ -17,7 +17,7 @@ pub fn find(
     offset_r: u8,
     offset_g: u8,
     offset_b: u8,
-) -> Option<Point> {
+) -> Option<LocatingColor> {
     let (x, y) = (x.into() as u32, y.into() as u32);
     // 1. get peak point
     let peak = find_peak(&locating_colors);
@@ -42,7 +42,8 @@ pub fn find(
                 let origin_abs_point = Point::new(cropped_x as f64, cropped_y as f64);
                 // 4. compare others pixel point.
                 if match_relatives(&buffer, &origin_abs_point, &relatives, &offsets) {
-                    let peak_abs = Point::new(cropped_x + x, cropped_y + y);
+                    let peak_abs =
+                        LocatingColor::new(Point::new(cropped_x + x, cropped_y + y), rgb.to_hex());
                     return Some(peak_abs);
                 }
             }

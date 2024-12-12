@@ -61,8 +61,8 @@ pub async fn find(
         Ok(weight_points) => {
             for weight_point in weight_points {
                 vecs.push((
-                    weight_point.point.x as i32,
-                    weight_point.point.y as i32,
+                    weight_point.point.x,
+                    weight_point.point.y,
                     weight_point.weight,
                 ))
             }

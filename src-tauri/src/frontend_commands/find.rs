@@ -3,7 +3,7 @@ use crate::common::WeightPoint;
 #[cfg(not(all(windows, debug_assertions)))]
 use crate::find::image;
 use crate::{
-    common::{Base64PngExt, HexColor, LocatingColor, Point},
+    common::{Base64PngExt, HexColor, LocatingColor},
     find::{color, locating_color, text},
 };
 
@@ -58,10 +58,10 @@ pub fn find_locating_color(
     offset_r: u8,
     offset_g: u8,
     offset_b: u8,
-) -> Result<Point, String> {
+) -> Result<LocatingColor, String> {
     let frame = origin.to_frame().unwrap();
     let locating_colors: Vec<LocatingColor> = serde_json::from_str(&locating_colors).unwrap();
-    if let Some(point) = locating_color::find(
+    if let Some(locating_color) = locating_color::find(
         frame,
         locating_colors,
         x,
@@ -72,9 +72,9 @@ pub fn find_locating_color(
         offset_g,
         offset_b,
     ) {
-        return Ok(point);
+        return Ok(locating_color);
     }
-    return Err("point is not found".to_string());
+    return Err("locating_color is not found".to_string());
 }
 
 #[tauri::command]
