@@ -58,8 +58,8 @@ pub async fn find(
         Ok(weight_points) => {
             for weight_point in weight_points {
                 vecs.push((
-                    weight_point.point.x,
-                    weight_point.point.y,
+                    weight_point.point.x as i32,
+                    weight_point.point.y as i32,
                     weight_point.weight,
                 ))
             }
@@ -70,19 +70,19 @@ pub async fn find(
 }
 
 impl GlobalFindImagesReply {
-    pub fn new(weight_points: Vec<grpc::WeightPoint>) -> Self {
+    pub fn new(weight_points: Vec<grpc::response::WeightPoint>) -> Self {
         let json = serde_json::to_string(&weight_points).unwrap();
         Self { json }
     }
     pub fn empty() -> Self {
-        let json = serde_json::to_string(&grpc::EMPTY_WEIGHT_POINTS).unwrap();
+        let json = serde_json::to_string(&grpc::response::EMPTY_WEIGHT_POINTS).unwrap();
         Self { json }
     }
     pub fn response(self) -> Response<Self> {
         Response::new(self)
     }
-    pub fn python_response(self) -> grpc::WeightPoints {
-        let weight_points: grpc::WeightPoints = serde_json::from_str(&self.json).unwrap();
+    pub fn python_response(self) -> grpc::response::WeightPoints {
+        let weight_points: grpc::response::WeightPoints = serde_json::from_str(&self.json).unwrap();
         weight_points
     }
 }

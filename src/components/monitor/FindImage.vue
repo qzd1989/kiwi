@@ -33,6 +33,7 @@ const magnifyingGlassCanvasRef = ref(null);
 
 const filePath = ref(null);
 const saved = ref(false);
+const code = ref("");
 
 const form = reactive({
   name: null,
@@ -192,6 +193,7 @@ async function findImage() {
   })
     .then((weightPoint) => {
       result.value = JSON.stringify(weightPoint);
+      code.value = `find_image("${form.name}", (${form.findArea.start.x}, ${form.findArea.start.y}), (${form.findArea.end.x}, ${form.findArea.end.y}), ${form.threshold})`;
     })
     .catch((error) => {
       msgError(error);
@@ -215,6 +217,7 @@ async function findImages() {
   })
     .then((weightPoints) => {
       result.value = JSON.stringify(weightPoints);
+      code.value = `find_images("${form.name}", (${form.findArea.start.x}, ${form.findArea.start.y}), (${form.findArea.end.x}, ${form.findArea.end.y}), ${form.threshold})`;
     })
     .catch((error) => {
       msgError(error);
@@ -251,8 +254,8 @@ async function save() {
     path: filePath.value,
     data,
   })
-    .then((result) => {
-      saved.value = result;
+    .then(() => {
+      saved.value = true;
       msgSuccess("save successed, you can copy the code now");
     })
     .catch((error) => {
@@ -491,6 +494,7 @@ onMounted(async () => {
             </div>
             <div>
               <el-input
+                v-model="code"
                 style="width: 100%"
                 :rows="2"
                 type="textarea"

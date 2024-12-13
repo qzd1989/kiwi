@@ -181,9 +181,12 @@ impl RgbColor {
         target: &RgbColor,
     ) -> Option<(i16, i16, i16)> {
         let range = (
-            (self.0 - offset_r)..=(self.0 + offset_r),
-            (self.1 - offset_g)..=(self.1 + offset_g),
-            (self.2 - offset_b)..=(self.2 + offset_b),
+            (self.0.checked_sub(offset_r).unwrap_or(0))
+                ..=(self.0.checked_add(offset_r).unwrap_or(255)),
+            (self.1.checked_sub(offset_g).unwrap_or(0))
+                ..=(self.1.checked_add(offset_g).unwrap_or(255)),
+            (self.2.checked_sub(offset_b).unwrap_or(0))
+                ..=(self.2.checked_add(offset_b).unwrap_or(255)),
         );
         if range.0.contains(&target.0) && range.1.contains(&target.1) && range.2.contains(&target.2)
         {

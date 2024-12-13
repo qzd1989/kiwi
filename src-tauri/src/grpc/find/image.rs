@@ -3,7 +3,7 @@ use super::{
     FindServiceInstance,
 };
 use super::{init_client, CLIENT};
-use crate::grpc::{EMPTY_WEIGHT_POINT, RUN_TIME};
+use crate::grpc::RUN_TIME;
 use crate::{capture::FRAME, common::PROJECT_DIR, utils::fs::exists};
 use crate::{find as system_find, grpc};
 use std::path::PathBuf;
@@ -60,32 +60,31 @@ pub async fn find(
         height,
         request.threshold,
     ) {
-        let (x, y, weight) = (
-            weight_point.point.x,
-            weight_point.point.y,
+        let weight_point = (
+            weight_point.point.x as i32,
+            weight_point.point.y as i32,
             weight_point.weight,
         );
-        return Ok(FindImageReply::new(x, y, weight).response());
+        return Ok(FindImageReply::new(weight_point).response());
     }
     Ok(FindImageReply::empty().response())
 }
 
 impl FindImageReply {
-    pub fn new(x: f64, y: f64, threshold: f64) -> Self {
-        let weight_point: grpc::WeightPoint = (x, y, threshold);
+    pub fn new(weight_point: grpc::response::WeightPoint) -> Self {
         let json = serde_json::to_string(&weight_point).unwrap();
         Self { json }
     }
     pub fn empty() -> Self {
-        let json = serde_json::to_string(&EMPTY_WEIGHT_POINT).unwrap();
+        let json = serde_json::to_string(&grpc::response::EMPTY_WEIGHT_POINT).unwrap();
         Self { json }
     }
     pub fn response(self) -> Response<Self> {
         Response::new(self)
     }
-    pub fn python_response(self) -> Option<grpc::WeightPoint> {
-        let weight_point: grpc::WeightPoint = serde_json::from_str(&self.json).unwrap();
-        if weight_point.0 == -1.0 {
+    pub fn python_response(self) -> Option<grpc::response::WeightPoint> {
+        let weight_point: grpc::response::WeightPoint = serde_json::from_str(&self.json).unwrap();
+        if weight_point.0 == -1 {
             return None;
         }
         Some(weight_point)

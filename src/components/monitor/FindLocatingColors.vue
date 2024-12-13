@@ -5,7 +5,6 @@ import { base64ToPixels, rgbToHex } from "../../utils/common";
 import { msgError, msgInfo, msgSuccess } from "../../utils/msg";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
-const copyable = ref(false);
 const code = ref("");
 const form = reactive({
   offset: {
@@ -128,7 +127,6 @@ async function findLocatingColor() {
   })
     .then((point) => {
       result.value = JSON.stringify(point);
-      copyable.value = true;
       const colors = [];
       for (const locatingColor of form.locatingColors) {
         colors.push(

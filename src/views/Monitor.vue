@@ -362,7 +362,7 @@ async function findColors() {
     monitor.size.height
   );
   form.monitor.base64Data = monitorBase64Data;
-  form.monitor.size = monitor.size;
+  form.captured.point = { x, y };
   form.captured.size = {
     width,
     height,

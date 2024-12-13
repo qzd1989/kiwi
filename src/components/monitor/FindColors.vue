@@ -5,6 +5,7 @@ import { base64ToPixels, rgbToHex } from "../../utils/common";
 import { msgError, msgInfo, msgSuccess } from "../../utils/msg";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
+const code = ref("");
 
 const form = reactive({
   offset: {
@@ -31,6 +32,10 @@ const form = reactive({
     base64Data: null,
   },
   captured: {
+    point: {
+      x: 0,
+      y: 0,
+    },
     size: {
       width: 0,
       height: 0,
@@ -115,6 +120,15 @@ async function findColor() {
   })
     .then((locatingColors) => {
       result.value = JSON.stringify(locatingColors);
+      const colors = [];
+      for (const color of form.locatingColors) {
+        colors.push(`"${color.hex}"`);
+      }
+      code.value = `find_color([${colors.join(",")}], (${
+        form.findArea.start.x
+      },${form.findArea.start.y}), (${form.findArea.end.x},${
+        form.findArea.end.y
+      }), (${form.offset.r},${form.offset.g},${form.offset.b}))`;
     })
     .catch((error) => {
       msgError(error);
@@ -125,8 +139,14 @@ watch(props.form, () => {
   Object.assign(form, props.form);
   form.locatingColors = [];
   setTimeout(drawImage, 100);
-  form.findArea.end.x = form.monitor.size.width;
-  form.findArea.end.y = form.monitor.size.height;
+  // form.findArea.end.x = form.monitor.size.width;
+  // form.findArea.end.y = form.monitor.size.height;
+
+  form.findArea.start = form.captured.point;
+  form.findArea.end = {
+    x: form.captured.point.x + form.captured.size.width,
+    y: form.captured.point.y + form.captured.size.height,
+  };
 });
 
 onMounted(async () => {});
@@ -307,6 +327,7 @@ onMounted(async () => {});
             </div>
             <div>
               <el-input
+                v-model="code"
                 style="width: 100%"
                 :rows="2"
                 type="textarea"

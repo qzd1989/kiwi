@@ -5,7 +5,7 @@ import { drawBase64ImageOnCanvas } from "../../utils/common";
 import { msgError } from "../../utils/msg";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
-
+const code = ref("");
 const canvasRef = ref(null);
 const supportedLanguages = [
   {
@@ -90,6 +90,15 @@ async function findText() {
   })
     .then((text) => {
       result.value = text;
+      const langs = [];
+      for (const language of form.languages) {
+        langs.push(`"${language}"`);
+      }
+      code.value = `find_text((${form.findArea.start.x},${
+        form.findArea.start.y
+      }), (${form.findArea.end.x},${form.findArea.end.y}), [${langs.join(
+        ","
+      )}])`;
     })
     .catch((error) => {
       msgError(error);
@@ -222,6 +231,7 @@ onMounted(async () => {});
             </div>
             <div>
               <el-input
+                v-model="code"
                 style="width: 100%"
                 :rows="2"
                 type="textarea"

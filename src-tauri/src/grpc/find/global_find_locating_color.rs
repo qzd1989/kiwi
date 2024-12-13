@@ -3,7 +3,7 @@ use super::FindServiceInstance;
 use super::{init_client, CLIENT};
 use crate::capture::FRAME;
 use crate::common::{LocatingColor, Point};
-use crate::grpc::{EMPTY_LOCATING_COLOR, RUN_TIME};
+use crate::grpc::RUN_TIME;
 use crate::{find as system_find, grpc};
 use tonic::{Request, Response, Status};
 
@@ -21,7 +21,7 @@ pub async fn find(
         println!("width ({}) or height ({}) is zero", width, height);
         return Ok(GlobalFindLocatingColorReply::empty().response());
     }
-    let locating_colors: grpc::LocatingColors =
+    let locating_colors: grpc::request::LocatingColors =
         serde_json::from_str(&request.locating_colors).unwrap();
     let locating_colors: Vec<LocatingColor> = locating_colors
         .iter()
@@ -38,40 +38,43 @@ pub async fn find(
         request.offset_g as u8,
         request.offset_b as u8,
     ) {
-        Some(point) => Ok(GlobalFindLocatingColorReply::new(point).response()),
+        Some(locating_color) => {
+            let locating_color = (
+                locating_color.point.x as i32,
+                locating_color.point.y as i32,
+                Some(locating_color.hex),
+            );
+            Ok(GlobalFindLocatingColorReply::new(locating_color).response())
+        }
         None => Ok(GlobalFindLocatingColorReply::empty().response()),
     }
 }
 
 impl GlobalFindLocatingColorReply {
-    pub fn new(locating_color: LocatingColor) -> Self {
-        let locating_color: grpc::LocatingColor = (
-            locating_color.point.x,
-            locating_color.point.y,
-            Some(locating_color.hex),
-        );
+    pub fn new(locating_color: grpc::response::LocatingColor) -> Self {
         let json = serde_json::to_string(&locating_color).unwrap();
         Self { json }
     }
     pub fn empty() -> Self {
-        let json = serde_json::to_string(&EMPTY_LOCATING_COLOR).unwrap();
+        let json = serde_json::to_string(&grpc::response::EMPTY_LOCATING_COLOR).unwrap();
         Self { json }
     }
     pub fn response(self) -> Response<Self> {
         Response::new(self)
     }
-    pub fn python_response(self) -> Option<grpc::LocatingColor> {
-        let point: grpc::LocatingColor = serde_json::from_str(&self.json).unwrap();
-        if point.0 == -1.0 {
+    pub fn python_response(self) -> Option<grpc::response::LocatingColor> {
+        let locating_color: grpc::response::LocatingColor =
+            serde_json::from_str(&self.json).unwrap();
+        if locating_color.0 == -1 {
             return None;
         }
-        Some(point)
+        Some(locating_color)
     }
 }
 
 impl GlobalFindLocatingColorRequest {
     pub fn new(
-        locating_colors: grpc::LocatingColors,
+        locating_colors: grpc::request::LocatingColors,
         offset_r: u32,
         offset_g: u32,
         offset_b: u32,

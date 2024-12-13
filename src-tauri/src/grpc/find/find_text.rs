@@ -55,7 +55,13 @@ impl FindTextReply {
 }
 
 impl FindTextRequest {
-    pub fn new(langs: grpc::Langs, start_x: u32, start_y: u32, end_x: u32, end_y: u32) -> Self {
+    pub fn new(
+        langs: grpc::request::Langs,
+        start_x: u32,
+        start_y: u32,
+        end_x: u32,
+        end_y: u32,
+    ) -> Self {
         let langs = serde_json::to_string(&langs).unwrap();
         Self {
             langs,

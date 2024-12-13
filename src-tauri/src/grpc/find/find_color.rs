@@ -22,7 +22,7 @@ pub async fn find(
         println!("width ({}) or height ({}) is zero", width, height);
         return Ok(FindColorReply::empty().response());
     }
-    let colors: grpc::HexColors = serde_json::from_str(&request.hex_colors).unwrap();
+    let colors: grpc::request::HexColors = serde_json::from_str(&request.hex_colors).unwrap();
     match system_find::color::find(
         frame,
         colors,
@@ -35,11 +35,11 @@ pub async fn find(
         request.offset_b as u8,
     ) {
         Ok(locating_colors) => {
-            let locating_colors: grpc::LocatingColors = locating_colors
+            let locating_colors: grpc::response::LocatingColors = locating_colors
                 .iter()
                 .map(|lc| {
-                    let locating_color: grpc::LocatingColor =
-                        (lc.point.x as f64, lc.point.y as f64, Some(lc.hex.clone()));
+                    let locating_color: grpc::response::LocatingColor =
+                        (lc.point.x as i32, lc.point.y as i32, Some(lc.hex.clone()));
                     locating_color
                 })
                 .collect();
@@ -50,26 +50,27 @@ pub async fn find(
 }
 
 impl FindColorReply {
-    pub fn new(locating_colors: grpc::LocatingColors) -> Self {
+    pub fn new(locating_colors: grpc::response::LocatingColors) -> Self {
         let json = serde_json::to_string(&locating_colors).unwrap();
         Self { json }
     }
     pub fn empty() -> Self {
-        let json = serde_json::to_string(&grpc::EMPTY_LOCATING_COLORS).unwrap();
+        let json = serde_json::to_string(&grpc::response::EMPTY_LOCATING_COLORS).unwrap();
         Self { json }
     }
     pub fn response(self) -> Response<Self> {
         Response::new(self)
     }
-    pub fn python_response(self) -> grpc::LocatingColors {
-        let locating_colors: grpc::LocatingColors = serde_json::from_str(&self.json).unwrap();
+    pub fn python_response(self) -> grpc::response::LocatingColors {
+        let locating_colors: grpc::response::LocatingColors =
+            serde_json::from_str(&self.json).unwrap();
         locating_colors
     }
 }
 
 impl FindColorRequest {
     pub fn new(
-        hex_colors: grpc::HexColors,
+        hex_colors: grpc::request::HexColors,
         start_x: u32,
         start_y: u32,
         end_x: u32,
