@@ -34,10 +34,8 @@ async function save() {
         const resouce = await resourceDir(form.name);
         const script = await scriptDir(form.name);
         const defaultFile = await defaultScriptFile(form.name);
-        await createDir(module);
-        //copy default moudles into module folder
-        //todo
         await createDir(project);
+        await createDir(module);
         await createDir(resouce);
         await createDir(script);
         await createFile(defaultFile);

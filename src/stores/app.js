@@ -1,11 +1,16 @@
 import { invoke } from "@tauri-apps/api/core";
 import { sep } from "@tauri-apps/api/path";
 
+export const minZoomFactor = 0.5;
+export const maxZoomFactor = 1.5;
+
 export const projectsDir = await invoke("projects_dir");
 export const scriptDirName = "scripts";
 export const resourceDirName = "resources";
 export const moduleDirName = "modules";
 export const defaultScriptName = "main.py";
+
+export const editableFileTypes = ["py"];
 
 export const moduleDir = async (projectName) => {
   return (

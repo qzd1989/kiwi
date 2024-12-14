@@ -1,407 +1,127 @@
 <script setup>
-import { ref, onMounted, reactive, watchEffect } from "vue";
+import { ref, onMounted, watchEffect } from "vue";
 import {
   createDir,
-  rename as fsRename,
-  remove as fsRemove,
+  rename,
+  remove,
   exists,
   readDir,
   writeFile,
 } from "./../utils/fs";
-import { projectsDir } from "./../stores/app";
+import { msgError, msgSuccess, msgInfo } from "./../utils/msg";
+import { join, extname } from "@tauri-apps/api/path";
 import { useStore } from "vuex";
 import { ElMessageBox } from "element-plus";
-import { msgError, msgSuccess, msgInfo } from "./../utils/msg";
-import { join, basename, extname, sep } from "@tauri-apps/api/path";
-import { useElementSize } from "@vueuse/core";
-import { invoke } from "@tauri-apps/api/core";
-import { open as openDialog } from "@tauri-apps/plugin-dialog";
-import { LocalStore } from "../stores/local";
-import { emitTo } from "@tauri-apps/api/event";
-import { listen } from "@tauri-apps/api/event";
-import Setting from "../components/Setting.vue";
-import NewProject from "../components/NewProject.vue";
+import { editableFileTypes } from "../stores/app";
+import RenameNode from "../components/tree/RenameNode.vue";
+import NewNode from "../components/tree/NewNode.vue";
 const props = defineProps(["files"]);
 const emits = defineEmits(["add:file", "clear:files"]);
 const store = useStore();
-const editableExtensions = ["py"];
-//project info
 const data = ref([]);
-//project info end
-const headerRef = ref(null);
-const footerRef = ref(null);
-const treeRef = ref(null);
-const headerSize = reactive({ width: 0, height: 0 });
-const footerSize = reactive({ width: 0, height: 0 });
-headerSize.value = useElementSize(headerRef);
-footerSize.value = useElementSize(footerRef);
-const mainHeight = ref(0);
 const currentNode = ref(null);
-const editedNode = ref(null);
-const editedData = ref(null);
-const editedValue = ref("");
-const isEditing = ref(false);
-const settingVisible = ref(false);
-const newProjectVisible = ref(false);
+const currentName = ref("");
+const currentPath = ref("");
+const renameVisible = ref(false);
+const newVisible = ref(false);
+const newType = ref("File");
 const treeProps = {
-  children: "children",
+  children: "subEntries",
   label: "name",
   disabled: "disabled",
   class: (data, node) => {
+    console.log(data.path, data.is_dir, node.isLeaf);
     if (data.is_dir && node.isLeaf) {
       return "node-leaf-directory";
     }
     if (data.is_dir && !node.isLeaf) {
       return "node-directory";
     }
-    let arr = data.name.split(".");
-    if (arr.length == 0) {
-      return "node-leaf-file node-leaf-unknown";
+    let splited = data.name.split(".");
+    if (splited.length <= 1) {
+      return "node-file node-file-unknown";
     }
-    return "node-leaf-file node-leaf-" + arr.pop();
+    return `node-file node-file-${splited.pop()}`;
   },
 };
-async function fetch(dir) {
-  try {
-    let results = [];
-    let entries = await readDir(dir);
-    for (let entry of entries) {
-      if (entry.is_symlink) {
-        continue;
-      }
-      if (entry.name.startsWith(".")) {
-        continue;
-      }
-      if (entry.is_dir) {
-        let subPath = await join(dir, entry.name);
-        let subEntries = await readDir(subPath);
-        for (let subEntry of subEntries) {
-          subEntry.disabled = true;
-          subEntry.path = await join(dir, entry.name, subEntry.name);
-        }
-        subEntries = sort(subEntries);
-        entry.children = subEntries;
-      }
-      entry.disabled = true;
-      entry.path = await join(dir, entry.name);
-      results.push(entry);
+async function updateNode(data) {
+  //new receive
+  if (data.newName != undefined) {
+    const newPath = await join(currentPath.value, data.newName);
+    if (await exists(newPath)) {
+      msgError(`create failed: ${newPath} is existed`);
+      newVisible.value = true;
+      return;
     }
-    results = sort(results);
-    return results;
-  } catch (e) {
-    msgError(`fetch dir error: ${e}`);
+    try {
+      switch (data.type) {
+        case "Directory":
+          await createDir(newPath);
+          break;
+        case "File":
+          await writeFile(newPath, "", false);
+          break;
+      }
+    } catch (e) {
+      msgError(`create failed: ${e}`);
+      return;
+    }
+    newVisible.value = false;
+    msgSuccess(`create ${newPath} successfully`);
+    await refresh(currentNode.value);
+    currentNode.value.expand();
+    return;
   }
-}
-function sort(array) {
-  array.sort((a, b) => {
-    if (a.is_dir && b.is_dir) {
-      if (a.children && a.children.length > 0) {
-        return -1;
-      }
-      return 1;
-    }
-    if (a.is_dir) {
-      return -1;
-    }
-    if (b.is_dir) {
-      return 1;
-    }
-    return 0;
-  });
-  return array;
-}
-async function expand(data, node, event) {
-  node.data.children = await fetch(node.data.path);
-}
-function render(h, { node, data, store }) {
-  let code = btoa(node.data.path);
-  if (isEditing.value && editedNode.value == node) {
-    editedData.value = data;
-    setTimeout(() => {
-      let selector = document.querySelector(`input[data-code="${code}"]`);
-      let arr = node.data.name.split(".");
-      if (arr[0].length == 0 || arr.length == 1) {
-        selector.selectionStart = 0;
-        selector.selectionEnd = node.data.name.length;
-      } else {
-        selector.selectionStart = 0;
-        selector.selectionEnd = arr[0].length;
-      }
-      selector.setSelectionRange(
-        selector.selectionStart,
-        selector.selectionEnd
-      );
-      selector.focus();
-    }, 10);
-    return h(
-      "span",
-      null,
-      h("input", {
-        value: node.data.name,
-        type: "text",
-        autocapitalize: "off",
-        autocorrect: "off",
-        spellcheck: "false",
-        class: "node-input",
-        "data-code": code,
-        onkeyup: (event) => {
-          editedValue.value = event.target.value;
-        },
-      })
+  //rename receive
+  if (data.updateName != currentName.value) {
+    const newPath = currentNode.value.data.path.replace(
+      currentName.value,
+      data.updateName
     );
-  }
-  return h(
-    "div",
-    {
-      "data-code": code,
-      class: "node-label",
-      onDblclick: async (event) => {
-        if (node.isLeaf && !node.data.is_dir) {
-          try {
-            let extension = await extname(node.data.path);
-            if (!editableExtensions.includes(extension)) {
-              return;
-            }
-            emits("add:file", { file: node.data });
-          } catch (e) {
-            return;
-          }
-        }
-      },
-    },
-    h(
-      "div",
-      {
-        class: "node-label-text",
-      },
-      node.data.name
-    ),
-    h(
-      "div",
-      {
-        class: "node-label-action",
-        onClick: async (event) => {
-          await remove(event, node, data);
-        },
-      },
-      "-"
-    )
-  );
-}
-async function click(entry, node, tree, event) {
-  store.commit("focus", "left");
-  if (node != editedNode.value) {
-    await rename();
-  }
-  currentNode.value = node;
-  isEditing.value = false;
-  window.removeEventListener("keyup", enterHandler);
-  window.addEventListener("keyup", enterHandler);
-}
-
-async function enterHandler(event) {
-  if (event.key == "Enter") {
-    isEditing.value = !isEditing.value;
-    if (!isEditing.value) {
-      await rename();
+    if (await exists(newPath)) {
+      msgError(`rename failed: ${newPath} is existed`);
+      renameVisible.value = true;
+      return;
     }
-    if (isEditing.value) {
-      editedNode.value = currentNode.value;
+    try {
+      await rename(currentNode.value.data.path, newPath);
+    } catch (e) {
+      msgError(`rename failed: ${e}`);
+      return;
     }
+    renameVisible.value = false;
+    currentNode.value.data.name = currentName.value = data.updateName;
+    currentNode.value.data.path = newPath;
+    msgSuccess(`update successfully`);
+    return;
   }
 }
-async function rename() {
-  let name = editedValue.value.slice();
-  let data = editedData.value;
-  let separator = await sep();
-  if (name.length == 0) {
-    return;
-  }
-  if (data == null) {
-    return;
-  }
-  let arr = editedData.value.path.split(separator);
-  arr.pop();
-  let originPath = data.path;
-  let originName = data.name;
-  let newPath = await join(arr.join(separator), name);
-  if (originPath == newPath) {
-    return;
-  }
-  if (await exists(newPath)) {
-    msgError(`rename failed: ${name} is existed`);
-    return;
-  }
-  data.name = name;
-  data.path = await join(arr.join(separator), name);
-  editedNode.value.setData(data);
-  try {
-    await fsRename(originPath, data.path);
-  } catch (e) {
-    msgError(`rename failed: ${e}`);
-    editedData.value.name = originName;
-    editedData.value.path = originPath;
-    editedNode.value.setData(editedData.value);
-    return;
-  }
-  editedData.value = null;
-  editedNode.value = null;
-  editedValue.value = "";
-}
-async function newFolder() {
-  let name = "newFolder";
-  let entry = {
-    name,
-    is_dir: true,
-    disabled: true,
-    children: [],
+async function delNode(node, data) {
+  const isParent = (path) => {
+    const keys = props.files.keys();
+    for (let key of keys) {
+      if (key.startsWith(path)) {
+        return true;
+      }
+      return false;
+    }
   };
-  let nodeType = "file";
-  if (currentNode.value && currentNode.value.data.is_dir) {
-    nodeType = "directory";
-  } else if (
-    currentNode.value == null ||
-    Array.isArray(currentNode.value.parent.data)
-  ) {
-    nodeType = "rootDirectory";
-  }
-  switch (nodeType) {
-    case "rootDirectory":
-      entry.path = await join(store.getters.currentProjectPath, name);
-      break;
-    case "directory":
-      entry.path = await join(currentNode.value.data.path, name);
-      break;
-    case "file":
-      entry.path = await join(currentNode.value.parent.data.path, name);
-      break;
-  }
-  if (await exists(entry.path)) {
-    return;
-  }
-  if (!(await createDir(entry.path))) {
-    return;
-  }
-  switch (nodeType) {
-    case "rootDirectory":
-      treeRef.value.data.push(entry);
-      break;
-    case "directory":
-      entry.path = await join(currentNode.value.data.path, name);
-      currentNode.value.doCreateChildren([entry]);
-      currentNode.value.expand();
-      break;
-    case "file":
-      currentNode.value.parent.doCreateChildren([entry]);
-      break;
-  }
-}
-async function newFile() {
-  let name = "newFile";
-  let entry = {
-    name,
-    is_dir: false,
-    disabled: true,
-    children: [],
-  };
-  let nodeType = "file";
-  if (currentNode.value && currentNode.value.data.is_dir) {
-    nodeType = "directory";
-  } else if (
-    currentNode.value == null ||
-    Array.isArray(currentNode.value.parent.data)
-  ) {
-    nodeType = "rootDirectory";
-  }
-  switch (nodeType) {
-    case "rootDirectory":
-      entry.path = await join(store.getters.currentProjectPath, name);
-      break;
-    case "directory":
-      entry.path = await join(currentNode.value.data.path, name);
-      break;
-    case "file":
-      entry.path = await join(currentNode.value.parent.data.path, name);
-      break;
-  }
-  if (await exists(entry.path)) {
-    return;
-  }
-  if (!(await writeFile(entry.path, "", false))) {
-    return;
-  }
-  switch (nodeType) {
-    case "rootDirectory":
-      treeRef.value.data.push(entry);
-      break;
-    case "directory":
-      entry.path = await join(currentNode.value.data.path, name);
-      currentNode.value.doCreateChildren([entry]);
-      currentNode.value.expand();
-      break;
-    case "file":
-      currentNode.value.parent.doCreateChildren([entry]);
-      break;
-  }
-}
-async function openSetting() {
-  settingVisible.value = true;
-}
-async function clearStore() {
-  await LocalStore.clear();
-}
-async function updateSetting(result) {
-  settingVisible.value = result.visible;
-}
-async function newProject() {
-  newProjectVisible.value = true;
-}
-async function openProject(result) {
-  const storeCommit = async (path) => {
-    store.commit("currentProjectPath", path);
-    store.commit("currentProjectName", await basename(path));
-    //active send project path to monitor
-    await emitTo("monitor", "update:project-path", { path });
-    await invoke("set_project", { path });
-  };
-  //come from newProject
-  if (result.project != undefined) {
-    await storeCommit(result.project);
-    emits("clear:files");
-    return;
-  }
-  //come from openProject
-  const dir = await openDialog({
-    multiple: false,
-    directory: true,
-    defaultPath: projectsDir,
-  });
-  if (!dir) return;
-  await storeCommit(dir);
-  emits("clear:files");
-}
-async function refresh() {
-  if (store.getters.currentProjectPath) {
-    data.value = await fetch(store.getters.currentProjectPath);
-  }
-}
-async function remove(event, node, data) {
-  if (props.files.has(data.path)) {
+  if (props.files.has(data.path) || isParent(data.path)) {
     msgError(`save or close first`);
     return;
   }
-  ElMessageBox.confirm(`are you sure to delete: ${data.path}`, "Warning", {
+  ElMessageBox.confirm(`are you sure to delete: ${data.name}`, "Warning", {
     confirmButtonText: "OK",
     cancelButtonText: "Cancel",
+    showClose: false,
     type: "warning",
   })
     .then(async () => {
-      //delete
-      await fsRemove(data.path)
+      await remove(data.path)
         .then(() => {
           node.remove();
-          //reset
           currentNode.value = null;
+          currentName.value = "";
           msgSuccess(`Delete completed`);
         })
         .catch((e) => {
@@ -412,214 +132,284 @@ async function remove(event, node, data) {
       msgInfo(`Delete canceled`);
     });
 }
-//listen event from monitor
-listen("get:project-path", async () => {
-  await emitTo("monitor", "update:project-path", {
-    path: store.getters.currentProjectPath,
-  });
-});
+async function fetchNode(directory) {
+  try {
+    const sort = function (entries) {
+      entries.sort((a, b) => {
+        if (a.is_dir && b.is_dir) {
+          if (a.children && a.children.length > 0) {
+            return -1;
+          }
+          return 1;
+        }
+        if (a.is_dir) {
+          return -1;
+        }
+        if (b.is_dir) {
+          return 1;
+        }
+        return 0;
+      });
+      return entries;
+    };
+    const filter = function (entry) {
+      if (entry.is_symlink) {
+        return false;
+      }
+      if (entry.name.startsWith(".")) {
+        return false;
+      }
+      return true;
+    };
+    const map = function (entry) {
+      return entry;
+    };
+    let results = [];
+    let entries = (await readDir(directory)).filter(filter).map(map);
+    for (let entry of entries) {
+      let subDirectory = await join(directory, entry.name);
+      if (entry.is_dir) {
+        entry.subEntries = sort(
+          (await readDir(subDirectory)).filter(filter).map(map)
+        );
+      }
+      results.push(entry);
+    }
+    return sort(results);
+  } catch (e) {
+    msgError(e);
+  }
+}
+function nodeRender(h, { node, data, store }) {
+  return h(
+    "div",
+    {
+      class: "rendered",
+      onDblclick: async () => {
+        if (!node.data.is_file) {
+          return false;
+        }
+        try {
+          let fileType = await extname(node.data.path);
+          if (!editableFileTypes.includes(fileType)) {
+            return;
+          }
+          emits("add:file", { file: node.data });
+        } catch (e) {
+          msgError(`open file error: ${e}`);
+          return;
+        }
+      },
+    },
+    h(
+      "div",
+      {
+        class: "name",
+      },
+      data.name
+    ),
+    h(
+      "div",
+      {
+        class: "operations",
+      },
+      h(
+        "span",
+        {
+          class: "del",
+          onClick: async () => {
+            await delNode(node, data);
+          },
+        },
+        "-"
+      )
+    )
+  );
+}
+async function nodeClick(entry, node, treeNode, event) {
+  store.commit("focus", "left");
+  currentNode.value = node;
+  currentName.value = node.data.name;
+  currentPath.value = node.data.path;
+  window.removeEventListener("keyup", shortcutEnter);
+  window.addEventListener("keyup", shortcutEnter);
+}
+async function nodeExpand(data, node, event) {
+  store.commit("focus", "left");
+  node.data.subEntries = await fetchNode(node.data.path);
+}
+async function shortcutEnter(event) {
+  if (event.key == "Enter") {
+    renameVisible.value = true;
+  }
+}
+async function newDirectory() {
+  if (!currentNode.value || !currentNode.value.data.is_dir) {
+    msgInfo("Please select a directory first");
+    return;
+  }
+  newType.value = "Directory";
+  newVisible.value = true;
+}
+async function newFile() {
+  if (!currentNode.value || !currentNode.value.data.is_dir) {
+    msgInfo("Please select a directory first");
+    return;
+  }
+  newType.value = "File";
+  newVisible.value = true;
+}
+async function refresh(node) {
+  if (!node || !node.data.is_dir) {
+    return;
+  }
+  node.data.subEntries = await fetchNode(node.data.path);
+  node.expand();
+  msgSuccess(`refresh successfully`);
+}
 watchEffect(async () => {
-  if (store.getters.currentProjectPath != null) {
-    data.value = await fetch(store.getters.currentProjectPath);
-  }
   if (store.getters.focus != "left") {
-    window.removeEventListener("keyup", enterHandler);
+    window.removeEventListener("keyup", shortcutEnter);
   } else {
-    window.addEventListener("keyup", enterHandler);
+    window.removeEventListener("keyup", shortcutEnter);
+    window.addEventListener("keyup", shortcutEnter);
   }
-  mainHeight.value =
-    store.getters.windowSize.height -
-    headerSize.height -
-    footerSize.height -
-    61;
 });
-onMounted(async () => {});
+onMounted(async () => {
+  let defaultDirectory = "/Users/kiwi/rust/opencv-rust";
+  defaultDirectory = "/Users/kiwi/Documents/KiwiProjects/hello";
+  data.value = await fetchNode(defaultDirectory);
+  store.commit("currentProjectName", "Kiwi");
+});
 </script>
 <template>
-  <el-container
-    class="container"
-    :class="{ unselect: !isEditing }"
-    ref="containerRef"
-  >
-    <el-header
-      ref="headerRef"
-      :class="{ 'no-data': store.getters.currentProjectName == null }"
-    >
-      <div class="project-name" v-if="store.getters.currentProjectName">
+  <el-container class="container" ref="containerRef">
+    <el-header ref="headerRef">
+      <div class="name" v-if="store.getters.currentProjectName">
         {{ store.getters.currentProjectName }}
       </div>
-      <div v-if="store.getters.currentProjectName">
-        <el-icon @click="refresh"><Refresh /></el-icon>
-        <el-icon @click="newFolder"><FolderAdd /></el-icon>
+      <div class="operations" v-if="store.getters.currentProjectName">
+        <el-icon @click="refresh(currentNode)"><Refresh /></el-icon>
+        <el-icon @click="newDirectory"><FolderAdd /></el-icon>
         <el-icon @click="newFile"><DocumentAdd /></el-icon>
       </div>
     </el-header>
-    <el-main :style="{ height: mainHeight + 'px' }">
+    <el-main ref="mainRef" class="unselectable">
       <el-tree
-        ref="treeRef"
-        node-key="path"
+        style="max-width: 600px"
         :data="data"
         :props="treeProps"
-        :render-content="render"
-        :highlight-current="false"
-        @node-expand="expand"
-        @node-click="click"
+        :highlight-current="true"
+        :render-content="nodeRender"
+        @node-click="nodeClick"
+        @node-expand="nodeExpand"
       />
     </el-main>
-    <el-footer ref="footerRef">
-      <el-row :gutter="0">
-        <el-col :span="12"
-          ><div class="action" @click="newProject">New</div>
-        </el-col>
-        <el-col :span="12">
-          <div class="action" @click="openProject">Open</div>
-        </el-col>
-      </el-row>
-    </el-footer>
+    <el-footer ref="footerRef"> </el-footer>
+    <RenameNode
+      v-if="renameVisible"
+      :name="currentName"
+      @close="renameVisible = false"
+      @update="updateNode"
+    />
+    <NewNode
+      v-if="newVisible"
+      :path="currentPath"
+      :type="newType"
+      @close="newVisible = false"
+      @update="updateNode"
+    />
   </el-container>
-  <Setting
-    v-if="settingVisible"
-    :visible="settingVisible"
-    @update="updateSetting"
-  />
-  <NewProject
-    v-if="newProjectVisible"
-    :visible="newProjectVisible"
-    @close="newProjectVisible = false"
-    @open:project="openProject"
-  />
 </template>
 <style scoped>
-.el-header {
-  display: flex;
-  justify-content: space-between;
-  background-color: var(--Secondary-Fill);
-  height: 30px;
-  padding: 8px 0px 0px 10px;
-  overflow: hidden;
-  .project-name {
-    font-size: 12px;
-    font-weight: bold;
-  }
-}
-.el-header.no-data {
-  background-color: var(--Fill);
-}
-.el-header .el-icon {
-  margin-right: 10px;
-}
-.el-header .el-icon:hover {
-  color: var(--Secondary-Color);
-  cursor: pointer;
-}
-.el-main {
-  overflow: auto;
-}
-:deep(.node-label) {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-:deep(.node-label-action) {
-  cursor: pointer;
-  display: none;
-  margin-right: 10px;
-}
-:deep(.node-label-action:hover) {
-  color: var(--Secondary-Color);
-}
-:deep(.node-label:hover .node-label-action) {
-  display: block;
-}
-:deep(.node-input) {
-  background-color: var(--Secondary-Fill);
-  color: var(--Secondary-Color);
-  border: none;
-  width: 100px;
-}
-
-.el-tree {
-  background-color: transparent;
-  color: var(--Primary-Color);
-}
-.search {
-  background-color: transparent;
-  margin: 10px;
-  :deep(.el-input__wrapper) {
+.el-container {
+  .el-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     background-color: var(--Secondary-Fill);
+    height: 30px;
+    .name {
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-left: 10px;
+    }
+    .operations {
+      margin-right: 10px;
+      .el-icon {
+        margin-left: 8px;
+        cursor: pointer;
+      }
+      .el-icon:hover {
+        color: var(--Highlight-Color);
+      }
+    }
   }
-}
-.action {
-  height: 30px;
-  line-height: 30px;
-  text-align: center;
-  background-color: var(--Secondary-Fill);
-  font-size: 12px;
-}
-.action:hover {
-  color: var(--Secondary-Color);
-  cursor: pointer;
-  background-color: var(--Secondary-Fill);
-}
-:deep(.el-tree-node__content:hover),
-:deep(.el-tree-node.is-current > .el-tree-node__content) {
-  background-color: var(--Secondary-Fill);
-}
-:deep(.node-leaf-directory .node-label) {
-  background-image: url("./../assets/directory.svg");
-  background-size: 15px;
-  background-repeat: no-repeat;
-  background-position: left center;
-  padding-left: 20px;
-  margin-left: -15px;
-}
-:deep(.node-leaf-file .node-label) {
-  background-image: url("./../assets/file.svg");
-  background-size: 15px;
-  background-repeat: no-repeat;
-  background-position: left center;
-  padding-left: 20px;
-  margin-left: -15px;
-}
-:deep(.node-leaf-js .node-label) {
-  background-image: url("./../assets/js.svg");
-}
-:deep(.node-leaf-md .node-label) {
-  background-image: url("./../assets/md.svg");
-}
-:deep(.node-leaf-json .node-label) {
-  background-image: url("./../assets/json.svg");
-}
-:deep(.node-leaf-html .node-label) {
-  background-image: url("./../assets/html.svg");
-}
-:deep(.node-leaf-svg .node-label) {
-  background-image: url("./../assets/svg.svg");
-}
-:deep(.node-leaf-vue .node-label) {
-  background-image: url("./../assets/vue.svg");
-}
-:deep(.node-leaf-toml .node-label) {
-  background-image: url("./../assets/toml.svg");
-}
-:deep(.node-leaf-rs .node-label) {
-  background-image: url("./../assets/rs.svg");
-}
-:deep(.node-leaf-ico .node-label) {
-  background-image: url("./../assets/ico.svg");
-}
-:deep(.node-leaf-png .node-label) {
-  background-image: url("./../assets/png.svg");
-}
-:deep(.node-leaf-css .node-label) {
-  background-image: url("./../assets/css.svg");
-}
-:deep(.node-leaf-py .node-label) {
-  background-image: url("./../assets/py.svg");
-}
-:deep(.el-collapse-transition-enter-active),
-:deep(.el-collapse-transition-leave-active) {
-  transition: none;
+  :deep(.el-tree-node__content:hover),
+  :deep(
+      .el-tree--highlight-current
+        .el-tree-node.is-current
+        > .el-tree-node__content
+    ) {
+    background-color: var(--TreeCurrtentFill);
+  }
+  .el-main {
+    :deep(.el-tree-node__content) {
+      height: 30px;
+    }
+    .el-tree {
+      font-size: var(--NormalSize);
+      background: none;
+      color: var(--NormalColor);
+    }
+    :deep(.node-leaf-directory > .el-tree-node__content > .rendered) {
+      background-image: url("./../assets/directory.svg");
+      background-size: 15px;
+      background-repeat: no-repeat;
+      background-position: left center;
+      padding-left: 20px;
+      margin-left: -15px;
+    }
+    :deep(.node-file > .el-tree-node__content > .rendered) {
+      background-image: url("./../assets/file.svg");
+      background-size: 15px;
+      background-repeat: no-repeat;
+      background-position: left center;
+      padding-left: 20px;
+      margin-left: -15px;
+    }
+    :deep(.node-file-py > .el-tree-node__content > .rendered) {
+      background-image: url("./../assets/py.svg");
+    }
+    :deep(.node-file-png > .el-tree-node__content > .rendered) {
+      background-image: url("./../assets/png.svg");
+    }
+
+    :deep(.rendered) {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      .name {
+      }
+      .operations {
+        display: flex;
+        margin-right: 10px;
+        text-align: center;
+        .del {
+          display: none;
+          cursor: pointer;
+          padding: 0px 10px;
+        }
+        .del:hover {
+          color: var(--Highlight-Color);
+        }
+      }
+    }
+    :deep(.rendered:hover .operations .del) {
+      display: block;
+    }
+  }
+  .el-footer {
+  }
 }
 </style>

@@ -12,9 +12,7 @@ import { useStore } from "vuex";
 import { useElementSize } from "@vueuse/core";
 import { writeFile } from "./../utils/fs";
 import { msgError, msgSuccess } from "./../utils/msg";
-import { extname } from "@tauri-apps/api/path";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { emitTo } from "@tauri-apps/api/event";
 import Python from "./../components/editors/Python.vue";
 const props = defineProps(["width", "height", "files", "lastOpenedFile"]);
 const emits = defineEmits(["remove:file"]);
@@ -32,7 +30,6 @@ const editorHeight = computed(() => {
 });
 const currentFile = ref(null);
 function select(file) {
-  console.log(currentFile.value);
   currentFile.value = file;
 }
 function close(event, file) {
@@ -64,7 +61,11 @@ async function shortcutSave(event) {
     const content = modifiedMap.value.get(key);
     //save file
     try {
-      await writeFile(key, content, false).then(() => {
+      console.log(key, content);
+      await writeFile(key, content, false).then((result) => {
+        if (!result) {
+          return;
+        }
         modifiedMap.value.delete(key);
         funny.value = !funny.value;
         msgSuccess(`save file success`);
@@ -100,7 +101,7 @@ function openMonitor() {
     console.log("window successfully created");
   });
   monitor.once("tauri://error", function (e) {
-    console.log("an error happened creating the window", e);
+    msgError(`open monitor failed: ${e}`);
   });
 }
 watch(
@@ -184,9 +185,6 @@ onUnmounted(() => {});
 .el-container {
   overflow: hidden;
 }
-.el-header {
-  background-color: var(--Dark-Fill);
-}
 .bar {
   display: flex;
   justify-content: space-between;
@@ -195,7 +193,6 @@ onUnmounted(() => {});
   display: flex;
   align-items: center;
   margin-right: 10px;
-  font-size: 14px;
   .el-icon {
     color: var(--Primary-Color);
     cursor: pointer;
@@ -209,9 +206,8 @@ onUnmounted(() => {});
   list-style: none;
   padding: 0px;
   margin: 0px;
-  height: 30px;
+  height: 29px;
   color: var(--Highlight-Color);
-  font-size: 14px;
   li {
     cursor: pointer;
     height: 100%;
@@ -238,7 +234,6 @@ onUnmounted(() => {});
     }
     .modified {
       color: var(--Third-Color);
-      font-size: 18px;
       padding-bottom: 0px;
     }
   }
@@ -252,12 +247,11 @@ onUnmounted(() => {});
 }
 .path {
   color: #a4a5a6;
-  font-size: 12px;
-  padding: 5px;
+  font-size: var(--SecondarySize);
+  padding: 10px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 20px;
 }
 .terminal {
   position: relative;

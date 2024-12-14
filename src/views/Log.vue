@@ -84,9 +84,6 @@ async function shortcutExecute() {
     }
   });
 }
-async function init() {
-  await invoke("init");
-}
 listen("run:status", async (event) => {
   if (event.payload.data == "running") {
     if (hideWhileRunning.value) {
@@ -178,8 +175,8 @@ onMounted(async () => {
     overflow-y: scroll;
     .logs {
       .log {
-        font-size: 10px;
-        line-height: 13px;
+        font-size: var(--SecondarySize);
+        padding: 1px 0px;
         .time {
           opacity: 0.5;
           margin-right: 5px;

@@ -10,6 +10,8 @@ export const store = createStore({
         width: 0,
         height: 0,
       },
+      //缩放倍数
+      zoomFactor: 1,
       //各views使用
       currentProjectPath: null,
       currentProjectName: null,
@@ -23,6 +25,9 @@ export const store = createStore({
     },
     windowSize(state) {
       return state.windowSize;
+    },
+    zoomFactor(state) {
+      return state.zoomFactor;
     },
     currentProjectPath(state) {
       return state.currentProjectPath;
@@ -46,6 +51,9 @@ export const store = createStore({
     },
     windowSize(state, val) {
       state.windowSize = val;
+    },
+    zoomFactor(state, val) {
+      state.zoomFactor = val;
     },
     currentProjectPath(state, val) {
       state.currentProjectPath = val;

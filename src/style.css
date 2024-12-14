@@ -5,10 +5,15 @@
   --Light-Fill: #e6e6e7;
   --Primary-Color: #a3a9b7;
   --Secondary-Color: white;
+
   --Highlight-Color: #d8b983;
+  --NormalSize: 18px;
+  --SecondarySize: 16px;
+  --NormalColor: #aca9b7;
+  --TreeCurrtentFill: #2d313a;
 }
 
-.unselect {
+.unselectable {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -57,6 +62,8 @@
 body {
   padding: 0px;
   margin: 0px;
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-family: Menlo, Monaco, "Courier New", monospace;
   height: 100vh;
+  font-size: var(--NormalSize);
+  color: var(--NormalColor);
 }

@@ -15,6 +15,7 @@ pub fn exists(path: String) -> Result<bool, String> {
 pub fn write_file(path: String, contents: String, append: bool) -> Result<bool, String> {
     let file = fs::OpenOptions::new()
         .write(true)
+        .truncate(!append)
         .append(append)
         .create(true)
         .open(path);

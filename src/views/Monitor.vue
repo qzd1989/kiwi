@@ -7,7 +7,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { emitTo } from "@tauri-apps/api/event";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { basename } from "@tauri-apps/api/path";
+import { minZoomFactor, maxZoomFactor } from "./../stores/app";
 import {
   arrayImageDataToBase64ImageData,
   cropBase64Image,
@@ -16,6 +18,7 @@ import FindImage from "../components/monitor/FindImage.vue";
 import FindLocatingColors from "../components/monitor/FindLocatingColors.vue";
 import FindColors from "../components/monitor/FindColors.vue";
 import FindTexts from "../components/monitor/FindTexts.vue";
+const currentZoomFactor = ref(1);
 // gap caculation
 const store = useStore();
 const windowRef = ref(null);
@@ -63,7 +66,6 @@ useResizeObserver(windowRef, (entries) => {
   leftWidth.value = windowSize.width - rightRef.value.offsetWidth;
 });
 // gap caculation end
-
 const bgLight = "/src/assets/canvas-bg-light.png";
 const bgDark = "/src/assets/canvas-bg-dark.png";
 const bgUrl = ref(bgLight);
@@ -140,7 +142,6 @@ const capturedRect = reactive({
   },
 });
 //canvas end
-
 async function getMonitors() {
   return [
     {
@@ -409,7 +410,41 @@ async function findTexts() {
 async function getProjectPath() {
   await emitTo("main", "get:project-path");
 }
-
+async function shortcutZoom(event) {
+  if (
+    (event.key === "=" && event.ctrlKey) ||
+    (event.key === "=" && event.metaKey)
+  ) {
+    event.preventDefault();
+    store.commit(
+      "zoomFactor",
+      Math.min(store.getters.zoomFactor + 0.1, maxZoomFactor)
+    );
+  }
+  if (
+    (event.key === "-" && event.ctrlKey) ||
+    (event.key === "-" && event.metaKey)
+  ) {
+    event.preventDefault();
+    store.commit(
+      "zoomFactor",
+      Math.max(store.getters.zoomFactor - 0.1, minZoomFactor)
+    );
+  }
+  if (
+    (event.key === "0" && event.ctrlKey) ||
+    (event.key === "0" && event.metaKey)
+  ) {
+    event.preventDefault();
+    store.commit("zoomFactor", 1);
+  }
+}
+watchEffect(async () => {
+  if (store.getters.zoomFactor != currentZoomFactor.value) {
+    currentZoomFactor.value = store.getters.zoomFactor;
+    await getCurrentWebview().setZoom(currentZoomFactor.value);
+  }
+});
 //listen event from main
 listen("update:project-path", async (event) => {
   if (event.payload.path == null) {
@@ -431,10 +466,16 @@ onMounted(async () => {
   document.addEventListener("mouseup", upListener);
   // gap end
 
+  //zoom
+  window.addEventListener("keyup", shortcutZoom);
+
   //get project path
   await getProjectPath();
 });
 onUnmounted(() => {
+  //cancel zoom
+  window.removeEventListener("keyup", shortcutZoom);
+
   // gap
   document.removeEventListener("mousemove");
   document.removeEventListener("mouseup");

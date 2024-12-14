@@ -5,6 +5,7 @@ const defaults = new Map();
 
 //default stores
 defaults.set("basePath", await homeDir());
+defaults.set("zoomFactor", 1);
 //default stores end
 
 export class LocalStore {

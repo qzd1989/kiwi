@@ -278,6 +278,7 @@ onUnmounted(() => {
 .gap-horizontal:hover,
 .gap-horizontal.selected {
   background-color: var(--Third-Fill);
+  opacity: 0.5;
 }
 .gap-vertical:hover,
 .gap-vertical.selected {

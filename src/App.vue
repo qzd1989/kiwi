@@ -1,12 +1,17 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watchEffect } from "vue";
 import { message } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { getAllWindows } from "@tauri-apps/api/window";
 import { invoke } from "@tauri-apps/api/core";
+import { useStore } from "vuex";
+import { minZoomFactor, maxZoomFactor } from "./stores/app";
 import Install from "./views/Install.vue";
+const store = useStore();
 const isInstalled = ref(true);
 const hasPermission = ref(false);
+const currentZoomFactor = ref(1);
 async function closeOtherWindows() {
   const windows = await getAllWindows();
   for (const window of windows) {
@@ -15,6 +20,41 @@ async function closeOtherWindows() {
     }
   }
 }
+async function shortcutZoom(event) {
+  if (
+    (event.key === "=" && event.ctrlKey) ||
+    (event.key === "=" && event.metaKey)
+  ) {
+    event.preventDefault();
+    store.commit(
+      "zoomFactor",
+      Math.min(store.getters.zoomFactor + 0.1, maxZoomFactor)
+    );
+  }
+  if (
+    (event.key === "-" && event.ctrlKey) ||
+    (event.key === "-" && event.metaKey)
+  ) {
+    event.preventDefault();
+    store.commit(
+      "zoomFactor",
+      Math.max(store.getters.zoomFactor - 0.1, minZoomFactor)
+    );
+  }
+  if (
+    (event.key === "0" && event.ctrlKey) ||
+    (event.key === "0" && event.metaKey)
+  ) {
+    event.preventDefault();
+    store.commit("zoomFactor", 1);
+  }
+}
+watchEffect(async () => {
+  if (store.getters.zoomFactor != currentZoomFactor.value) {
+    currentZoomFactor.value = store.getters.zoomFactor;
+    await getCurrentWebview().setZoom(currentZoomFactor.value);
+  }
+});
 onMounted(async () => {
   const currentWindow = await getCurrentWindow();
 
@@ -37,12 +77,18 @@ onMounted(async () => {
     await closeOtherWindows();
   });
 
+  //zoom
+  window.addEventListener("keyup", shortcutZoom);
+
   //init
   if (isInstalled.value) {
     await invoke("init");
   }
 });
-onUnmounted(() => {});
+onUnmounted(() => {
+  //cancel zoom
+  window.removeEventListener("keyup", shortcutZoom);
+});
 </script>
 <template>
   <div v-show="!isInstalled">

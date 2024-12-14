@@ -48,6 +48,7 @@ pub fn run(app: AppHandle, file: String) {
             .stderr(Stdio::piped())
             .spawn();
         if let Err(error) = handle {
+            println!("52 error: {}", error.to_string());
             app.lock()
                 .unwrap()
                 .emit_with_timestamp("log:error", &error.to_string());
