@@ -9,15 +9,17 @@ import {
   writeFile,
 } from "./../utils/fs";
 import { msgError, msgSuccess, msgInfo } from "./../utils/msg";
-import { join, extname } from "@tauri-apps/api/path";
+import { join, extname, basename } from "@tauri-apps/api/path";
 import { useStore } from "vuex";
 import { ElMessageBox } from "element-plus";
 import { editableFileTypes } from "../stores/app";
+import { emitTo, listen } from "@tauri-apps/api/event";
 import RenameNode from "../components/tree/RenameNode.vue";
 import NewNode from "../components/tree/NewNode.vue";
 const props = defineProps(["files"]);
 const emits = defineEmits(["add:file", "clear:files"]);
 const store = useStore();
+const treeRef = ref(null);
 const data = ref([]);
 const currentNode = ref(null);
 const currentName = ref("");
@@ -30,7 +32,6 @@ const treeProps = {
   label: "name",
   disabled: "disabled",
   class: (data, node) => {
-    console.log(data.path, data.is_dir, node.isLeaf);
     if (data.is_dir && node.isLeaf) {
       return "node-leaf-directory";
     }
@@ -196,7 +197,7 @@ function nodeRender(h, { node, data, store }) {
           }
           emits("add:file", { file: node.data });
         } catch (e) {
-          msgError(`open file error: ${e}`);
+          msgInfo(`open file error: ${e}`);
           return;
         }
       },
@@ -267,6 +268,30 @@ async function refresh(node) {
   node.expand();
   msgSuccess(`refresh successfully`);
 }
+//listen event from monitor.FindImage
+listen("update:resources", async (event) => {
+  const node = treeRef.value.getNode(
+    data.value.filter((node) => node.name == "resources").pop().$treeNodeId
+  );
+  node.data.subEntries = await fetchNode(node.data.path);
+  node.expand();
+});
+//listen event from monitor
+listen("get:project-path", async (event) => {
+  await emitTo("main", "update:project-path", {
+    path: store.getters.currentProjectPath,
+  });
+});
+async function test() {
+  let defaultDirectory = "/Users/kiwi/rust/opencv-rust";
+  defaultDirectory = "/Users/kiwi/Documents/KiwiProjects/hello";
+  data.value = await fetchNode(defaultDirectory);
+  store.commit("currentProjectName", await basename(defaultDirectory));
+  store.commit("currentProjectPath", defaultDirectory);
+  await emitTo("monitor", "update:project-path", {
+    path: defaultDirectory,
+  });
+}
 watchEffect(async () => {
   if (store.getters.focus != "left") {
     window.removeEventListener("keyup", shortcutEnter);
@@ -276,10 +301,7 @@ watchEffect(async () => {
   }
 });
 onMounted(async () => {
-  let defaultDirectory = "/Users/kiwi/rust/opencv-rust";
-  defaultDirectory = "/Users/kiwi/Documents/KiwiProjects/hello";
-  data.value = await fetchNode(defaultDirectory);
-  store.commit("currentProjectName", "Kiwi");
+  await test();
 });
 </script>
 <template>
@@ -296,6 +318,7 @@ onMounted(async () => {
     </el-header>
     <el-main ref="mainRef" class="unselectable">
       <el-tree
+        ref="treeRef"
         style="max-width: 600px"
         :data="data"
         :props="treeProps"
@@ -327,8 +350,8 @@ onMounted(async () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: var(--Secondary-Fill);
-    height: 30px;
+    background-color: var(--SecondaryFill);
+    height: 40px;
     .name {
       font-weight: bold;
       text-transform: uppercase;
@@ -341,7 +364,7 @@ onMounted(async () => {
         cursor: pointer;
       }
       .el-icon:hover {
-        color: var(--Highlight-Color);
+        color: var(--HighlightColor);
       }
     }
   }
@@ -351,7 +374,7 @@ onMounted(async () => {
         .el-tree-node.is-current
         > .el-tree-node__content
     ) {
-    background-color: var(--TreeCurrtentFill);
+    background-color: var(--SecondaryFill);
   }
   .el-main {
     :deep(.el-tree-node__content) {
@@ -401,7 +424,7 @@ onMounted(async () => {
           padding: 0px 10px;
         }
         .del:hover {
-          color: var(--Highlight-Color);
+          color: var(--HighlightColor);
         }
       }
     }

@@ -2,7 +2,8 @@
 import { ref, onMounted, reactive, watch } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { base64ToPixels, rgbToHex } from "../../utils/common";
-import { msgError, msgInfo, msgSuccess } from "../../utils/msg";
+import { msgError, msgSuccess } from "../../utils/msg";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
 const code = ref("");
@@ -147,13 +148,20 @@ async function findLocatingColor() {
       msgError(error);
     });
 }
-
 async function getPeakPoint() {
   let locatingColors = JSON.stringify(form.locatingColors);
   await invoke("find_peak", { locatingColors }).then((data) => {
     peak.hex = data.hex;
     peak.point = data.point;
   });
+}
+async function copy() {
+  try {
+    await writeText(code.value);
+    msgSuccess("copy successed");
+  } catch (e) {
+    msgError(`copy failed: ${e}`);
+  }
 }
 watch(props.form, () => {
   Object.assign(form, props.form);
@@ -355,7 +363,7 @@ onMounted(async () => {});
           <div class="item">
             <div class="title">
               <span>Code</span>
-              <el-button type="primary" @click=""> copy </el-button>
+              <el-button type="primary" @click="copy"> copy </el-button>
             </div>
             <div>
               <el-input
@@ -409,7 +417,7 @@ onMounted(async () => {});
       border-color: red;
     }
     .item {
-      background-color: var(--Light-Fill);
+      background-color: var(--LightFill);
       margin: 10px 0px;
       border-radius: 5px;
       padding: 10px;
@@ -418,7 +426,6 @@ onMounted(async () => {});
       align-items: stretch;
       gap: 10px;
       .title {
-        font-size: 14px;
         display: flex;
         justify-content: space-between;
         align-items: center;

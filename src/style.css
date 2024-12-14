@@ -1,16 +1,13 @@
 :root {
   --Fill: #1c1f23;
-  --Secondary-Fill: #282c34;
-  --Third-Fill: #373b48;
-  --Light-Fill: #e6e6e7;
-  --Primary-Color: #a3a9b7;
-  --Secondary-Color: white;
+  --SecondaryFill: #282c34;
+  --LightFill: #e6e6e7;
 
-  --Highlight-Color: #d8b983;
+  --HighlightColor: #d8b983;
+  --NormalColor: #aca9b7;
+
   --NormalSize: 18px;
   --SecondarySize: 16px;
-  --NormalColor: #aca9b7;
-  --TreeCurrtentFill: #2d313a;
 }
 
 .unselectable {

@@ -194,11 +194,11 @@ onUnmounted(() => {});
   align-items: center;
   margin-right: 10px;
   .el-icon {
-    color: var(--Primary-Color);
+    color: var(--NormalColor);
     cursor: pointer;
   }
   .el-icon:hover {
-    color: var(--Highlight-Color);
+    color: var(--HighlightColor);
   }
 }
 .menus {
@@ -206,8 +206,8 @@ onUnmounted(() => {});
   list-style: none;
   padding: 0px;
   margin: 0px;
-  height: 29px;
-  color: var(--Highlight-Color);
+  height: 39px;
+  color: var(--HighlightColor);
   li {
     cursor: pointer;
     height: 100%;
@@ -227,22 +227,22 @@ onUnmounted(() => {});
       margin: 0px;
       padding: 3px;
       border-radius: 3px;
-      color: var(--Secondary-Color);
+      color: var(--NormalColor);
     }
     .close:hover {
-      background-color: var(--Primary-Color);
+      background-color: var(--LightFill);
     }
     .modified {
       color: var(--Third-Color);
       padding-bottom: 0px;
     }
   }
-  li:hover {
-    background-color: var(--Fill-Dark-1);
+  li:hover,
+  li.active {
+    background-color: var(--Fill);
   }
   li.active {
-    background-color: var(--Fill-Dark);
-    border-bottom: 1px solid var(--Primary-Color);
+    border-bottom: 1px solid var(--NormalColor);
   }
 }
 .path {

@@ -2,7 +2,8 @@
 import { ref, onMounted, reactive, watch } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { drawBase64ImageOnCanvas } from "../../utils/common";
-import { msgError } from "../../utils/msg";
+import { msgError, msgSuccess } from "../../utils/msg";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 const props = defineProps(["form"]);
 const emits = defineEmits(["close", "form"]);
 const code = ref("");
@@ -73,7 +74,6 @@ function drawImage() {
     form.captured.size.height
   );
 }
-
 async function findText() {
   const langs = JSON.stringify(form.languages);
   const x = Number(form.findArea.start.x);
@@ -104,7 +104,14 @@ async function findText() {
       msgError(error);
     });
 }
-
+async function copy() {
+  try {
+    await writeText(code.value);
+    msgSuccess("copy successed");
+  } catch (e) {
+    msgError(`copy failed: ${e}`);
+  }
+}
 watch(props.form, () => {
   Object.assign(form, props.form);
   form.findArea.start = form.captured.point;
@@ -227,7 +234,7 @@ onMounted(async () => {});
           <div class="item">
             <div class="title">
               <span>Code</span>
-              <el-button type="primary" @click="findText"> copy </el-button>
+              <el-button type="primary" @click="copy"> copy </el-button>
             </div>
             <div>
               <el-input
@@ -277,7 +284,7 @@ onMounted(async () => {});
       border-color: white;
     }
     .item {
-      background-color: var(--Light-Fill);
+      background-color: var(--LightFill);
       margin: 10px 0px;
       border-radius: 5px;
       padding: 10px;
@@ -286,7 +293,6 @@ onMounted(async () => {});
       align-items: stretch;
       gap: 10px;
       .title {
-        font-size: 14px;
         display: flex;
         justify-content: space-between;
         align-items: center;

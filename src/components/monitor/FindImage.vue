@@ -10,9 +10,10 @@ import { resourceDir } from "../../stores/app";
 import { sep } from "@tauri-apps/api/path";
 import { cropBase64Image } from "../../utils/common";
 import { msgError, msgSuccess } from "../../utils/msg";
+import { emitTo } from "@tauri-apps/api/event";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 const props = defineProps(["form", "projectPath"]);
 const emits = defineEmits(["close", "form"]);
-
 const store = useStore();
 const dataExtSideLength = 100; //额外扩展的画布长度,让图像居中方便擦除
 const bgLight = "/src/assets/canvas-bg-light.png";
@@ -30,11 +31,9 @@ const relativePosition = reactive({ x: 0, y: 0 }); //相对于截图的位置
 const canvasRef = ref(null);
 const hiddenCanvasRef = ref(null);
 const magnifyingGlassCanvasRef = ref(null);
-
 const filePath = ref(null);
 const saved = ref(false);
 const code = ref("");
-
 const form = reactive({
   name: null,
   threshold: 0.99,
@@ -254,13 +253,23 @@ async function save() {
     path: filePath.value,
     data,
   })
-    .then(() => {
+    .then(async () => {
       saved.value = true;
       msgSuccess("save successed, you can copy the code now");
+      await emitTo("main", "update:resources");
     })
     .catch((error) => {
       msgError(error);
     });
+}
+
+async function copy() {
+  try {
+    await writeText(code.value);
+    msgSuccess("copy successed");
+  } catch (e) {
+    msgError(`copy failed: ${e}`);
+  }
 }
 
 watch(props.form, () => {
@@ -485,7 +494,7 @@ onMounted(async () => {
               <span>Code</span>
               <el-button
                 type="primary"
-                @click=""
+                @click="copy"
                 :disabled="!saved"
                 title="save image before copy"
               >
@@ -522,7 +531,7 @@ onMounted(async () => {
     overflow-x: hidden;
     overflow-y: auto;
     .item {
-      background-color: var(--Light-Fill);
+      background-color: var(--LightFill);
       margin: 10px 0px;
       border-radius: 5px;
       padding: 10px;
@@ -531,7 +540,6 @@ onMounted(async () => {
       align-items: stretch;
       gap: 10px;
       .title {
-        font-size: 14px;
         display: flex;
         justify-content: space-between;
         align-items: center;

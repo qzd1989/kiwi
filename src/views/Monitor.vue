@@ -663,12 +663,11 @@ onUnmounted(() => {
       }
     }
     .el-footer {
-      height: 30px;
+      font-size: var(--SecondarySize);
       overflow: hidden;
       display: flex;
       align-items: center;
-      font-size: 12px;
-      padding: 0px 10px;
+      padding: 5px 10px;
       span {
         margin-right: 10px;
       }

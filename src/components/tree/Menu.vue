@@ -35,7 +35,6 @@ import NewProject from "./../NewProject.vue";
       height: 30px;
       line-height: 30px;
       text-align: center;
-      font-size: 12px;
     }
   }
   .settings {
@@ -46,7 +45,7 @@ import NewProject from "./../NewProject.vue";
   }
   .operations .el-col,
   .settings {
-    background-color: var(--Secondary-Fill);
+    background-color: var(--SecondaryFill);
     cursor: pointer;
   }
   .operations .el-col:hover,

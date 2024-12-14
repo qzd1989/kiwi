@@ -231,7 +231,7 @@ onUnmounted(() => {
 }
 .left {
   background-color: var(--Fill);
-  color: var(--Primary-Color);
+  color: var(--NormalColor);
   .tree {
     width: 100%;
   }
@@ -242,7 +242,7 @@ onUnmounted(() => {
   }
 }
 .middle {
-  background-color: var(--Secondary-Fill);
+  background-color: var(--SecondaryFill);
   .workspace {
     position: relative;
     width: 100%;
@@ -254,8 +254,7 @@ onUnmounted(() => {
       background-color: var(--Fill);
       .log {
         padding: 10px;
-        color: var(--Primary-Color);
-        font-size: 12px;
+        color: var(--NormalColor);
       }
     }
   }
@@ -277,7 +276,7 @@ onUnmounted(() => {
 .gap-vertical.selected,
 .gap-horizontal:hover,
 .gap-horizontal.selected {
-  background-color: var(--Third-Fill);
+  background-color: var(--Fill);
   opacity: 0.5;
 }
 .gap-vertical:hover,
