@@ -145,7 +145,7 @@ pub fn stop(app: AppHandle) {
 }
 
 #[tauri::command]
-pub fn set_project(path: String) {
+pub fn set_project_dir(path: String) {
     *PROJECT_DIR.lock().unwrap() = Some(path);
 }
 
@@ -156,6 +156,30 @@ pub fn get_project_dir() -> Result<String, String> {
         Some(path) => Ok(path),
         None => Err("project dir is not set".to_string()),
     }
+}
+
+#[tauri::command]
+pub fn code_check(app: AppHandle, path: String) {
+    std::thread::spawn(move || {
+        let output_result = Command::new(PYTHON_EXEC_FILE.to_string())
+            .args(&["-m", "ruff", "check", "--output-format=json", &path])
+            .output();
+        if let Err(error) = output_result {
+            app.emit_with_timestamp("log:error", &error.to_string());
+            return;
+        }
+        let output = output_result.unwrap();
+        if !output.stdout.is_empty() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            app.emit_with_timestamp("code_check:error", &stdout.to_string());
+        }
+
+        // 打印错误输出
+        if !output.stderr.is_empty() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            app.emit_with_timestamp("log:error", &stderr.to_string());
+        }
+    });
 }
 
 pub static PID: std::sync::LazyLock<Arc<Mutex<u32>>> =

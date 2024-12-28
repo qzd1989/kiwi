@@ -60,16 +60,19 @@ pub fn install_whl(architecture: String) -> Result<bool, String> {
     Err("Not supported yet".to_string())
 }
 
+#[allow(unused_variables)]
 #[tauri::command]
 pub fn uninstall_tesseract(architecture: String) -> Result<bool, String> {
     //todo
     Ok(true)
 }
+#[allow(unused_variables)]
 #[tauri::command]
 pub fn install_tesseract(architecture: String) -> Result<bool, String> {
     //todo
     Ok(true)
 }
+#[allow(unused_variables)]
 #[tauri::command]
 pub fn install_tessdata(architecture: String) -> Result<bool, String> {
     //todo

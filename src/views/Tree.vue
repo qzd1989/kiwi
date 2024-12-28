@@ -7,7 +7,7 @@ import {
   exists,
   readDir,
   writeFile,
-} from "./../utils/fs";
+} from "./../utils/api";
 import { msgError, msgSuccess, msgInfo } from "./../utils/msg";
 import { join, extname, basename } from "@tauri-apps/api/path";
 import { useStore } from "vuex";
@@ -358,6 +358,9 @@ onMounted(async () => {
       margin-left: 10px;
     }
     .operations {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
       margin-right: 10px;
       .el-icon {
         margin-left: 8px;

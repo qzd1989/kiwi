@@ -13,6 +13,8 @@ import {
   unregister,
   isRegistered,
 } from "@tauri-apps/plugin-global-shortcut";
+import { codeCheck } from "../utils/api";
+import { msgInfo } from "../utils/msg";
 const props = defineProps(["height", "files"]);
 const store = useStore();
 const runFile = ref(null);
@@ -84,6 +86,20 @@ async function shortcutExecute() {
     }
   });
 }
+async function check() {
+  if (props.files.size == 0) {
+    return;
+  }
+  runFile.value = store.getters.currentFilePath;
+  await codeCheck(runFile.value);
+}
+listen("code_check:error", async (event) => {
+  let errors = JSON.parse(event.payload.data);
+  if (errors.length == 0) {
+    return;
+  }
+  console.log(errors);
+});
 listen("run:status", async (event) => {
   if (event.payload.data == "running") {
     if (hideWhileRunning.value) {
@@ -139,6 +155,7 @@ onMounted(async () => {
       >
         current file (F9)
       </el-button>
+      <el-button type="primary" @click="check">code check</el-button>
       <el-button
         type="primary"
         @click="runProject"
@@ -150,7 +167,6 @@ onMounted(async () => {
         >stop (F11)</el-button
       >
       <el-button type="primary" @click="clear">clear</el-button>
-      <!-- <el-button type="primary" @click="init">init</el-button> -->
     </el-header>
     <el-main ref="logsContainerRef">
       <div class="logs" ref="logsRef">

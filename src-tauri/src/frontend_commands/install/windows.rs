@@ -1,5 +1,5 @@
 use super::{PYTHON_INSTALL_FILE, TESSERACT_INSTALL_FILE, WHL_FILE};
-use crate::common::{PROJECTS_DIR, PYTHON_EXEC_FILE};
+use crate::common::{HOME_DIR, PYTHON_EXEC_FILE};
 use crate::utils;
 use crate::utils::fs::{current_dir, exists};
 use std::path::PathBuf;
@@ -20,7 +20,7 @@ pub fn is_installed() -> bool {
 #[tauri::command]
 pub fn initialize_projects(architecture: String) -> Result<bool, String> {
     if architecture == "x86_64" || architecture == "aarch64" {
-        let _ = utils::fs::create_dir(PROJECTS_DIR.to_string());
+        let _ = utils::fs::create_dir(HOME_DIR.to_string());
         return Ok(true);
     }
     Err("Not supported yet".to_string())

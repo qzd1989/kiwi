@@ -279,7 +279,7 @@ impl ImageBufferRgbaExt for ImageBuffer<Rgba<u8>, Vec<u8>> {
     }
 }
 
-pub static PROJECTS_DIR: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+pub static HOME_DIR: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
     directories::UserDirs::new()
         .unwrap()
         .document_dir()

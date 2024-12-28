@@ -1,3 +1,4 @@
+import { fa } from "element-plus/es/locales.mjs";
 import { createStore } from "vuex";
 
 export const store = createStore({
@@ -12,6 +13,8 @@ export const store = createStore({
       },
       //缩放倍数
       zoomFactor: 1,
+      //代码检查状态
+      codeChecking: false,
       //各views使用
       currentProjectPath: null,
       currentProjectName: null,
@@ -28,6 +31,9 @@ export const store = createStore({
     },
     zoomFactor(state) {
       return state.zoomFactor;
+    },
+    codeChecking(state) {
+      return state.codeChecking;
     },
     currentProjectPath(state) {
       return state.currentProjectPath;
@@ -54,6 +60,9 @@ export const store = createStore({
     },
     zoomFactor(state, val) {
       state.zoomFactor = val;
+    },
+    codeChecking(state, val) {
+      state.codeChecking = val;
     },
     currentProjectPath(state, val) {
       state.currentProjectPath = val;

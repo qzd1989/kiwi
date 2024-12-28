@@ -1,25 +1,19 @@
 <script setup>
-import { ref, onMounted, watch, computed, onUnmounted } from "vue";
-import {
-  createDir,
-  createFile,
-  rename as fsRename,
-  remove as fsRemove,
-  exists,
-  readDir,
-  writeFile,
-  readFile,
-} from "./../../utils/fs";
+import { ref, onMounted, watch, watchEffect } from "vue";
+import { readFile, codeCheck } from "./../../utils/api";
 //code mirror
 import { EditorView } from "codemirror";
 import CodeMirror from "vue-codemirror6";
-import { linter, lintGutter } from "@codemirror/lint";
+import { lintGutter, linter } from "@codemirror/lint";
 import { python, pythonLanguage } from "@codemirror/lang-python";
 import { oneDark } from "@codemirror/theme-one-dark";
-import * as eslint from "eslint-linter-browserify";
 import { autocompletion } from "@codemirror/autocomplete";
 import { msgError } from "./../../utils/msg";
+import { useStore } from "vuex";
+import { syntaxTree } from "@codemirror/language";
+import { invoke } from "@vueuse/core";
 const codeMirrorRef = ref(null);
+const store = useStore();
 //code mirror end
 const props = defineProps(["file", "width", "height"]);
 const emits = defineEmits(["modify"]);
@@ -27,7 +21,7 @@ const content = ref("");
 const original = ref("");
 const extensions = [
   autocompletion({
-    tooltipClass: (state) => {
+    tooltipClass: () => {
       return "custom-tooltip";
     },
   }),
@@ -51,16 +45,41 @@ async function loadContent() {
   }
 }
 
-watch(content, (newValue) => {
+async function shortcutCheck() {
+  if (store.getters.codeChecking) {
+    return;
+  }
+  await check();
+}
+
+async function check() {
+  codeCheck(props.file.path)
+    .then((data) => {
+      console.log(data);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
+
+watch(content, () => {
   if (content.value != original.value) {
     emits("modify", { path: props.file.path, content: content.value });
   }
 });
 
+watchEffect(async () => {
+  if (store.getters.focus != "editor") {
+    window.removeEventListener("keyup", shortcutCheck);
+  } else {
+    window.addEventListener("keyup", shortcutCheck);
+  }
+});
+
 onMounted(async () => {
   await loadContent();
+  await check();
 });
-onUnmounted(() => {});
 </script>
 <template>
   <el-container

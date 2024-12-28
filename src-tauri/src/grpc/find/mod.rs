@@ -14,14 +14,14 @@ use std::sync::Mutex;
 use tonic::transport::channel::Channel;
 use tonic::{Request, Response, Status};
 mod find_color;
+mod find_image;
+mod find_images;
 mod find_locating_color;
 mod find_text;
 mod global_find_color;
 mod global_find_image;
 mod global_find_images;
 mod global_find_locating_color;
-mod image;
-mod images;
 mod find {
     tonic::include_proto!("find_kiwi");
 }
@@ -41,13 +41,13 @@ impl FindService for FindServiceInstance {
         &self,
         request: Request<FindImageRequest>,
     ) -> Result<Response<FindImageReply>, Status> {
-        image::find(self, request).await
+        find_image::find(self, request).await
     }
     async fn find_images(
         &self,
         request: Request<FindImagesRequest>,
     ) -> Result<Response<FindImagesReply>, Status> {
-        images::find(self, request).await
+        find_images::find(self, request).await
     }
     async fn find_locating_color(
         &self,

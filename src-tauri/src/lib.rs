@@ -29,7 +29,7 @@ pub fn run() {
     #[cfg(all(windows, debug_assertions))]
     frontend
         .invoke_handler(tauri::generate_handler![
-            frontend_commands::projects_dir,
+            frontend_commands::home_dir,
             frontend_commands::init,
             frontend_commands::fs::create_dir,
             frontend_commands::fs::create_file,
@@ -60,6 +60,7 @@ pub fn run() {
             frontend_commands::project::stop,
             frontend_commands::project::set_project,
             frontend_commands::project::get_project_dir,
+            frontend_commands::project::code_check,
             frontend_commands::has_permission,
         ])
         .run(tauri::generate_context!())
@@ -67,8 +68,9 @@ pub fn run() {
     #[cfg(not(all(windows, debug_assertions)))]
     frontend
         .invoke_handler(tauri::generate_handler![
-            frontend_commands::projects_dir,
-            frontend_commands::init,
+            frontend_commands::app::has_permission,
+            frontend_commands::app::home_dir,
+            frontend_commands::app::init,
             frontend_commands::fs::create_dir,
             frontend_commands::fs::create_file,
             frontend_commands::fs::read_dir,
@@ -98,9 +100,9 @@ pub fn run() {
             frontend_commands::install::is_installed,
             frontend_commands::project::run,
             frontend_commands::project::stop,
-            frontend_commands::project::set_project,
+            frontend_commands::project::set_project_dir,
             frontend_commands::project::get_project_dir,
-            frontend_commands::has_permission,
+            frontend_commands::project::code_check,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

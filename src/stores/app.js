@@ -1,35 +1,27 @@
 import { invoke } from "@tauri-apps/api/core";
 import { sep } from "@tauri-apps/api/path";
-
 export const minZoomFactor = 0.5;
 export const maxZoomFactor = 1.5;
-
-export const projectsDir = await invoke("projects_dir");
+export const homeDir = await invoke("home_dir");
 export const scriptDirName = "scripts";
 export const resourceDirName = "resources";
 export const moduleDirName = "modules";
 export const defaultScriptName = "main.py";
-
 export const editableFileTypes = ["py"];
-
 export const moduleDir = async (projectName) => {
-  return (
-    projectsDir + (await sep()) + projectName + (await sep()) + moduleDirName
-  );
+  return homeDir + (await sep()) + projectName + (await sep()) + moduleDirName;
 };
 export const resourceDir = async (projectName) => {
   return (
-    projectsDir + (await sep()) + projectName + (await sep()) + resourceDirName
+    homeDir + (await sep()) + projectName + (await sep()) + resourceDirName
   );
 };
 export const scriptDir = async (projectName) => {
-  return (
-    projectsDir + (await sep()) + projectName + (await sep()) + scriptDirName
-  );
+  return homeDir + (await sep()) + projectName + (await sep()) + scriptDirName;
 };
 export const defaultScriptFile = async (projectName) => {
   return (
-    projectsDir +
+    homeDir +
     (await sep()) +
     projectName +
     (await sep()) +

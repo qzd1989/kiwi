@@ -10,10 +10,11 @@ import {
 } from "vue";
 import { useStore } from "vuex";
 import { useElementSize } from "@vueuse/core";
-import { writeFile } from "./../utils/fs";
+import { writeFile } from "./../utils/api";
 import { msgError, msgSuccess } from "./../utils/msg";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import Python from "./../components/editors/Python.vue";
+import { getAllWindows } from "@tauri-apps/api/window";
 const props = defineProps(["width", "height", "files", "lastOpenedFile"]);
 const emits = defineEmits(["remove:file"]);
 const store = useStore();
@@ -61,7 +62,6 @@ async function shortcutSave(event) {
     const content = modifiedMap.value.get(key);
     //save file
     try {
-      console.log(key, content);
       await writeFile(key, content, false).then((result) => {
         if (!result) {
           return;
@@ -75,6 +75,12 @@ async function shortcutSave(event) {
     }
   }
 }
+// async function shortcutCodeCheck() {
+//   if (props.lastOpenedFile == undefined) {
+//     return;
+//   }
+//   await invoke("code_check", { path: props.lastOpenedFile });
+// }
 async function modify(data) {
   const key = data.path;
   const content = data.content;
@@ -100,8 +106,20 @@ function openMonitor() {
   monitor.once("tauri://created", async () => {
     console.log("window successfully created");
   });
-  monitor.once("tauri://error", function (e) {
-    msgError(`open monitor failed: ${e}`);
+  monitor.once("tauri://error", async () => {
+    const windows = await getAllWindows();
+    let has = false;
+    for (const window of windows) {
+      if (window.label == "monitor") {
+        has = true;
+        window.unminimize().then(() => {
+          return window.setFocus();
+        });
+      }
+    }
+    if (!has) {
+      console.log("open monitor failed");
+    }
   });
 }
 watch(
