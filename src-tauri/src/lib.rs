@@ -60,7 +60,7 @@ pub fn run() {
             frontend_commands::project::stop,
             frontend_commands::project::set_project,
             frontend_commands::project::get_project_dir,
-            frontend_commands::project::code_check,
+            frontend_commands::project::python_check,
             frontend_commands::has_permission,
         ])
         .run(tauri::generate_context!())
@@ -102,7 +102,7 @@ pub fn run() {
             frontend_commands::project::stop,
             frontend_commands::project::set_project_dir,
             frontend_commands::project::get_project_dir,
-            frontend_commands::project::code_check,
+            frontend_commands::project::python_check,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

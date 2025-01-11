@@ -59,8 +59,8 @@ export async function readFile(path) {
   });
 }
 
-export async function codeCheck(path) {
-  return await invoke("code_check", { path }).catch((error) => {
+export async function pythonCheck(code) {
+  return await invoke("python_check", { code }).catch((error) => {
     msgError(error);
     throw error;
   });

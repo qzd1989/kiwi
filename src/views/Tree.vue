@@ -16,6 +16,7 @@ import { editableFileTypes } from "../stores/app";
 import { emitTo, listen } from "@tauri-apps/api/event";
 import RenameNode from "../components/tree/RenameNode.vue";
 import NewNode from "../components/tree/NewNode.vue";
+import { invoke } from "@tauri-apps/api/core";
 const props = defineProps(["files"]);
 const emits = defineEmits(["add:file", "clear:files"]);
 const store = useStore();
@@ -285,6 +286,7 @@ listen("get:project-path", async (event) => {
 async function test() {
   let defaultDirectory = "/Users/kiwi/rust/opencv-rust";
   defaultDirectory = "/Users/kiwi/Documents/KiwiProjects/hello";
+  await invoke("set_project_dir", { path: defaultDirectory });
   data.value = await fetchNode(defaultDirectory);
   store.commit("currentProjectName", await basename(defaultDirectory));
   store.commit("currentProjectPath", defaultDirectory);

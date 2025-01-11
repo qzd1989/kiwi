@@ -1,17 +1,7 @@
 <script setup>
-import {
-  ref,
-  onMounted,
-  watch,
-  computed,
-  reactive,
-  onUnmounted,
-  watchEffect,
-} from "vue";
+import { ref, onMounted, watch, computed, reactive, onUnmounted } from "vue";
 import { useStore } from "vuex";
 import { useElementSize } from "@vueuse/core";
-import { writeFile } from "./../utils/api";
-import { msgError, msgSuccess } from "./../utils/msg";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import Python from "./../components/editors/Python.vue";
 import { getAllWindows } from "@tauri-apps/api/window";
@@ -23,13 +13,13 @@ const footerRef = ref(null);
 const headerSize = reactive({ width: 0, height: 0 });
 const footerSize = reactive({ width: 0, height: 0 });
 const modifiedMap = ref(new Map());
-const funny = ref(false); //这个值用于重新渲染menus,因为modified本应为ref,现在改成了function,所以没法即时更新,搭这个变量的车重新渲染
 headerSize.value = useElementSize(headerRef);
 footerSize.value = useElementSize(footerRef);
 const editorHeight = computed(() => {
   return props.height - headerSize.height - footerSize.height - 60;
 });
 const currentFile = ref(null);
+const listeners = ref([]);
 function select(file) {
   currentFile.value = file;
 }
@@ -46,58 +36,30 @@ function close(event, file) {
   const first = Array.from(props.files)[0][1];
   select(first);
 }
-async function shortcutSave(event) {
-  if (
-    (event.key === "s" && event.ctrlKey) ||
-    (event.key === "s" && event.metaKey)
-  ) {
-    event.preventDefault();
-    if (!currentFile.value) {
-      return;
-    }
-    const key = currentFile.value.path;
-    if (!modifiedMap.value.has(key)) {
-      return;
-    }
-    const content = modifiedMap.value.get(key);
-    //save file
-    try {
-      await writeFile(key, content, false).then((result) => {
-        if (!result) {
-          return;
-        }
-        modifiedMap.value.delete(key);
-        funny.value = !funny.value;
-        msgSuccess(`save file success`);
-      });
-    } catch (e) {
-      msgError(`save file ${key} failed: ${e}`);
-    }
-  }
-}
-// async function shortcutCodeCheck() {
-//   if (props.lastOpenedFile == undefined) {
-//     return;
-//   }
-//   await invoke("code_check", { path: props.lastOpenedFile });
-// }
-async function modify(data) {
+async function change(data) {
   const key = data.path;
-  const content = data.content;
-  modifiedMap.value.set(key, content);
+  modifiedMap.value.set(key, true);
 }
-function modified(file) {
-  const key = file.path;
-  if (!modifiedMap.value.has(key)) {
-    return false;
-  }
-  const content = modifiedMap.value.get(key);
-  if (content == file.content) {
-    return false;
-  }
-  return true;
+function save(data) {
+  const key = data.path;
+  modifiedMap.value.delete(key);
 }
-
+function isChanged(path) {
+  return modifiedMap.value.has(path);
+}
+function addListener(data) {
+  let event = data.event;
+  let listener = data.listener;
+  window.addEventListener(event, listener);
+  listeners.value.push({ event, listener });
+  console.log(listeners.value);
+}
+function clearListeners() {
+  listeners.value.forEach((item) => {
+    //window.removeEventListener(item.event, item.listener);
+  });
+  listeners.length = 0;
+}
 function openMonitor() {
   const monitor = new WebviewWindow("monitor", {
     url: "/monitor",
@@ -139,13 +101,6 @@ watch(currentFile, async () => {
   store.commit("currentFilePath", currentFile.value.path);
   store.commit("currentFileName", currentFile.value.name);
 });
-watchEffect(async () => {
-  if (store.getters.focus != "editor") {
-    window.removeEventListener("keydown", shortcutSave);
-  } else {
-    window.addEventListener("keydown", shortcutSave);
-  }
-});
 onMounted(async () => {});
 onUnmounted(() => {});
 </script>
@@ -164,18 +119,17 @@ onUnmounted(() => {});
             class="never-select"
             :class="{ active: currentFile && currentFile.path == file[1].path }"
             :key="file[1].path"
-            :funny="funny"
             @click="select(file[1])"
           >
             <div class="name">{{ file[1].name }}</div>
             <div
-              v-if="!modified(file[1])"
+              v-if="!isChanged(file[1].path)"
               class="close"
               @click="close($event, file[1])"
             >
               ×
             </div>
-            <div v-if="modified(file[1])" class="modified">•</div>
+            <div v-if="isChanged(file[1].path)" class="modified">•</div>
           </li>
         </ul>
         <div class="layouts">
@@ -189,12 +143,16 @@ onUnmounted(() => {});
     <el-main v-if="currentFile">
       <Python
         :file="file[1]"
+        :listeners="listeners"
         :key="file[1].path"
         :height="editorHeight"
         :width="props.width"
         v-for="(file, key, index) in props.files.entries()"
         v-show="file[1].path == currentFile.path"
-        @modify="modify"
+        @change="change"
+        @save="save"
+        @listener:add="addListener"
+        @listener:clear="clearListeners"
       />
     </el-main>
   </el-container>

@@ -14,7 +14,7 @@ export const store = createStore({
       //缩放倍数
       zoomFactor: 1,
       //代码检查状态
-      codeChecking: false,
+      pythonListener: false,
       //各views使用
       currentProjectPath: null,
       currentProjectName: null,
@@ -32,8 +32,8 @@ export const store = createStore({
     zoomFactor(state) {
       return state.zoomFactor;
     },
-    codeChecking(state) {
-      return state.codeChecking;
+    pythonListener(state) {
+      return state.pythonListener;
     },
     currentProjectPath(state) {
       return state.currentProjectPath;
@@ -61,8 +61,8 @@ export const store = createStore({
     zoomFactor(state, val) {
       state.zoomFactor = val;
     },
-    codeChecking(state, val) {
-      state.codeChecking = val;
+    pythonListener(state, val) {
+      state.pythonListener = val;
     },
     currentProjectPath(state, val) {
       state.currentProjectPath = val;

@@ -13,7 +13,7 @@ import {
   unregister,
   isRegistered,
 } from "@tauri-apps/plugin-global-shortcut";
-import { codeCheck } from "../utils/api";
+import { pythonCheck } from "../utils/api";
 import { msgInfo } from "../utils/msg";
 const props = defineProps(["height", "files"]);
 const store = useStore();
@@ -91,15 +91,8 @@ async function check() {
     return;
   }
   runFile.value = store.getters.currentFilePath;
-  await codeCheck(runFile.value);
+  await pythonCheck(runFile.value);
 }
-listen("code_check:error", async (event) => {
-  let errors = JSON.parse(event.payload.data);
-  if (errors.length == 0) {
-    return;
-  }
-  console.log(errors);
-});
 listen("run:status", async (event) => {
   if (event.payload.data == "running") {
     if (hideWhileRunning.value) {

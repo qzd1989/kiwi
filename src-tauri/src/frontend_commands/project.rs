@@ -1,9 +1,12 @@
+use super::fs;
 use super::AppHandleExt as _;
 use super::PYTHON_EXEC_FILE;
 use crate::{
     capture::{listen_primary_display, CAPTURE_SWITCH, FRAME},
     common::PROJECT_DIR,
 };
+use std::path::PathBuf;
+use std::str::FromStr;
 use std::{
     io::{BufRead, BufReader},
     process::{Command, Stdio},
@@ -159,10 +162,21 @@ pub fn get_project_dir() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn code_check(app: AppHandle, path: String) {
+pub fn python_check(app: AppHandle, code: String) {
+    let project_path = PROJECT_DIR.lock().unwrap().clone();
+    if let None = project_path {
+        println!("project_dir is not set");
+        return;
+    }
+    let project_dir = project_path.unwrap();
+    let temp_path_buff = PathBuf::from_str(&project_dir).unwrap().join(".tmp.py");
+    let temp_path = temp_path_buff.to_str().unwrap().to_string();
+    println!("project_dir is {}", project_dir.clone());
+    println!("temp_path: {}", temp_path);
+    fs::write_file(temp_path.clone(), code, false).unwrap();
     std::thread::spawn(move || {
         let output_result = Command::new(PYTHON_EXEC_FILE.to_string())
-            .args(&["-m", "ruff", "check", "--output-format=json", &path])
+            .args(&["-m", "ruff", "check", "--output-format=json", &temp_path])
             .output();
         if let Err(error) = output_result {
             app.emit_with_timestamp("log:error", &error.to_string());
@@ -171,10 +185,8 @@ pub fn code_check(app: AppHandle, path: String) {
         let output = output_result.unwrap();
         if !output.stdout.is_empty() {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            app.emit_with_timestamp("code_check:error", &stdout.to_string());
+            app.emit_with_timestamp("python_check:error", &stdout.to_string());
         }
-
-        // 打印错误输出
         if !output.stderr.is_empty() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             app.emit_with_timestamp("log:error", &stderr.to_string());
