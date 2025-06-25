@@ -1,6 +1,6 @@
 <script setup>
 import "element-plus/dist/index.css";
-import { onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, watchEffect, ref } from "vue";
 import { join } from "@tauri-apps/api/path";
 import { useStateStore } from "@utils/state-store";
 import { getLocalValue, setLocalValue } from "@utils/local-store";
@@ -14,8 +14,11 @@ import {
   checkAccessibilityPermission,
   checkScreenRecordingPermission,
 } from "tauri-plugin-macos-permissions-api";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
+
 const router = useRouter();
 const stateStore = useStateStore();
+const currentZoomFactor = ref(1);
 
 const init = async () => {
   if (!(await websocketInit())) {
@@ -68,6 +71,36 @@ const websocketInit = async () => {
   return true;
 };
 
+const shortcutZoom = async (event) => {
+  if (
+    (event.key === "=" && event.ctrlKey) ||
+    (event.key === "=" && event.metaKey)
+  ) {
+    event.preventDefault();
+    stateStore.zoom.factor = Math.min(
+      stateStore.zoom.factor + 0.1,
+      stateStore.zoom.max
+    );
+  }
+  if (
+    (event.key === "-" && event.ctrlKey) ||
+    (event.key === "-" && event.metaKey)
+  ) {
+    event.preventDefault();
+    stateStore.zoom.factor = Math.max(
+      stateStore.zoom.factor - 0.1,
+      stateStore.zoom.min
+    );
+  }
+  if (
+    (event.key === "0" && event.ctrlKey) ||
+    (event.key === "0" && event.metaKey)
+  ) {
+    event.preventDefault();
+    stateStore.zoom.factor = 1;
+  }
+};
+
 listen("backend:update:project", async (event) => {
   const project = event.payload;
   if (project == null) {
@@ -90,11 +123,23 @@ listen("msg:error", (event) => {
   msgError(event.payload);
 });
 
-onMounted(async () => {
-  await init();
+watchEffect(async () => {
+  if (stateStore.zoom.factor != currentZoomFactor.value) {
+    currentZoomFactor.value = stateStore.zoom.factor;
+    await getCurrentWebview().setZoom(currentZoomFactor.value);
+  }
 });
 
-onUnmounted(async () => {});
+onMounted(async () => {
+  await init();
+  //zoom
+  window.addEventListener("keyup", shortcutZoom);
+});
+
+onUnmounted(async () => {
+  //cancel zoom
+  window.removeEventListener("keyup", shortcutZoom);
+});
 </script>
 <template>
   <router-view></router-view>
