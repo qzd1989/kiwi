@@ -19,6 +19,7 @@ const result = ref(null);
 const code = ref(null);
 const formRef = ref(null);
 const loading = ref(false);
+const pixelValue = 10;
 const form = reactive({
   points: [],
   offset: {
@@ -344,20 +345,26 @@ onMounted(async () => {
                 class="pixels"
                 :style="{
                   width:
-                    (props.params.size.width * 10) / stateStore.zoom.factor +
+                    (props.params.size.width * pixelValue) /
+                      stateStore.zoom.factor +
                     'px',
                   height:
-                    (props.params.size.height * 10) / stateStore.zoom.factor +
+                    (props.params.size.height * pixelValue) /
+                      stateStore.zoom.factor +
                     'px',
                   transformOrigin: 'top left',
                   transform: `scale(${stateStore.zoom.factor})`,
-                  gridTemplateColumns: `repeat(${props.params.size.width}, 10px)`,
+                  gridTemplateColumns: `repeat(${props.params.size.width}, ${pixelValue}px)`,
                 }"
               >
                 <div
                   class="pixel"
                   v-for="item in pixels"
-                  :style="{ 'background-color': item.hex }"
+                  :style="{
+                    'background-color': item.hex,
+                    width: pixelValue + 'px',
+                    height: pixelValue + 'px',
+                  }"
                   @click="pushColor(item)"
                   :class="{
                     selected: form.points
@@ -588,18 +595,17 @@ onMounted(async () => {
       gap: 0;
     }
     .pixel {
-      width: 10px;
-      height: 10px;
       box-sizing: border-box;
     }
     .pixel:hover,
     .selected {
-      border: 1px solid red;
+      border: 2px solid rgb(0, 0, 119);
       box-shadow: inset 0 0 5px white;
     }
 
     .peak {
       border-color: red;
+      box-shadow: inset 0 0 5px #ffff00;
     }
     .item {
       background-color: var(--LightFill);

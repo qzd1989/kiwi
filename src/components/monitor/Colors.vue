@@ -11,14 +11,16 @@ import {
 } from "@utils/common";
 import { msgError, msgSuccess } from "@utils/msg";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { load } from "@tauri-apps/plugin-store";
+import { useStateStore } from "@utils/state-store";
 
+const stateStore = useStateStore();
 const props = defineProps(["params", "monitor"]);
 const emits = defineEmits(["close", "drawItems", "clearAllItems"]);
 const code = ref(null);
 const result = ref(null);
 const formRef = ref(null);
 const loading = ref(false);
+const pixelValue = 10;
 const form = reactive({
   points: [],
   offset: {
@@ -241,7 +243,7 @@ const copy = async () => {
 
 const loadData = () => {
   form.findArea = props.params.findArea;
-  form.points = props.params.points ?? form.points;
+  form.points = props.params.points ?? [];
   result.value = code.value = null;
   setTimeout(drawImage, 100);
 };
@@ -265,14 +267,27 @@ onMounted(async () => {
               <div
                 class="pixels"
                 :style="{
-                  width: props.params.size.width * 7 + 'px',
-                  height: props.params.size.height * 7 + 'px',
+                  width:
+                    (props.params.size.width * pixelValue) /
+                      stateStore.zoom.factor +
+                    'px',
+                  height:
+                    (props.params.size.height * pixelValue) /
+                      stateStore.zoom.factor +
+                    'px',
+                  transformOrigin: 'top left',
+                  transform: `scale(${stateStore.zoom.factor})`,
+                  gridTemplateColumns: `repeat(${props.params.size.width}, ${pixelValue}px)`,
                 }"
               >
                 <div
                   class="pixel"
                   v-for="item in pixels"
-                  :style="{ 'background-color': item.hex }"
+                  :style="{
+                    'background-color': item.hex,
+                    width: pixelValue + 'px',
+                    height: pixelValue + 'px',
+                  }"
                   @click="pushColor(item)"
                   :class="{
                     selected: form.points
@@ -480,17 +495,16 @@ onMounted(async () => {
     }
     .pixels {
       border: 1px solid #000;
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      gap: 0;
     }
     .pixel {
-      width: 5px;
-      height: 5px;
-      border: 1px solid #000;
+      box-sizing: border-box;
     }
     .pixel:hover,
     .selected {
-      border-color: white;
+      border: 1px solid rgb(0, 0, 119);
+      box-shadow: inset 0 0 5px white;
     }
     .item {
       background-color: var(--LightFill);
