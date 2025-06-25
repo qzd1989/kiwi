@@ -98,7 +98,7 @@ onUnmounted(async () => {});
       </el-row>
       <el-row :gutter="0">
         <el-col :span="24">
-          <el-button type="primary" @click="clearLocalStore"
+          <el-button type="primary" @click="clearLocalStore" v-if="isDev"
             >ClearLocalStore</el-button
           >
         </el-col>
