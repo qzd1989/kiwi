@@ -21,7 +21,6 @@ jobs:
       - name: Create dirs
         run: |
           New-Item -ItemType Directory -Path "./src-tauri/assets/zip" -Force
-          New-Item -ItemType Directory -Path "./src-tauri/assets/windows/dll" -Force
           New-Item -ItemType Directory -Path "./src-tauri/assets/python/wheels" -Force
         shell: powershell
 

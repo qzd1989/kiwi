@@ -15,4 +15,7 @@
   DetailPrint "Deleting zip directory..."
   RMDir /r "$INSTDIR\zip"
 
+  DetailPrint "Deleting README.md..."
+  Delete "$INSTDIR\README.md"
+
 !macroend
