@@ -10,9 +10,11 @@ import {
   drawText,
   formatFloatRange,
   formatIntRange,
+  delay,
 } from "@utils/common";
 import { msgError, msgSuccess, msgWarn } from "@utils/msg";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+
 const props = defineProps(["params", "monitor", "imageDataPath"]);
 const emits = defineEmits(["close", "drawItems", "clearAllItems"]);
 const stateStore = useStateStore();
@@ -37,6 +39,7 @@ const magnifyingGlassCanvasRef = ref(null);
 const result = ref(null);
 const code = ref(null);
 const findType = ref("findImage");
+const loading = ref(false);
 const rules = reactive({
   name: [{ required: true, message: "", trigger: "blur" }],
   "findArea.start.x": [{ required: true, message: "", trigger: "blur" }],
@@ -316,6 +319,7 @@ const generateFindImagesCode = async () => {
 };
 
 const findImage = async () => {
+  if (loading.value) return;
   correctForm();
   findType.value = "findImage";
   result.value = code.value = null;
@@ -325,6 +329,7 @@ const findImage = async () => {
   const endPoint = form.findArea.end;
   const threshold = form.threshold;
   try {
+    loading.value = true;
     const weightPoint = await invoke("find_image", {
       origin,
       template,
@@ -343,10 +348,13 @@ const findImage = async () => {
     clearAllItems();
     result.value = code.value = null;
     msgError(error.message);
+  } finally {
+    loading.value = false;
   }
 };
 
 const findImages = async () => {
+  if (loading.value) return;
   correctForm();
   findType.value = "findImages";
   result.value = code.value = null;
@@ -356,6 +364,7 @@ const findImages = async () => {
   const endPoint = form.findArea.end;
   const threshold = formatFloatRange(form.threshold, 0.5, 1);
   try {
+    loading.value = true;
     const weightPoints = await invoke("find_images", {
       origin,
       template,
@@ -374,6 +383,8 @@ const findImages = async () => {
     clearAllItems();
     result.value = code.value = null;
     msgError(error.message);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -388,28 +399,25 @@ const saveAndCopy = async () => {
     return;
   }
   rules.name[0].required = true;
-  await formRef.value.validate(async (valid, fields) => {
-    if (!valid) {
-      return;
-    }
-    const data = await cropBase64Image(
-      canvasRef.value.toDataURL("image/png"),
-      dataExtSideLength / 2,
-      dataExtSideLength / 2,
-      props.params.size.width,
-      props.params.size.height
-    );
-    try {
-      await invoke("save_image", {
-        name: form.name,
-        data,
-      });
-      await writeText(code.value);
-      msgSuccess("copy successed");
-    } catch (error) {
-      msgError(error.message);
-    }
-  });
+  const valid = await formRef.value.validate();
+  if (!valid) return;
+  const data = await cropBase64Image(
+    canvasRef.value.toDataURL("image/png"),
+    dataExtSideLength / 2,
+    dataExtSideLength / 2,
+    props.params.size.width,
+    props.params.size.height
+  );
+  try {
+    await invoke("save_image", {
+      name: form.name,
+      data,
+    });
+    await writeText(code.value);
+    msgSuccess("copy successed");
+  } catch (error) {
+    msgError(error.message);
+  }
 };
 
 const copyFullFilePath = async () => {
@@ -556,10 +564,18 @@ onMounted(async () => {
             <div class="title">
               <span>Find Area</span>
               <div>
-                <el-button type="primary" @click="findImage">
+                <el-button
+                  type="primary"
+                  @click="findImage"
+                  :disabled="loading"
+                >
                   findOne
                 </el-button>
-                <el-button type="primary" @click="findImages">
+                <el-button
+                  type="primary"
+                  @click="findImages"
+                  :disabled="loading"
+                >
                   findMultiple
                 </el-button>
               </div>

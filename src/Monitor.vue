@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, reactive, watchEffect, watch } from "vue";
+import { ref, onMounted, onUnmounted, reactive, watchEffect } from "vue";
 import { useStateStore } from "@utils/state-store";
 import { useResizeObserver } from "@vueuse/core";
 import { Stack } from "@utils/common";
@@ -12,15 +12,13 @@ import { ElLoading } from "element-plus";
 import {
   arrayImageDataToBase64ImageData,
   cropBase64Image,
-  minimizeAll,
-  unminimizeAll,
-  delay,
 } from "@utils/common";
 import { msgError } from "@utils/msg";
 import Image from "@components/monitor/Image.vue";
 import RelativeColors from "@components/monitor/RelativeColors.vue";
 import Colors from "@components/monitor/Colors.vue";
 import Text from "@components/monitor/Text.vue";
+
 const currentZoomFactor = ref(1);
 const imageDataPath = ref("");
 const dialogOpenCodeVisible = ref(false);

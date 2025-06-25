@@ -11,11 +11,14 @@ import {
 } from "@utils/common";
 import { msgError, msgSuccess } from "@utils/msg";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { load } from "@tauri-apps/plugin-store";
+
 const props = defineProps(["params", "monitor"]);
 const emits = defineEmits(["close", "drawItems", "clearAllItems"]);
 const code = ref(null);
 const result = ref(null);
 const formRef = ref(null);
+const loading = ref(false);
 const form = reactive({
   points: [],
   offset: {
@@ -45,9 +48,11 @@ const rules = reactive({
   "offset.g": [{ required: true, message: "", trigger: "blur" }],
   "offset.b": [{ required: true, message: "", trigger: "blur" }],
 });
+
 const close = () => {
   emits("close");
 };
+
 const drawImage = () => {
   base64ToPixels(props.params.base64Data)
     .then((data) => {
@@ -70,6 +75,7 @@ const drawImage = () => {
     })
     .catch((error) => console.error(error));
 };
+
 const pushColor = async (color) => {
   if (
     form.points
@@ -84,14 +90,17 @@ const pushColor = async (color) => {
   result.value = code.value = null;
   form.points.push(color);
 };
+
 const unAdd = async () => {
   result.value = code.value = null;
   form.points.pop();
 };
+
 const removeColor = (hex) => {
   result.value = code.value = null;
   form.points = form.points.filter((item) => item.hex !== hex);
 };
+
 const generateCode = async () => {
   const hexColors = form.points.map((val) => val.hex);
   const startPoint = form.findArea.start;
@@ -108,46 +117,50 @@ const generateCode = async () => {
     msgError(error.message);
   }
 };
+
 const findColor = async () => {
+  if (loading.value) return;
   correctForm();
   result.value = code.value = null;
-  await formRef.value.validate(async (valid, fields) => {
-    if (!valid) {
-      return;
-    }
-    if (form.points.length == 0) {
-      result.value = code.value = null;
+  const valid = await formRef.value.validate();
+  if (!valid) return;
+
+  if (form.points.length == 0) {
+    result.value = code.value = null;
+    clearAllItems();
+    msgError("The colors must not be empty.");
+    return;
+  }
+  const origin = props.monitor.base64Data;
+  const hexColors = form.points.map((val) => val.hex);
+  const startPoint = form.findArea.start;
+  const endPoint = form.findArea.end;
+  const rgbOffset = form.offset;
+  try {
+    loading.value = true;
+    const locatingColors = await invoke("find_colors", {
+      origin,
+      hexColors,
+      startPoint,
+      endPoint,
+      rgbOffset,
+    });
+    if (locatingColors.length == 0) {
       clearAllItems();
-      msgError("The colors must not be empty.");
-      return;
+    } else {
+      result.value = JSON.stringify(locatingColors);
+      drawItems(locatingColors);
     }
-    const origin = props.monitor.base64Data;
-    const hexColors = form.points.map((val) => val.hex);
-    const startPoint = form.findArea.start;
-    const endPoint = form.findArea.end;
-    const rgbOffset = form.offset;
-    try {
-      const locatingColors = await invoke("find_colors", {
-        origin,
-        hexColors,
-        startPoint,
-        endPoint,
-        rgbOffset,
-      });
-      if (locatingColors.length == 0) {
-        clearAllItems();
-      } else {
-        result.value = JSON.stringify(locatingColors);
-        drawItems(locatingColors);
-      }
-      await generateCode();
-    } catch (error) {
-      clearAllItems();
-      result.value = code.value = null;
-      msgError(error.message);
-    }
-  });
+    await generateCode();
+  } catch (error) {
+    clearAllItems();
+    result.value = code.value = null;
+    msgError(error.message);
+  } finally {
+    loading.value = false;
+  }
 };
+
 const drawItems = (items) => {
   emits("drawItems", {
     callback: (ctx) => {
@@ -173,9 +186,11 @@ const drawItems = (items) => {
     },
   });
 };
+
 const clearAllItems = () => {
   emits("clearAllItems");
 };
+
 const correctForm = async () => {
   form.findArea.start.x = formatIntRange(
     form.findArea.start.x,
@@ -214,6 +229,7 @@ const correctForm = async () => {
   form.offset.g = formatIntRange(form.offset.g, { min: 0, max });
   form.offset.b = formatIntRange(form.offset.b, { min: 0, max });
 };
+
 const copy = async () => {
   try {
     await writeText(code.value);
@@ -222,15 +238,18 @@ const copy = async () => {
     msgError(`copy failed: ${error.message}`);
   }
 };
+
 const loadData = () => {
   form.findArea = props.params.findArea;
   form.points = props.params.points ?? form.points;
   result.value = code.value = null;
   setTimeout(drawImage, 100);
 };
+
 watch(props.params, () => {
   loadData();
 });
+
 onMounted(async () => {
   loadData();
 });
@@ -299,7 +318,9 @@ onMounted(async () => {
           <div class="item">
             <div class="title">
               <span>Find Area</span>
-              <el-button type="primary" @click="findColor"> find </el-button>
+              <el-button type="primary" @click="findColor" :disabled="loading">
+                find
+              </el-button>
             </div>
             <div style="margin-bottom: -10px">
               <el-row :gutter="10">

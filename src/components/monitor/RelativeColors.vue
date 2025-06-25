@@ -10,11 +10,15 @@ import {
 } from "@utils/common";
 import { msgError, msgSuccess } from "@utils/msg";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { useStateStore } from "@utils/state-store";
+
+const stateStore = useStateStore();
 const props = defineProps(["params", "monitor"]);
 const emits = defineEmits(["close", "drawItems", "clearAllItems"]);
 const result = ref(null);
 const code = ref(null);
 const formRef = ref(null);
+const loading = ref(false);
 const form = reactive({
   points: [],
   offset: {
@@ -249,46 +253,47 @@ const correctForm = async () => {
   form.offset.b = formatIntRange(form.offset.b, { min: 0, max });
 };
 const findRelativeColors = async () => {
+  if (loading.value) return;
   correctForm();
   result.value = code.value = null;
-  await formRef.value.validate(async (valid, fields) => {
-    if (!valid) {
-      return;
-    }
-    if (form.points.length == 0) {
-      result.value = code.value = null;
+  const valid = await formRef.value.validate();
+  if (!valid) return;
+  if (form.points.length == 0) {
+    result.value = code.value = null;
+    clearAllItems();
+    msgError("The colors must not be empty.");
+    return;
+  }
+  const vertexHex = getVertexHex();
+  const relativePoints = getRelativePoints();
+  const origin = props.monitor.base64Data;
+  const startPoint = form.findArea.start;
+  const endPoint = form.findArea.end;
+  const rgbOffset = form.offset;
+  try {
+    loading.value = true;
+    const peak = await invoke("find_relative_colors", {
+      origin,
+      vertexHex,
+      relativePoints,
+      startPoint,
+      endPoint,
+      rgbOffset,
+    });
+    if (peak == null) {
       clearAllItems();
-      msgError("The colors must not be empty.");
-      return;
+    } else {
+      result.value = JSON.stringify(peak);
+      drawItems(peak);
     }
-    const vertexHex = getVertexHex();
-    const relativePoints = getRelativePoints();
-    const origin = props.monitor.base64Data;
-    const startPoint = form.findArea.start;
-    const endPoint = form.findArea.end;
-    const rgbOffset = form.offset;
-    try {
-      const peak = await invoke("find_relative_colors", {
-        origin,
-        vertexHex,
-        relativePoints,
-        startPoint,
-        endPoint,
-        rgbOffset,
-      });
-      if (peak == null) {
-        clearAllItems();
-      } else {
-        result.value = JSON.stringify(peak);
-        drawItems(peak);
-      }
-      await generateCode();
-    } catch (error) {
-      clearAllItems();
-      result.value = code.value = null;
-      msgError(error.message);
-    }
-  });
+    await generateCode();
+  } catch (error) {
+    clearAllItems();
+    result.value = code.value = null;
+    msgError(error.message);
+  } finally {
+    loading.value = false;
+  }
 };
 const drawItems = (peak) => {
   emits("drawItems", {
@@ -316,7 +321,7 @@ const copy = async () => {
 };
 const loadData = () => {
   form.findArea = props.params.findArea;
-  form.points = props.params.points ?? form.points;
+  form.points = props.params.points ?? [];
   result.value = code.value = null;
   setTimeout(drawImage, 100);
 };
@@ -329,7 +334,7 @@ onMounted(async () => {
 </script>
 <template>
   <el-container>
-    <el-header>Find Locating Colors</el-header>
+    <el-header>Find Relative Colors</el-header>
     <el-main>
       <el-form ref="formRef" :model="form" :rules="rules" status-icon>
         <div class="work-area">
@@ -338,8 +343,15 @@ onMounted(async () => {
               <div
                 class="pixels"
                 :style="{
-                  width: props.params.size.width * 7 + 'px',
-                  height: props.params.size.height * 7 + 'px',
+                  width:
+                    (props.params.size.width * 10) / stateStore.zoom.factor +
+                    'px',
+                  height:
+                    (props.params.size.height * 10) / stateStore.zoom.factor +
+                    'px',
+                  transformOrigin: 'top left',
+                  transform: `scale(${stateStore.zoom.factor})`,
+                  gridTemplateColumns: `repeat(${props.params.size.width}, 10px)`,
                 }"
               >
                 <div
@@ -406,7 +418,11 @@ onMounted(async () => {
           <div class="item">
             <div class="title">
               <span>Find Area</span>
-              <el-button type="primary" @click="findRelativeColors">
+              <el-button
+                type="primary"
+                @click="findRelativeColors"
+                :disabled="loading"
+              >
                 findOne
               </el-button>
             </div>
@@ -568,17 +584,18 @@ onMounted(async () => {
     }
     .pixels {
       border: 1px solid #000;
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      gap: 0;
     }
     .pixel {
-      width: 5px;
-      height: 5px;
-      border: 1px solid #000;
+      width: 10px;
+      height: 10px;
+      box-sizing: border-box;
     }
     .pixel:hover,
     .selected {
-      border-color: white;
+      border: 1px solid red;
+      box-shadow: inset 0 0 5px white;
     }
 
     .peak {

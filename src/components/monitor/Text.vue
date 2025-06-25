@@ -1,19 +1,17 @@
 <script setup>
 import { ref, onMounted, reactive, watch } from "vue";
 import { invoke } from "@tauri-apps/api/core";
-import {
-  drawBase64ImageOnCanvas,
-  cropBase64Image,
-  drawRect,
-} from "@utils/common";
+import { drawBase64ImageOnCanvas, drawRect } from "@utils/common";
 import { msgError, msgSuccess } from "@utils/msg";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+
 const props = defineProps(["params", "monitor"]);
 const emits = defineEmits(["close", "drawItems", "clearAllItems"]);
 const result = ref(null);
 const code = ref(null);
 const formRef = ref(null);
 const canvasRef = ref(null);
+const loading = ref(false);
 const form = reactive({
   findArea: {
     start: {
@@ -37,9 +35,11 @@ const rules = reactive({
   "findArea.end.x": [{ required: true, message: "", trigger: "blur" }],
   "findArea.end.y": [{ required: true, message: "", trigger: "blur" }],
 });
+
 const close = () => {
   emits("close");
 };
+
 const drawImage = () => {
   if (canvasRef.value == null) {
     return;
@@ -53,6 +53,7 @@ const drawImage = () => {
     form.size.height
   );
 };
+
 const generateCode = async () => {
   const startPoint = form.findArea.start;
   const endPoint = form.findArea.end;
@@ -65,31 +66,34 @@ const generateCode = async () => {
     msgError(error.message);
   }
 };
+
 const recognize = async () => {
+  if (loading.value) return;
   result.value = code.value = null;
-  await formRef.value.validate(async (valid, fields) => {
-    if (!valid) {
-      return;
-    }
-    const origin = props.monitor.base64Data;
-    const startPoint = form.findArea.start;
-    const endPoint = form.findArea.end;
-    try {
-      const text = await invoke("recognize_text", {
-        origin,
-        startPoint,
-        endPoint,
-      });
-      drawItem();
-      result.value = text;
-      await generateCode();
-    } catch (error) {
-      clearAllItems();
-      result.value = code.value = null;
-      msgError(error.message);
-    }
-  });
+  const valid = await formRef.value.validate();
+  if (!valid) return;
+  const origin = props.monitor.base64Data;
+  const startPoint = form.findArea.start;
+  const endPoint = form.findArea.end;
+  try {
+    loading.value = true;
+    const text = await invoke("recognize_text", {
+      origin,
+      startPoint,
+      endPoint,
+    });
+    drawItem();
+    result.value = text;
+    await generateCode();
+  } catch (error) {
+    clearAllItems();
+    result.value = code.value = null;
+    msgError(error.message);
+  } finally {
+    loading.value = false;
+  }
 };
+
 const drawItem = () => {
   emits("drawItems", {
     callback: (ctx) => {
@@ -102,9 +106,11 @@ const drawItem = () => {
     },
   });
 };
+
 const clearAllItems = () => {
   emits("clearAllItems");
 };
+
 const copy = async () => {
   try {
     await writeText(code.value);
@@ -113,6 +119,7 @@ const copy = async () => {
     msgError(`copy failed: ${error.message}`);
   }
 };
+
 const loadData = () => {
   form.findArea = props.params.findArea;
   form.base64Data = props.params.base64Data;
@@ -124,9 +131,11 @@ const loadData = () => {
   code.value = null;
   setTimeout(drawImage, 100);
 };
+
 watch(props.params, async () => {
   loadData();
 });
+
 onMounted(async () => {
   loadData();
 });
@@ -149,7 +158,7 @@ onMounted(async () => {
           <div class="item">
             <div class="title">
               <span>Find Area</span>
-              <el-button type="primary" @click="recognize">
+              <el-button type="primary" @click="recognize" :disabled="loading">
                 Recognize
               </el-button>
             </div>
