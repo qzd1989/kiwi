@@ -2,7 +2,7 @@
   "identifier": "kiwi",
   "bundle": {
     "resources":{
-        "assets/windows/dll/*": ""
+        "assets/windows/dlls/*": ""
     },
     "targets": [
       "nsis"

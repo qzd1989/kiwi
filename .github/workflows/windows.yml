@@ -21,6 +21,7 @@ jobs:
       - name: Create dirs
         run: |
           New-Item -ItemType Directory -Path "./src-tauri/assets/zip" -Force
+          New-Item -ItemType Directory -Path "./src-tauri/assets/windows/dlls" -Force
           New-Item -ItemType Directory -Path "./src-tauri/assets/python/wheels" -Force
         shell: powershell
 
@@ -91,14 +92,14 @@ jobs:
           echo "Link Paths: $env:OPENCV_LINK_PATHS"
 
       - name: Copy Dlls
-        # copy "C:\Windows\System32\msvcp*.dll" "./src-tauri/assets/dll" 可以使用通配符
+        # copy "C:\Windows\System32\msvcp*.dll" "./src-tauri/assets/windows/dlls" 可以使用通配符
         run: |
-          copy "C:\Windows\System32\vcruntime140.dll" "./src-tauri/assets/dll"
-          copy "C:\Windows\System32\vcruntime140_1.dll" "./src-tauri/assets/dll"
-          copy "C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll" "./src-tauri/assets/dll"
-          copy "C:\Windows\System32\msvcp140.dll" "./src-tauri/assets/dll"
-          copy "C:\Windows\System32\msvcp140_1.dll" "./src-tauri/assets/dll"
-          copy "C:\Windows\System32\concrt140.dll" "./src-tauri/assets/dll"
+          copy "C:\Windows\System32\vcruntime140.dll" "./src-tauri/assets/windows/dlls"
+          copy "C:\Windows\System32\vcruntime140_1.dll" "./src-tauri/assets/windows/dlls"
+          copy "C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll" "./src-tauri/assets/windows/dlls"
+          copy "C:\Windows\System32\msvcp140.dll" "./src-tauri/assets/windows/dlls"
+          copy "C:\Windows\System32\msvcp140_1.dll" "./src-tauri/assets/windows/dlls"
+          copy "C:\Windows\System32\concrt140.dll" "./src-tauri/assets/windows/dlls"
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
