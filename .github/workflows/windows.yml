@@ -16,14 +16,20 @@ jobs:
         with:
           lfs: true
 
+      - name: Create dirs
+        run: |
+          New-Item -ItemType Directory -Path "./src-tauri/assets/zip" -Force
+          New-Item -ItemType Directory -Path "./src-tauri/assets/python/wheels" -Force
+        shell: powershell
+
       - name: Download VSCode
         run: |
           Invoke-WebRequest -Uri "https://update.code.visualstudio.com/1.101.1/win32-x64-archive/stable" -OutFile "vscode.zip"
         shell: powershell
 
-      - name: Extract VSCode (optional)
+      - name: Extract VSCode
         run: |
-          copy ".\vscode.zip" "./src-tauri/assets/zip"
+          copy "./vscode.zip" "./src-tauri/assets/zip"
 
       - name: Set up Python 3.13
         uses: actions/setup-python@v5
@@ -131,6 +137,11 @@ jobs:
           name: kiwi-installer
           path: |
             ./src-tauri/target/release/bundle/nsis/*.exe
+
+      - name: List zip directory
+        run: |
+          echo "=== Release directory content ==="
+          dir "./src-tauri/assets/zip"
 
       - name: List release directory
         run: |
