@@ -34,7 +34,7 @@
     "resources":{
         "assets/app/config.toml": "config.toml",
         "assets/zip/": "zip/",
-        "assets/python/wheels/": "python/wheels/",
+        "assets/python/wheels/*.whl": "python/wheels/",
         "assets/python/project_template/": "python/project_template/"
     }
   }

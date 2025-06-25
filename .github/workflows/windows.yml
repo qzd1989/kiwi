@@ -159,9 +159,9 @@ jobs:
           echo "=== Release directory content ==="
           dir "./src-tauri/target/release"
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: kiwi-zip
-          path: |
-            ./src-tauri/target/release
+      # - name: Upload artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: kiwi-zip
+      #     path: |
+      #       ./src-tauri/target/release
