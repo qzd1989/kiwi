@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, reactive, watch } from "vue";
 import { invoke } from "@tauri-apps/api/core";
-import { drawBase64ImageOnCanvas, drawRect } from "@utils/common";
+import { drawBase64ImageOnCanvas, drawRect, drawText } from "@utils/common";
 import { msgError, msgSuccess } from "@utils/msg";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 
@@ -82,7 +82,7 @@ const recognize = async () => {
       startPoint,
       endPoint,
     });
-    drawItem();
+    drawItem(text);
     result.value = text;
     await generateCode();
   } catch (error) {
@@ -94,7 +94,8 @@ const recognize = async () => {
   }
 };
 
-const drawItem = () => {
+const drawItem = (text) => {
+  console.log("text", text);
   emits("drawItems", {
     callback: (ctx) => {
       const areaPoint = form.findArea.start;
@@ -102,6 +103,13 @@ const drawItem = () => {
         width: form.findArea.end.x - form.findArea.start.x,
         height: form.findArea.end.y - form.findArea.start.y,
       };
+      const textPoint = {
+        x: areaPoint.x,
+        y: areaPoint.y - 10,
+      };
+      if (text != null) {
+        drawText(ctx, text, textPoint);
+      }
       drawRect(ctx, areaPoint, areaSize);
     },
   });
