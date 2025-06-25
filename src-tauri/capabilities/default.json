@@ -1,0 +1,52 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "platforms": ["macOS","windows"],
+  "windows": [
+    "main",
+    "monitor"
+  ],
+  "permissions": [
+    "core:default",
+
+    "core:window:allow-create",
+    "core:window:allow-destroy",
+    "core:window:allow-close",
+    "core:window:allow-minimize",
+    "core:window:allow-unminimize",
+    "core:window:allow-set-always-on-top",
+    "core:window:allow-set-focus",
+    "core:window:allow-set-size",
+
+    "core:webview:allow-create-webview",
+    "core:webview:allow-create-webview-window",
+    "core:webview:allow-set-webview-zoom",
+
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:event:allow-emit-to",
+
+    "store:allow-load",
+    "store:allow-get",
+    "store:allow-has",
+    "store:allow-set",
+    "store:allow-clear",
+
+    "opener:default",
+
+    "fs:default",
+
+    "dialog:default",
+
+    "clipboard-manager:allow-write-text",
+    "clipboard-manager:allow-read-text",
+
+    "global-shortcut:default",
+    "global-shortcut:allow-is-registered",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister",
+
+    "macos-permissions:default"
+  ]
+}

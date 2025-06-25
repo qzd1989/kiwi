@@ -1,0 +1,6 @@
+{
+  "identifier": "kiwi",
+  "bundle": {
+    "targets": ["dmg","app"]
+  }
+}

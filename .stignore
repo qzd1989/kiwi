@@ -1,0 +1,11 @@
+kiwi.xmind
+package-lock.json
+node_modules/
+src-tauri/Cargo.lock
+src-tauri/target/
+src-tauri/assets/python/wheels/
+.github/
+.gitignore
+.vscode/
+**/.DS_Store
+**/.git/

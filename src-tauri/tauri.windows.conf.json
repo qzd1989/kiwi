@@ -1,0 +1,19 @@
+{
+  "identifier": "kiwi",
+  "bundle": {
+    "resources":{
+        "assets/windows/dll/*": ""
+    },
+    "targets": [
+      "nsis"
+    ],
+    "windows": {
+        "digestAlgorithm": "sha256",
+        "nsis": {
+          "installerIcon": "icons/icon.ico",
+          "installMode": "perMachine",
+          "installerHooks": "./assets/windows/hooks.nsi"
+        }
+      }
+  }
+}

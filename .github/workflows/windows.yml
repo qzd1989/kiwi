@@ -1,0 +1,145 @@
+name: windows-build-on-push
+
+on:
+  push:
+  # release:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Install Git LFS
+        run: git lfs install
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Download VSCode
+        run: |
+          Invoke-WebRequest -Uri "https://update.code.visualstudio.com/1.101.1/win32-x64-archive/stable" -OutFile "vscode.zip"
+        shell: powershell
+
+      - name: Extract VSCode (optional)
+        run: |
+          copy ".\vscode.zip" "./src-tauri/assets/zip"
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "23"
+
+      - name: Cache OpenCV
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\tools\opencv
+          key: ${{ runner.os }}-tools-opencv
+
+      - name: Install llvm19.1.7, vcredist140, opencv4.11.0 and nsis via Chocolatey
+        run: |
+          choco install vcredist140 -y
+          choco install llvm --version=19.1.7 -y
+          choco install opencv --version=4.11.0 -y
+          choco install nsis -y
+
+      - name: Verify Tools Installation
+        run: |
+          dir "C:\tools"
+          dir "C:\tools\opencv"
+          dir "C:\tools\opencv\build\include"
+          dir "C:\tools\opencv\build\x64"
+          dir "C:\tools\opencv\build\x64\vc16\lib"
+          dir "C:\tools\opencv\build\x64\vc16\bin"
+
+      - name: Set OpenCV environment variables
+        run: |
+          $opencvDir = "C:\tools\opencv"
+          $includePaths = Join-Path -Path $opencvDir -ChildPath "build\include"
+          $linkLibs = Join-Path -Path $opencvDir -ChildPath "build\x64\vc16\lib\opencv_world4110.lib"
+          $linkPaths = Join-Path -Path $opencvDir -ChildPath "build\x64\vc16\lib"
+          echo "OPENCV_INCLUDE_PATHS=$includePaths" >> $env:GITHUB_ENV
+          echo "OPENCV_LINK_LIBS=$linkLibs" >> $env:GITHUB_ENV
+          echo "OPENCV_LINK_PATHS=$linkPaths" >> $env:GITHUB_ENV
+
+      - name: Verify OpenCV environment variables
+        run: |
+          echo "Include Paths: $env:OPENCV_INCLUDE_PATHS"
+          echo "Link Libs: $env:OPENCV_LINK_LIBS"
+          echo "Link Paths: $env:OPENCV_LINK_PATHS"
+
+      - name: Copy Dlls
+        # copy "C:\Windows\System32\msvcp*.dll" "./src-tauri/assets/dll" 可以使用通配符
+        run: |
+          copy "C:\Windows\System32\vcruntime140.dll" "./src-tauri/assets/dll"
+          copy "C:\Windows\System32\vcruntime140_1.dll" "./src-tauri/assets/dll"
+          copy "C:\tools\opencv\build\x64\vc16\bin\opencv_world4110.dll" "./src-tauri/assets/dll"
+          copy "C:\Windows\System32\msvcp140.dll" "./src-tauri/assets/dll"
+          copy "C:\Windows\System32\msvcp140_1.dll" "./src-tauri/assets/dll"
+          copy "C:\Windows\System32\concrt140.dll" "./src-tauri/assets/dll"
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Cache cargo registry & git
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache target/release
+        uses: actions/cache@v4
+        with:
+          path: src-tauri/target/release
+          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run tauri build
+
+      - name: List bundle directory
+        run: |
+          echo "=== Bundle directory content ==="
+          dir "./src-tauri/target/release/bundle" -Recurse
+          echo "=== NSIS directory content ==="
+          dir "./src-tauri/target/release/bundle/nsis"
+
+      - name: Upload NSIS installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: kiwi-installer
+          path: |
+            ./src-tauri/target/release/bundle/nsis/*.exe
+
+      - name: List release directory
+        run: |
+          echo "=== Release directory content ==="
+          dir "./src-tauri/target/release"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kiwi-zip
+          path: |
+            ./src-tauri/target/release

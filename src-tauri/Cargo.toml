@@ -1,0 +1,79 @@
+[package]
+name = "kiwi"
+version = "1.0.0"
+description = "A Tauri App"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "kiwi_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+regex = "1.11.1"
+anyhow = "1.0.98"
+toml = "0.8.23"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+simple-zip = { git = "https://github.com/qzd1989/simple-zip.git" }
+fs_extra = "1.3.0"
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2.2.7"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+#custom libs
+display-info = "0.5.4"
+rust-embed = { version = "8.7.2", features = ["include-exclude"] }
+anyhow = "1.0.98"
+image = { version = "0.25.6", features = ["jpeg", "png"] }
+base64 = "0.22.1"
+fs_extra = "1.3.0"
+regex = "1.11.1"
+arc-swap = "1.7.1"
+shell-words = "1.1.0"
+libc = "0.2.172"
+opencv = "0.94.4"
+paddle-ocr-rs = "0.5.2"
+tokio = { version = "1.45.0", features = ["full"] }
+tokio-util = { version = "0.7.15" }
+tokio-tungstenite = "0.26.2"
+futures-util = "0.3.31"
+dirs = "6.0.0"
+toml = "0.8.23"
+crossbeam-channel = "0.5.15"                                                   #use channel
+device_query = "3.0.1"                                                         #get mouse location
+uuid = { version = "1.17.0", features = ["v4"] }                               #todo
+rayon = "1.10.0"
+capture = { git = "https://github.com/qzd1989/capture.git" }
+enigo = { git = "https://github.com/qzd1989/enigo.git", features = ["serde"] }
+rdev = { git = "https://github.com/qzd1989/rdev.git" }                         #recording mouse and keyboard
+chrono = { version = "0.4.41", features = ["serde"] }                          #format time for logs
+#custom libs end
+
+#tauri automatically adds the following dependencies
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-os = "2"
+tauri-plugin-websocket = "2"
+tauri-plugin-store = "2"
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-pinia = "3.4.0"
+tauri-plugin-shell = "2"
+tauri-plugin-macos-permissions = "2.3.0"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-global-shortcut = "2"
+
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6.1"            #截屏时使kiwi窗口透明
+objc2-foundation = "0.3.1" #截屏时使kiwi窗口透明
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.61.3", features = [
+    "Win32_UI_WindowsAndMessaging",
+] } #截屏时使kiwi窗口透明
