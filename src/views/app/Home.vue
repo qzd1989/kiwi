@@ -6,7 +6,7 @@ import { getProjectRootDirectory } from "@utils/common";
 import { useStateStore } from "@utils/state-store";
 import { invoke } from "@tauri-apps/api/core";
 import { useRouter } from "vue-router";
-import { msgError, msgSuccess } from "@utils/msg";
+import { msgError } from "@utils/msg";
 const isDev = import.meta.env.DEV;
 const router = useRouter();
 const stateStore = useStateStore();

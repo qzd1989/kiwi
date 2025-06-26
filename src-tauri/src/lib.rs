@@ -44,6 +44,12 @@ pub fn run() {
 
             Ok(())
         })
+        .plugin(tauri_plugin_single_instance::init(|app_handle, _, _| {
+            let main_window = app_handle
+                .get_webview_window("main")
+                .expect("Main window not found");
+            let _ = main_window.set_focus();
+        }))
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_store::Builder::new().build())

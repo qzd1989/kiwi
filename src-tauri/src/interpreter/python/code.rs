@@ -71,7 +71,8 @@ client = ScreenClient()
             .iter()
             .map(|p| {
                 let Point { x, y } = p.point;
-                format!("        RelativePoint(point=Point(x={x}, y={y})),")
+                let hex = p.clone().hex;
+                format!("        RelativePoint(point=Point(x={x}, y={y})), hex=\"{hex}\"")
             })
             .collect::<Vec<_>>()
             .join("\n");
