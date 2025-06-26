@@ -129,7 +129,7 @@ const checkVersion = async () => {
 
   try {
     const appVersion = await invoke("get_app_version");
-    if (data.minimum_supported != appVersion || !data.force_update) {
+    if (data.minimum_supported != appVersion || data.force_update) {
       version.shouldUpdate = true;
     }
   } catch (error) {
